@@ -1,9 +1,24 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlaskConical, Clock, ListChecks, ShieldCheck, Play } from 'lucide-react';
-import { questions, TEST_DURATION_MINUTES, TOTAL_QUESTIONS } from './data/questions.js';
-import { loadSession, saveSession, clearSession, freshSession } from './utils/storage.js';
-import TestPage from './pages/TestPage.jsx';
-import ResultPage from './pages/ResultPage.jsx';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FlaskConical,
+  Clock,
+  ListChecks,
+  ShieldCheck,
+  Play,
+} from "lucide-react";
+import {
+  questions,
+  TEST_DURATION_MINUTES,
+  TOTAL_QUESTIONS,
+} from "./data/questions.js";
+import {
+  loadSession,
+  saveSession,
+  clearSession,
+  freshSession,
+} from "./utils/storage.js";
+import TestPage from "./pages/TestPage.jsx";
+import ResultPage from "./pages/ResultPage.jsx";
 
 const DURATION_MS = TEST_DURATION_MINUTES * 60 * 1000;
 
@@ -15,29 +30,65 @@ function StartScreen({ onStart, resumable, onResume }) {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-ink-900 text-gold-300 shadow-card">
             <FlaskConical size={22} strokeWidth={2.25} />
           </div>
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-gold-600">NEET Chemistry · Mock Test</p>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-gold-600">
+            NEET Chemistry · Mock Test
+          </p>
           <h1 className="mt-2 font-serif text-3xl font-bold text-ink-900 sm:text-4xl">
             Chemical Bonding &amp; Molecular Structure
           </h1>
-          <p className="mt-2 text-sm text-ink-500">63 questions · full NEET marking scheme · one sitting</p>
+          <p className="mt-2 text-sm text-ink-500">
+            63 questions · full NEET marking scheme · one sitting
+          </p>
         </div>
 
         <div className="rounded-xl2 border border-ink-200 bg-white p-6 shadow-card sm:p-8">
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-            <Stat icon={<ListChecks size={18} />} label="Questions" value={TOTAL_QUESTIONS} />
-            <Stat icon={<Clock size={18} />} label="Duration" value={`${TEST_DURATION_MINUTES} min`} />
-            <Stat icon={<ShieldCheck size={18} />} label="Marking" value="+4 / −1" />
-            <Stat icon={<FlaskConical size={18} />} label="Max score" value={TOTAL_QUESTIONS * 4} />
+            <Stat
+              icon={<ListChecks size={18} />}
+              label="Questions"
+              value={TOTAL_QUESTIONS}
+            />
+            <Stat
+              icon={<Clock size={18} />}
+              label="Duration"
+              value={`${TEST_DURATION_MINUTES} min`}
+            />
+            <Stat
+              icon={<ShieldCheck size={18} />}
+              label="Marking"
+              value="+4 / −1"
+            />
+            <Stat
+              icon={<FlaskConical size={18} />}
+              label="Max score"
+              value={TOTAL_QUESTIONS * 4}
+            />
           </div>
 
           <div className="my-6 h-px bg-ink-100" />
 
           <ul className="mb-6 space-y-2 text-sm text-ink-600">
-            <li>• Each correct answer earns +4 marks; each wrong answer costs −1 mark.</li>
-            <li>• The timer starts the moment you begin and submits automatically at 00:00.</li>
-            <li>• You can mark questions for review and jump between them freely.</li>
-            <li>• Your progress is saved locally, so a refresh won't lose your answers.</li>
+            <li>
+              • Each correct answer earns +4 marks; each wrong answer costs −1
+              mark.
+            </li>
+            <li>
+              • The timer starts the moment you begin and submits automatically
+              at 00:00.
+            </li>
+            <li>
+              • You can mark questions for review and jump between them freely.
+            </li>
+            <li>
+              • Your progress is saved locally, so a refresh won't lose your
+              answers.
+            </li>
           </ul>
+
+          <div className="mb-6 rounded-lg border border-gold-200 bg-gold-50 px-3 py-2 text-xs font-medium text-gold-700">
+            Fullscreen mode is required. Exiting fullscreen will automatically
+            submit the test.
+          </div>
 
           {resumable ? (
             <div className="space-y-2">
@@ -91,8 +142,17 @@ export default function App() {
   // while the tab was closed, submit it automatically.
   useEffect(() => {
     setSession((prev) => {
-      if (prev.state === 'IN_PROGRESS' && prev.endTime && Date.now() >= prev.endTime) {
-        const next = { ...prev, state: 'SUBMITTED', submittedAt: prev.endTime, autoSubmitted: true };
+      if (
+        prev.state === "IN_PROGRESS" &&
+        prev.endTime &&
+        Date.now() >= prev.endTime
+      ) {
+        const next = {
+          ...prev,
+          state: "SUBMITTED",
+          submittedAt: prev.endTime,
+          autoSubmitted: true,
+        };
         saveSession(next);
         return next;
       }
@@ -103,16 +163,22 @@ export default function App() {
 
   const updateSession = useCallback((updater) => {
     setSession((prev) => {
-      const next = typeof updater === 'function' ? updater(prev) : updater;
+      const next = typeof updater === "function" ? updater(prev) : updater;
       saveSession(next);
       return next;
     });
   }, []);
 
-  const startNewTest = useCallback(() => {
+  const startNewTest = useCallback(async () => {
     const next = freshSession(DURATION_MS);
     saveSession(next);
     setSession(next);
+
+    try {
+      await document.documentElement.requestFullscreen();
+    } catch (error) {
+      console.warn("Fullscreen request failed:", error);
+    }
   }, []);
 
   const resumeTest = useCallback(() => {
@@ -122,16 +188,16 @@ export default function App() {
   const handleSubmit = useCallback(
     (auto) => {
       updateSession((prev) => {
-        if (prev.state === 'SUBMITTED') return prev; // prevent duplicate scoring
+        if (prev.state === "SUBMITTED") return prev; // prevent duplicate scoring
         return {
           ...prev,
-          state: 'SUBMITTED',
+          state: "SUBMITTED",
           submittedAt: Math.min(Date.now(), prev.endTime ?? Date.now()),
           autoSubmitted: auto,
         };
       });
     },
-    [updateSession]
+    [updateSession],
   );
 
   const handleRetake = useCallback(() => {
@@ -139,19 +205,48 @@ export default function App() {
     startNewTest();
   }, [startNewTest]);
 
+  useEffect(() => {
+    if (session.state !== "IN_PROGRESS") return undefined;
+
+    const handleFullscreenChange = () => {
+      if (document.fullscreenElement === null) {
+        handleSubmit(true);
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, [handleSubmit, session.state]);
+
   const resumable = useMemo(
-    () => session.state === 'IN_PROGRESS' && session.endTime && Date.now() < session.endTime,
-    [session.state, session.endTime]
+    () =>
+      session.state === "IN_PROGRESS" &&
+      session.endTime &&
+      Date.now() < session.endTime,
+    [session.state, session.endTime],
   );
 
   if (!ready) return null;
 
-  if (session.state === 'NOT_STARTED') {
-    return <StartScreen onStart={startNewTest} resumable={false} onResume={resumeTest} />;
+  if (session.state === "NOT_STARTED") {
+    return (
+      <StartScreen
+        onStart={startNewTest}
+        resumable={false}
+        onResume={resumeTest}
+      />
+    );
   }
 
-  if (session.state === 'IN_PROGRESS') {
-    return <TestPage session={session} updateSession={updateSession} onSubmit={handleSubmit} />;
+  if (session.state === "IN_PROGRESS") {
+    return (
+      <TestPage
+        session={session}
+        updateSession={updateSession}
+        onSubmit={handleSubmit}
+      />
+    );
   }
 
   return <ResultPage session={session} onRetake={handleRetake} />;
@@ -159,5 +254,7 @@ export default function App() {
 
 // Sanity check kept for developers: ensures the bundled question bank matches spec.
 if (questions.length !== TOTAL_QUESTIONS) {
-  console.warn(`Expected ${TOTAL_QUESTIONS} questions, found ${questions.length}.`);
+  console.warn(
+    `Expected ${TOTAL_QUESTIONS} questions, found ${questions.length}.`,
+  );
 }
