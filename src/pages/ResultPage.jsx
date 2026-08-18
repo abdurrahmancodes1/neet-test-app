@@ -33,7 +33,7 @@ export default function ResultPage({ session, onRetake }) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-900 text-gold-300">
             <FlaskConical size={16} strokeWidth={2.25} />
           </div>
-          <p className="text-sm font-semibold text-ink-900">Chemical Bonding — Result Dashboard</p>
+          <p className="text-sm font-semibold text-ink-900">Laws of Motion — Result Dashboard</p>
           {session.autoSubmitted && (
             <span className="ml-auto rounded-full bg-gold-100 px-2.5 py-1 text-[11px] font-semibold text-gold-700">
               Auto-submitted at 00:00
