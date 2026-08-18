@@ -31,13 +31,13 @@ function StartScreen({ onStart, resumable, onResume }) {
             <FlaskConical size={22} strokeWidth={2.25} />
           </div>
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-gold-600">
-            NEET Chemistry · Mock Test
+            NEET Physics · Mock Test
           </p>
           <h1 className="mt-2 font-serif text-3xl font-bold text-ink-900 sm:text-4xl">
-            Chemical Bonding &amp; Molecular Structure
+            Laws of Motion
           </h1>
           <p className="mt-2 text-sm text-ink-500">
-            63 questions · full NEET marking scheme · one sitting
+            {TOTAL_QUESTIONS} questions · full NEET marking scheme · one sitting
           </p>
         </div>
 

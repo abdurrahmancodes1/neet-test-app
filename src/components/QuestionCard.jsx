@@ -41,6 +41,14 @@ export default function QuestionCard({
         {question.question}
       </p>
 
+      {question.image && (
+        <img
+          src={question.image}
+          alt={`Source diagram for question ${index + 1}`}
+          className="mb-6 max-h-[26rem] w-full rounded-lg border border-ink-200 bg-white object-contain p-2"
+        />
+      )}
+
       <div role="radiogroup" aria-label={`Options for question ${index + 1}`} className="flex flex-col gap-3">
         {Object.entries(question.options).map(([letter, text]) => (
           <OptionButton
