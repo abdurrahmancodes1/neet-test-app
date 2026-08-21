@@ -19,7 +19,13 @@ function StatCard({ icon, label, value, tone }) {
   );
 }
 
-export default function ResultSummary({ result, timeTakenLabel, avgTimeLabel }) {
+export default function ResultSummary({
+  result,
+  timeTakenLabel,
+  avgTimeLabel,
+  testTitle = 'Laws of Motion',
+  testSubtitle = 'A focused NEET practice test',
+}) {
   return (
     <div className="animate-rise-in rounded-xl2 border border-ink-200 bg-white p-6 shadow-card sm:p-8">
       <div className="text-center">
@@ -28,7 +34,7 @@ export default function ResultSummary({ result, timeTakenLabel, avgTimeLabel }) 
           {result.score} <span className="text-2xl text-ink-400 sm:text-3xl">/ {result.maxScore}</span>
         </h1>
         <p className="mt-1 text-lg font-semibold text-ink-600">{result.percentage.toFixed(1)}%</p>
-        <p className="mt-1 text-sm text-ink-500">Chemical Bonding &amp; Molecular Structure</p>
+        <p className="mt-1 text-sm text-ink-500">{testTitle} — {testSubtitle}</p>
       </div>
 
       <div className="mt-6 grid grid-cols-3 gap-3">

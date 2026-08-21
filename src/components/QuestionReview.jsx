@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
-import { questions } from '../data/questions.js';
+import { questions as defaultQuestions } from '../data/questions.js';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -16,7 +16,11 @@ const STATUS_BADGE = {
   unattempted: { label: 'Not Attempted', className: 'bg-ink-100 text-ink-600', icon: MinusCircle },
 };
 
-export default function QuestionReview({ perQuestion, markedForReview }) {
+export default function QuestionReview({
+  perQuestion,
+  markedForReview = [],
+  questions = defaultQuestions,
+}) {
   const [filter, setFilter] = useState('all');
   const markedSet = useMemo(() => new Set(markedForReview), [markedForReview]);
 
@@ -24,11 +28,12 @@ export default function QuestionReview({ perQuestion, markedForReview }) {
     return perQuestion
       .map((r) => ({ ...r, q: questions.find((q) => q.id === r.id) }))
       .filter((r) => {
+        if (!r.q) return false;
         if (filter === 'all') return true;
         if (filter === 'marked') return markedSet.has(r.id);
         return r.status === filter;
       });
-  }, [perQuestion, filter, markedSet]);
+  }, [perQuestion, questions, filter, markedSet]);
 
   return (
     <div className="animate-rise-in rounded-xl2 border border-ink-200 bg-white p-6 shadow-card sm:p-8">
@@ -57,7 +62,7 @@ export default function QuestionReview({ perQuestion, markedForReview }) {
       ) : (
         <div className="space-y-5">
           {items.map((r) => {
-            const badge = STATUS_BADGE[r.status];
+            const badge = STATUS_BADGE[r.status] || STATUS_BADGE.unattempted;
             const Icon = badge.icon;
             return (
               <div key={r.id} className="rounded-xl border border-ink-200 p-4 sm:p-5">
@@ -73,7 +78,12 @@ export default function QuestionReview({ perQuestion, markedForReview }) {
                       Marked
                     </span>
                   )}
-                  <span className="ml-auto rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-medium text-ink-600">
+                  {r.q.subject && (
+                    <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-medium text-ink-700">
+                      {r.q.subject}
+                    </span>
+                  )}
+                  <span className="ml-auto rounded-full bg-gold-50 px-2.5 py-0.5 text-xs font-medium text-gold-700">
                     {r.topic}
                   </span>
                 </div>
@@ -81,6 +91,16 @@ export default function QuestionReview({ perQuestion, markedForReview }) {
                 <p className="chem mb-3 whitespace-pre-line text-sm font-medium leading-relaxed text-ink-900">
                   {r.q.question}
                 </p>
+
+                {r.q.image && (
+                  <div className="mb-4 flex justify-center">
+                    <img
+                      src={r.q.image}
+                      alt={`Diagram for question ${r.id}`}
+                      className="max-h-64 rounded-lg border border-ink-200 bg-white object-contain p-2"
+                    />
+                  </div>
+                )}
 
                 <div className="grid gap-2 text-sm sm:grid-cols-2">
                   <div

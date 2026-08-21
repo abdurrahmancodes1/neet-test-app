@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { RotateCcw, FlaskConical } from 'lucide-react';
+import { RotateCcw, FlaskConical, ArrowLeft } from 'lucide-react';
 import { computeResult, formatDuration } from '../utils/scoring.js';
 import { computeTopicPerformance, getWeakStrongTopics } from '../utils/analytics.js';
 import ResultSummary from '../components/ResultSummary.jsx';
@@ -12,11 +12,19 @@ const TABS = [
   { key: 'review', label: 'Question Review' },
 ];
 
-export default function ResultPage({ session, onRetake }) {
+export default function ResultPage({ session, onRetake, test, onBackToChapters }) {
   const [tab, setTab] = useState('overview');
   const [confirmRetake, setConfirmRetake] = useState(false);
 
-  const result = useMemo(() => computeResult(session.answers), [session.answers]);
+  const testQuestions = test?.questions;
+  const testTitle = test?.title || 'Laws of Motion';
+  const testSubtitle = test?.subtitle || 'NEET Practice Test';
+
+  const result = useMemo(
+    () => computeResult(session.answers || {}, testQuestions, test?.marksCorrect, test?.marksWrong),
+    [session.answers, testQuestions, test?.marksCorrect, test?.marksWrong]
+  );
+
   const topics = useMemo(() => computeTopicPerformance(result.perQuestion), [result.perQuestion]);
   const { weakest, strongest } = useMemo(() => getWeakStrongTopics(topics), [topics]);
 
@@ -29,16 +37,31 @@ export default function ResultPage({ session, onRetake }) {
   return (
     <div className="min-h-screen bg-ink-50 pb-16">
       <header className="border-b border-ink-200 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center gap-2 px-4 py-4">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-900 text-gold-300">
-            <FlaskConical size={16} strokeWidth={2.25} />
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-900 text-gold-300">
+              <FlaskConical size={16} strokeWidth={2.25} />
+            </div>
+            <p className="text-sm font-semibold text-ink-900">{testTitle} — Result Dashboard</p>
           </div>
-          <p className="text-sm font-semibold text-ink-900">Laws of Motion — Result Dashboard</p>
-          {session.autoSubmitted && (
-            <span className="ml-auto rounded-full bg-gold-100 px-2.5 py-1 text-[11px] font-semibold text-gold-700">
-              Auto-submitted at 00:00
-            </span>
-          )}
+
+          <div className="flex items-center gap-2">
+            {onBackToChapters && (
+              <button
+                type="button"
+                onClick={onBackToChapters}
+                className="inline-flex items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 transition hover:bg-ink-100"
+              >
+                <ArrowLeft size={13} />
+                All Tests
+              </button>
+            )}
+            {session.autoSubmitted && (
+              <span className="rounded-full bg-gold-100 px-2.5 py-1 text-[11px] font-semibold text-gold-700">
+                Auto-submitted at 00:00
+              </span>
+            )}
+          </div>
         </div>
       </header>
 
@@ -62,7 +85,13 @@ export default function ResultPage({ session, onRetake }) {
 
         {tab === 'overview' && (
           <div className="space-y-6">
-            <ResultSummary result={result} timeTakenLabel={timeTakenLabel} avgTimeLabel={avgTimeLabel} />
+            <ResultSummary
+              result={result}
+              timeTakenLabel={timeTakenLabel}
+              avgTimeLabel={avgTimeLabel}
+              testTitle={testTitle}
+              testSubtitle={testSubtitle}
+            />
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"
@@ -93,7 +122,11 @@ export default function ResultPage({ session, onRetake }) {
         {tab === 'analysis' && <TopicAnalysis topics={topics} weakest={weakest} strongest={strongest} />}
 
         {tab === 'review' && (
-          <QuestionReview perQuestion={result.perQuestion} markedForReview={session.markedForReview} />
+          <QuestionReview
+            perQuestion={result.perQuestion}
+            markedForReview={session.markedForReview || []}
+            questions={testQuestions}
+          />
         )}
       </div>
 
@@ -105,9 +138,9 @@ export default function ResultPage({ session, onRetake }) {
             onClick={() => setConfirmRetake(false)}
           />
           <div className="animate-rise-in relative w-full max-w-sm rounded-t-2xl bg-white p-6 shadow-pop sm:rounded-2xl">
-            <h2 className="mb-2 text-lg font-bold text-ink-900">Retake the test?</h2>
+            <h2 className="mb-2 text-lg font-bold text-ink-900">Retake this test?</h2>
             <p className="mb-5 text-sm text-ink-600">
-              This clears your current answers, timer, and result, and starts a fresh 60-minute attempt from Q1.
+              This clears your current answers, timer, and result, and starts a fresh attempt from Q1.
             </p>
             <div className="flex gap-2">
               <button
@@ -119,7 +152,10 @@ export default function ResultPage({ session, onRetake }) {
               </button>
               <button
                 type="button"
-                onClick={onRetake}
+                onClick={() => {
+                  setConfirmRetake(false);
+                  onRetake();
+                }}
                 className="flex-1 rounded-lg bg-ink-900 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-800"
               >
                 Yes, retake

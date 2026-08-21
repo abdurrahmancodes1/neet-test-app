@@ -15,13 +15,23 @@ export default function QuestionCard({
   return (
     <div className="animate-fade-in rounded-xl2 border border-ink-200 bg-white p-5 shadow-card sm:p-7">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-md bg-ink-900 px-2.5 py-1 font-mono text-xs font-bold text-gold-300">
             Q{index + 1}
           </span>
           <span className="text-xs font-medium uppercase tracking-wide text-ink-400">
             {index + 1} of {total}
           </span>
+          {question.subject && (
+            <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-semibold text-ink-700">
+              {question.subject}
+            </span>
+          )}
+          {question.chapter && (
+            <span className="hidden sm:inline-block rounded-full bg-gold-50 px-2.5 py-0.5 text-xs font-medium text-gold-700">
+              {question.chapter}
+            </span>
+          )}
         </div>
         <button
           type="button"
@@ -42,11 +52,13 @@ export default function QuestionCard({
       </p>
 
       {question.image && (
-        <img
-          src={question.image}
-          alt={`Source diagram for question ${index + 1}`}
-          className="mb-6 max-h-[26rem] w-full rounded-lg border border-ink-200 bg-white object-contain p-2"
-        />
+        <div className="mb-6 flex justify-center">
+          <img
+            src={question.image}
+            alt={`Diagram for question ${index + 1}`}
+            className="max-h-[24rem] w-full max-w-lg rounded-lg border border-ink-200 bg-white object-contain p-3 shadow-sm"
+          />
+        </div>
       )}
 
       <div role="radiogroup" aria-label={`Options for question ${index + 1}`} className="flex flex-col gap-3">

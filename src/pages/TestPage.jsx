@@ -1,33 +1,36 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { questions } from '../data/questions.js';
+import { questions as defaultQuestions } from '../data/questions.js';
 import TestHeader from '../components/TestHeader.jsx';
 import QuestionCard from '../components/QuestionCard.jsx';
 import QuestionPalette from '../components/QuestionPalette.jsx';
 import TestNavigation from '../components/TestNavigation.jsx';
 import SubmitModal from '../components/SubmitModal.jsx';
 
-export default function TestPage({ session, updateSession, onSubmit }) {
+export default function TestPage({ session, updateSession, onSubmit, test }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [autoSubmitNotice, setAutoSubmitNotice] = useState(false);
 
-  const currentIndex = session.currentQuestion;
-  const currentQuestion = questions[currentIndex];
+  const questions = test?.questions || defaultQuestions;
+  const testTitle = test?.title || 'NEET Practice Test';
+
+  const currentIndex = Math.min(session.currentQuestion || 0, questions.length - 1);
+  const currentQuestion = questions[currentIndex] || questions[0];
   const total = questions.length;
 
   const answeredCount = useMemo(
-    () => questions.filter((q) => session.answers[q.id]).length,
-    [session.answers]
+    () => questions.filter((q) => session.answers?.[q.id]).length,
+    [questions, session.answers]
   );
   const unansweredCount = total - answeredCount;
-  const markedCount = session.markedForReview.length;
+  const markedCount = session.markedForReview?.length || 0;
 
   const selectAnswer = useCallback(
     (letter) => {
       updateSession((prev) => ({
         ...prev,
-        answers: { ...prev.answers, [currentQuestion.id]: letter },
+        answers: { ...(prev.answers || {}), [currentQuestion.id]: letter },
       }));
     },
     [currentQuestion.id, updateSession]
@@ -35,7 +38,7 @@ export default function TestPage({ session, updateSession, onSubmit }) {
 
   const clearAnswer = useCallback(() => {
     updateSession((prev) => {
-      const next = { ...prev.answers };
+      const next = { ...(prev.answers || {}) };
       delete next[currentQuestion.id];
       return { ...prev, answers: next };
     });
@@ -43,12 +46,13 @@ export default function TestPage({ session, updateSession, onSubmit }) {
 
   const toggleMark = useCallback(() => {
     updateSession((prev) => {
-      const isMarked = prev.markedForReview.includes(currentQuestion.id);
+      const markedList = prev.markedForReview || [];
+      const isMarked = markedList.includes(currentQuestion.id);
       return {
         ...prev,
         markedForReview: isMarked
-          ? prev.markedForReview.filter((id) => id !== currentQuestion.id)
-          : [...prev.markedForReview, currentQuestion.id],
+          ? markedList.filter((id) => id !== currentQuestion.id)
+          : [...markedList, currentQuestion.id],
       };
     });
   }, [currentQuestion.id, updateSession]);
@@ -66,11 +70,12 @@ export default function TestPage({ session, updateSession, onSubmit }) {
     onSubmit(true);
   }, [onSubmit]);
 
-  const marked = session.markedForReview.includes(currentQuestion.id);
+  const marked = (session.markedForReview || []).includes(currentQuestion.id);
 
   return (
     <div className="flex min-h-screen flex-col bg-ink-50">
       <TestHeader
+        title={testTitle}
         endTime={session.endTime}
         onExpire={handleExpire}
         currentIndex={currentIndex}
@@ -81,8 +86,8 @@ export default function TestPage({ session, updateSession, onSubmit }) {
       <div className="mx-auto flex w-full max-w-6xl flex-1 gap-6 px-4 py-5">
         <QuestionPalette
           questions={questions}
-          answers={session.answers}
-          marked={session.markedForReview}
+          answers={session.answers || {}}
+          marked={session.markedForReview || []}
           currentIndex={currentIndex}
           onJump={goTo}
           open={paletteOpen}
@@ -98,7 +103,7 @@ export default function TestPage({ session, updateSession, onSubmit }) {
             question={currentQuestion}
             index={currentIndex}
             total={total}
-            selected={session.answers[currentQuestion.id]}
+            selected={session.answers?.[currentQuestion.id]}
             marked={marked}
             onSelect={selectAnswer}
             onToggleMark={toggleMark}

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 320" width="100%" height="100%" style="background:#ffffff; font-family: system-ui, -apple-system, sans-serif;">
+  <!-- Figure (a) -->
+  <g transform="translate(40, 30)">
+    <text x="100" y="20" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">(a)</text>
+    <!-- Top wedge -->
+    <polygon points="20,50 180,50 180,110" fill="#f1f5f9" stroke="#0f172a" stroke-width="2"/>
+    <!-- Bottom wedge -->
+    <polygon points="20,110 20,50 180,110" fill="#e2e8f0" stroke="#0f172a" stroke-width="2"/>
+    
+    <!-- Angle theta -->
+    <path d="M 50,50 A 30,30 0 0,0 45,60" fill="none" stroke="#dc2626" stroke-width="1.5"/>
+    <text x="55" y="65" font-size="13" fill="#dc2626" font-style="italic">θ</text>
+    <path d="M 150,110 A 30,30 0 0,0 155,100" fill="none" stroke="#dc2626" stroke-width="1.5"/>
+    <text x="140" y="102" font-size="13" fill="#dc2626" font-style="italic">θ</text>
+
+    <!-- Division lines on top wedge -->
+    <line x1="60" y1="50" x2="60" y2="40" stroke="#0f172a" stroke-width="1.5"/>
+    <line x1="100" y1="50" x2="100" y2="40" stroke="#0f172a" stroke-width="1.5"/>
+    <line x1="140" y1="50" x2="140" y2="40" stroke="#0f172a" stroke-width="1.5"/>
+    <!-- Arrow indicating division spacing l -->
+    <line x1="60" y1="35" x2="100" y2="35" stroke="#475569" stroke-width="1.5"/>
+    <text x="80" y="30" font-size="12" fill="#475569" text-anchor="middle">l</text>
+  </g>
+
+  <!-- Figure (b) -->
+  <g transform="translate(300, 30)">
+    <text x="100" y="20" font-size="14" font-weight="bold" fill="#1e293b" text-anchor="middle">(b)</text>
+    <!-- Top wedge shifted -->
+    <polygon points="40,40 180,40 180,92" fill="#f1f5f9" stroke="#0f172a" stroke-width="2"/>
+    <!-- Bottom wedge shifted -->
+    <polygon points="20,120 20,68 160,120" fill="#e2e8f0" stroke="#0f172a" stroke-width="2"/>
+    <!-- Rod -->
+    <rect x="75" y="72" width="70" height="28" fill="#fbbf24" stroke="#d97706" stroke-width="1.5" rx="2"/>
+    <text x="110" y="90" font-size="13" font-weight="bold" fill="#78350f" text-anchor="middle">rod</text>
+
+    <!-- Dimension indicator -->
+    <line x1="75" y1="110" x2="145" y2="110" stroke="#0284c7" stroke-width="1.5"/>
+    <circle cx="75" cy="110" r="2.5" fill="#0284c7"/>
+    <circle cx="145" cy="110" r="2.5" fill="#0284c7"/>
+  </g>
+</svg>

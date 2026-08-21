@@ -1,6 +1,12 @@
-const STORAGE_KEY = 'neet-chem-bonding-test-session-v1';
+const getStorageKey = (testId) => {
+  if (!testId || testId === 'laws-of-motion') {
+    return 'neet-chem-bonding-test-session-v1';
+  }
+  return `neet-session-${testId}-v1`;
+};
 
-const defaultSession = () => ({
+const defaultSession = (testId = 'laws-of-motion') => ({
+  testId,
   state: 'NOT_STARTED', // NOT_STARTED | IN_PROGRESS | SUBMITTED
   answers: {}, // { [questionId]: 'A' | 'B' | 'C' | 'D' }
   markedForReview: [], // [questionId]
@@ -12,21 +18,22 @@ const defaultSession = () => ({
   autoSubmitted: false,
 });
 
-export function loadSession() {
+export function loadSession(testId) {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultSession();
+    const raw = window.localStorage.getItem(getStorageKey(testId));
+    if (!raw) return defaultSession(testId);
     const parsed = JSON.parse(raw);
-    return { ...defaultSession(), ...parsed };
+    return { ...defaultSession(testId), ...parsed };
   } catch (err) {
     console.error('Failed to load test session from localStorage:', err);
-    return defaultSession();
+    return defaultSession(testId);
   }
 }
 
-export function saveSession(session) {
+export function saveSession(session, testId) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    const id = testId || session?.testId;
+    window.localStorage.setItem(getStorageKey(id), JSON.stringify(session));
     return true;
   } catch (err) {
     console.error('Failed to save test session to localStorage:', err);
@@ -34,9 +41,9 @@ export function saveSession(session) {
   }
 }
 
-export function clearSession() {
+export function clearSession(testId) {
   try {
-    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(getStorageKey(testId));
     return true;
   } catch (err) {
     console.error('Failed to clear test session from localStorage:', err);
@@ -44,10 +51,11 @@ export function clearSession() {
   }
 }
 
-export function freshSession(durationMs) {
+export function freshSession(durationMs, testId = 'laws-of-motion') {
   const now = Date.now();
   return {
-    ...defaultSession(),
+    ...defaultSession(testId),
+    testId,
     state: 'IN_PROGRESS',
     startTime: now,
     endTime: now + durationMs,

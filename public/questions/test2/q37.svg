@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 280" width="100%" height="100%" style="background:#ffffff; font-family: system-ui, -apple-system, sans-serif;">
+  <!-- Axes -->
+  <line x1="50" y1="220" x2="340" y2="220" stroke="#0f172a" stroke-width="2"/>
+  <line x1="50" y1="220" x2="50" y2="30" stroke="#0f172a" stroke-width="2"/>
+  <text x="345" y="224" font-size="14" fill="#0f172a">v (m/s)</text>
+  <text x="50" y="20" font-size="14" fill="#0f172a" text-anchor="middle">1/a (s²/m)</text>
+
+  <!-- Line graph from (2, 2) to (4, 4) -->
+  <!-- Let origin (0, 0) be at (50, 220).
+       Scale: 1 unit v = 50px -> v=2 at 150, v=4 at 250
+       Scale: 1 unit 1/a = 35px -> 1/a=2 at 220-70=150, 1/a=4 at 220-140=80
+  -->
+  <!-- Shaded area under graph between v=2 and v=4 -->
+  <polygon points="150,220 150,150 250,80 250,220" fill="#e0f2fe"/>
+
+  <!-- Horizontal line to 2 -->
+  <line x1="50" y1="150" x2="150" y2="150" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <!-- Graph line from (2, 2) to (4, 4) -->
+  <line x1="150" y1="150" x2="250" y2="80" stroke="#0284c7" stroke-width="3"/>
+  <!-- Vertical lines -->
+  <line x1="150" y1="220" x2="150" y2="150" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <line x1="250" y1="220" x2="250" y2="80" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <line x1="50" y1="80" x2="250" y2="80" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3 3"/>
+
+  <!-- Points and text -->
+  <circle cx="150" cy="150" r="4" fill="#0284c7"/>
+  <circle cx="250" cy="80" r="4" fill="#0284c7"/>
+
+  <text x="40" y="155" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="end">2</text>
+  <text x="40" y="85" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="end">4</text>
+  <text x="150" y="240" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">2</text>
+  <text x="250" y="240" font-size="13" font-weight="bold" fill="#0f172a" text-anchor="middle">4</text>
+</svg>

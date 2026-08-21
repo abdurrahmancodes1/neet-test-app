@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 340" width="100%" height="100%" style="background:#ffffff; font-family: system-ui, -apple-system, sans-serif;">
+  <!-- Axes -->
+  <line x1="20" y1="170" x2="320" y2="170" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="170" y1="320" x2="170" y2="20" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="325" y="174" font-size="14" font-style="italic" fill="#64748b">x</text>
+  <text x="170" y="15" font-size="14" font-style="italic" fill="#64748b" text-anchor="middle">y</text>
+
+  <!-- Circle path -->
+  <circle cx="170" cy="170" r="110" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 4"/>
+
+  <!-- Center O -->
+  <circle cx="170" cy="170" r="3" fill="#0f172a"/>
+  
+  <!-- Point A in 3rd quadrant: 60 deg to negative y axis -> 210 deg from +x axis -> x = 170 - 110*sin(60) = 170 - 95.26 = 74.7, y = 170 + 110*cos(60) = 225 -->
+  <line x1="170" y1="170" x2="74.7" y2="225" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="74.7" cy="225" r="4.5" fill="#dc2626"/>
+  <text x="60" y="240" font-size="15" font-weight="bold" fill="#dc2626">A</text>
+  <!-- Velocity at A -->
+  <line x1="74.7" y1="225" x2="47" y2="177" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Point B in 1st quadrant: 30 deg to positive y axis -> x = 170 + 110*sin(30) = 225, y = 170 - 110*cos(30) = 170 - 95.26 = 74.7 -->
+  <line x1="170" y1="170" x2="225" y2="74.7" stroke="#0f172a" stroke-width="2"/>
+  <circle cx="225" cy="74.7" r="4.5" fill="#0284c7"/>
+  <text x="235" y="65" font-size="15" font-weight="bold" fill="#0284c7">B</text>
+
+  <!-- Angles -->
+  <!-- 60 deg with negative y-axis -->
+  <path d="M 170,215 A 45,45 0 0,1 131,192.5" fill="none" stroke="#e11d48" stroke-width="1.5"/>
+  <text x="135" y="230" font-size="12" font-weight="bold" fill="#e11d48">60°</text>
+
+  <!-- 30 deg with positive y-axis -->
+  <path d="M 170,125 A 45,45 0 0,1 192.5,131" fill="none" stroke="#e11d48" stroke-width="1.5"/>
+  <text x="178" y="110" font-size="12" font-weight="bold" fill="#e11d48">30°</text>
+
+  <!-- Motion arrow from A to B -->
+  <path d="M 70,210 A 118,118 0 0,1 215,70" fill="none" stroke="#0f172a" stroke-width="2"/>
+</svg>

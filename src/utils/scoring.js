@@ -1,15 +1,23 @@
-import { questions, MARKS_CORRECT, MARKS_WRONG, TOTAL_QUESTIONS } from '../data/questions.js';
+import { questions as defaultQuestions, MARKS_CORRECT, MARKS_WRONG, TOTAL_QUESTIONS } from '../data/questions.js';
 
 /**
  * Computes NEET-style scoring plus per-question status for a set of answers.
  * @param {Record<number,string>} answers - map of questionId -> selected option letter
+ * @param {Array} [questionList] - list of question objects
+ * @param {number} [marksCorrect=MARKS_CORRECT] - marks for correct answer
+ * @param {number} [marksWrong=MARKS_WRONG] - negative marks for wrong answer
  */
-export function computeResult(answers) {
+export function computeResult(
+  answers = {},
+  questionList = defaultQuestions,
+  marksCorrect = MARKS_CORRECT,
+  marksWrong = MARKS_WRONG
+) {
   let correct = 0;
   let wrong = 0;
   let unattempted = 0;
 
-  const perQuestion = questions.map((q) => {
+  const perQuestion = questionList.map((q) => {
     const selected = answers[q.id];
     let status;
     if (!selected) {
@@ -31,9 +39,10 @@ export function computeResult(answers) {
     };
   });
 
-  const rawScore = correct * MARKS_CORRECT + wrong * MARKS_WRONG;
+  const totalQuestions = questionList.length;
+  const rawScore = correct * marksCorrect + wrong * marksWrong;
   const score = Math.max(0, rawScore);
-  const maxScore = TOTAL_QUESTIONS * MARKS_CORRECT;
+  const maxScore = totalQuestions * marksCorrect;
   const percentage = maxScore > 0 ? (score / maxScore) * 100 : 0;
   const attempted = correct + wrong;
   const accuracy = attempted > 0 ? (correct / attempted) * 100 : 0;

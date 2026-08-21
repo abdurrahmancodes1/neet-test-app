@@ -2,7 +2,14 @@ import React from 'react';
 import { FlaskConical } from 'lucide-react';
 import Timer from './Timer.jsx';
 
-export default function TestHeader({ endTime, onExpire, currentIndex, total, onOpenPalette }) {
+export default function TestHeader({
+  title = 'NEET Mock Test',
+  endTime,
+  onExpire,
+  currentIndex,
+  total,
+  onOpenPalette,
+}) {
   return (
     <header className="sticky top-0 z-30 border-b border-ink-200 bg-ink-50/95 backdrop-blur supports-[backdrop-filter]:bg-ink-50/80">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
@@ -12,7 +19,7 @@ export default function TestHeader({ endTime, onExpire, currentIndex, total, onO
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-ink-900 sm:text-base">
-              Chemical Bonding <span className="hidden sm:inline">Mock Test</span>
+              {title}
             </p>
             <p className="text-xs text-ink-500 sm:hidden">Q {currentIndex + 1} / {total}</p>
           </div>
