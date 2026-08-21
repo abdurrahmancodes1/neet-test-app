@@ -1,5 +1,6 @@
 import React from 'react';
 import { TEST_LIST } from '../data/tests.js';
+import { KeyRound } from 'lucide-react';
 
 export default function ChapterTestsPage({ onSelect, onLogout }) {
   return (
@@ -25,7 +26,7 @@ export default function ChapterTestsPage({ onSelect, onLogout }) {
         </header>
 
         <div className="mb-8">
-          <p className="text-sm font-semibold text-gold-600">NEET Mock & Chapter Tests</p>
+          <p className="text-sm font-semibold text-gold-600">NEET Mock &amp; Chapter Tests</p>
           <h1 className="mt-1 font-serif text-3xl font-bold text-ink-900 sm:text-4xl">Choose a test to begin</h1>
           <p className="mt-2 text-ink-500">Build speed and accuracy with focused NEET-style practice and realistic timers.</p>
         </div>
@@ -51,9 +52,17 @@ export default function ChapterTestsPage({ onSelect, onLogout }) {
                   </div>
                 </div>
 
-                <div className="mb-5 rounded-lg bg-ink-50 p-3 text-xs leading-relaxed text-ink-600">
+                <div className="mb-4 rounded-lg bg-ink-50 p-3 text-xs leading-relaxed text-ink-600">
                   <span className="font-semibold text-ink-800">Syllabus: </span>
                   {test.syllabus}
+                </div>
+
+                <div className="mb-5 flex items-center gap-1.5 text-xs text-ink-600">
+                  <KeyRound size={13} className="text-gold-600" />
+                  <span>Test Code: </span>
+                  <code className="rounded bg-ink-100 px-1.5 py-0.5 font-mono font-bold text-ink-900">
+                    {test.testCode}
+                  </code>
                 </div>
               </div>
 
