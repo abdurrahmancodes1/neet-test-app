@@ -6,8 +6,8 @@ export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: API_BASE_URL,
+    credentials: 'include', // Automatically attaches HTTP-only session cookies
     prepareHeaders: (headers) => {
-      // Future token / session header setup
       return headers;
     },
   }),

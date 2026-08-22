@@ -1,60 +1,127 @@
-# Chemical Bonding & Molecular Structure — NEET Mock Test
+# NEET Exam Practice Platform (Full-Stack Architecture)
 
-A fully client-side, 63-question, 60-minute NEET-style mock test built with
-React + Vite + Tailwind CSS, based on the "Chemical Bonding and Molecular
-Structure" practice sheet (Yakeen NEET 2.0 2025).
+A production-grade, scalable NEET preparation and mock exam platform featuring realistic examination timers, question review palettes, authoritative server-side scoring, JWT authentication with secure HTTP-only cookies, and a reusable CLI pipeline for importing tests dynamically from PDFs into MongoDB.
 
-## Features
+---
 
-- All 63 questions from the source PDF, with the verified answer key
-- Real countdown timer (timestamp-based, accurate across tab switches),
-  auto-submits at 00:00, with 10-minute and 5-minute warnings
-- Question palette with answered / unanswered / marked-for-review states
-- Mark for review, clear response, jump to any question
-- NEET marking scheme: +4 correct, −1 wrong, 0 unattempted (score floor at 0)
-- Resume on refresh via localStorage — answers, timer, and current question
-  are all restored
-- Instant result dashboard: score, percentage, accuracy, time taken
-- Topic-wise performance breakdown with weakest/strongest areas and charts
-- Full question review mode with filters (All / Wrong / Correct /
-  Unattempted / Marked)
-- Retake flow that resets everything and starts a fresh attempt
-- Responsive, mobile-first layout with sticky header/footer navigation
-- Keyboard-accessible controls and visible focus states
+## 📁 Repository Structure
 
-## Getting started
+```
+neet-test-app/
+├── frontend/                     # React + Redux Toolkit + RTK Query Client
+│   ├── public/                   # Question diagrams & static assets
+│   ├── src/
+│   │   ├── app/                  # Redux Store Configuration
+│   │   ├── components/           # UI Components (Palette, QuestionCard, Timer, Review)
+│   │   ├── features/             # RTK Query API slices (tests, results)
+│   │   ├── pages/                # Screens (ChapterTestsPage, Instructions, TestPage, ResultPage)
+│   │   └── services/             # Base API configuration with HTTP-only credentials
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   └── index.html
+│
+├── backend/                      # Node.js + Express + MongoDB REST API Engine
+│   ├── src/
+│   │   ├── config/               # Database and environment configurations
+│   │   ├── controllers/          # Request controllers (Auth, Test, Admin, Result)
+│   │   ├── middleware/           # Auth, Role, Validation, Rate Limiting, Error Handling
+│   │   ├── models/               # Mongoose Schemas (User, Test, Question, Result)
+│   │   ├── routes/               # Modular REST routes
+│   │   ├── services/             # Scoring, Test Import, AuthService
+│   │   ├── validators/           # Zod Validation Schemas
+│   │   └── scripts/              # CLI scripts (importTest, validateTestPayload, migrateData)
+│   ├── tests/                    # Test fixtures & test suites
+│   ├── package.json
+│   └── .env.example
+│
+├── .gitignore                    # Root ignore configuration
+└── README.md
+```
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+- **Node.js**: v18+ (tested on Node v24)
+- **MongoDB**: v6+ (running locally or MongoDB Atlas)
+
+---
+
+### 2. Backend Setup & Run
 
 ```bash
+cd backend
 npm install
+cp .env.example .env
+
+# Run development server
 npm run dev
+
+# Run all backend automated tests
+npm test
 ```
 
-Then open the printed local URL (typically `http://localhost:5173`).
+---
 
-To build a production bundle:
+### 3. Frontend Setup & Run
 
 ```bash
+cd frontend
+npm install
+
+# Run Vite development server
+npm run dev
+
+# Build production bundle
 npm run build
-npm run preview
 ```
 
-## Project structure
+---
 
+## 🧪 Testing Commands
+
+```bash
+# Run all backend test suites
+cd backend
+npm test
+
+# Run individual backend test suites
+npm run test:api        # REST API endpoints & security checks
+npm run test:scoring    # NEET +4/-1 server-side scoring engine & analytics
+npm run test:auth       # Registration, login, JWT cookies, role access control
+npm run test:import     # Dynamic test importer & private passcode security
+
+# Build & verify frontend production bundle
+cd frontend
+npm run build
 ```
-src/
-├── components/       # Timer, QuestionCard, QuestionPalette, Charts, etc.
-├── data/questions.js # Single source of truth for all 63 questions
-├── pages/            # TestPage.jsx, ResultPage.jsx
-├── utils/            # scoring.js, analytics.js, storage.js
-├── App.jsx           # State machine: NOT_STARTED → IN_PROGRESS → SUBMITTED
-├── main.jsx
-└── index.css
-```
 
-## Notes on chemical notation
+---
 
-Formulas, ionic charges, and hybridisation notation (H₂O, SO₄²⁻, sp³, σ, π,
-etc.) are rendered using proper Unicode sub/superscript characters directly
-in the question data, so no extra math-rendering library is required and the
-text stays fully selectable and accessible.
-# neet-test-app
+## 📥 Dynamic Test Import Workflow (PDF → MongoDB)
+
+Adding new tests requires **zero frontend code modifications**:
+
+1. **Extract & Format**: Use Gemini CLI to extract questions and metadata from any NEET PDF into a JSON payload (`sampleNeetTest.json`).
+2. **Validate Payload**:
+   ```bash
+   cd backend
+   npm run validate:test -- tests/fixtures/sampleNeetTest.json
+   ```
+3. **Import to MongoDB**:
+   ```bash
+   cd backend
+   npm run import:test -- tests/fixtures/sampleNeetTest.json
+   ```
+4. **Instant Availability**: The test immediately appears in the React test selection dashboard.
+
+---
+
+## 🔒 Security Invariants
+
+- **Hidden Answer Keys**: `correctAnswer` and `explanation` are protected in MongoDB with `select: false`. They are never returned in student question endpoints.
+- **Private Test Codes**: `testCode` and `allowedCodes` are protected server-side with `select: false`. Passcodes are verified via `POST /api/tests/access` without returning the code.
+- **HTTP-Only Cookies**: Authentication sessions use secure, `HttpOnly`, `SameSite=Lax` cookies, preventing XSS token theft.
+- **Result Isolation**: Students can only view their own test results (enforced with 403 Forbidden checks).

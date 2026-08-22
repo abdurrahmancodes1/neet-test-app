@@ -4,12 +4,12 @@ import { fileURLToPath } from 'node:url';
 import { connectDatabase, closeDatabase } from '../config/database.js';
 import { Test, Question } from '../models/index.js';
 import { ScoringService } from '../services/scoringService.js';
-import { computeResult as computeFrontendResult } from '../../../src/utils/scoring.js';
-import { TESTS } from '../../../src/data/tests.js';
+import { computeResult as computeFrontendResult } from '../../../frontend/src/utils/scoring.js';
+import { TESTS } from '../../../frontend/src/data/tests.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '../../../');
+const projectRoot = path.resolve(__dirname, '../../../frontend');
 
 export async function runMigration() {
   console.log('====================================================');
