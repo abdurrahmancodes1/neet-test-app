@@ -1,9 +1,24 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
+function getQuestionKey(q) {
+  return q.order ?? q.id ?? q._id;
+}
+
 function statusOf(q, answers, marked) {
-  const isAnswered = Boolean(answers[q.id]);
-  const isMarked = marked.includes(q.id);
+  const key = getQuestionKey(q);
+  const isAnswered = Boolean(
+    answers[key] ??
+    (q._id && answers[q._id]) ??
+    (q.order && answers[q.order]) ??
+    (q.id && answers[q.id])
+  );
+  const isMarked =
+    marked.includes(key) ||
+    (q._id && marked.includes(q._id)) ||
+    (q.order && marked.includes(q.order)) ||
+    (q.id && marked.includes(q.id));
+
   if (isAnswered && isMarked) return 'answered-marked';
   if (isMarked) return 'marked';
   if (isAnswered) return 'answered';
@@ -31,9 +46,10 @@ function Grid({ questions, answers, marked, currentIndex, onJump }) {
       {questions.map((q, idx) => {
         const status = statusOf(q, answers, marked);
         const isCurrent = idx === currentIndex;
+        const key = getQuestionKey(q) || idx;
         return (
           <button
-            key={q.id}
+            key={key}
             type="button"
             onClick={() => onJump(idx)}
             aria-label={`Go to question ${idx + 1}, ${status.replace('-', ' ')}${isCurrent ? ', current question' : ''}`}
@@ -64,7 +80,15 @@ export function PaletteLegend() {
 }
 
 export function PaletteSummary({ questions, answers, marked }) {
-  const answeredCount = questions.filter((q) => answers[q.id]).length;
+  const answeredCount = questions.filter((q) => {
+    const key = getQuestionKey(q);
+    return Boolean(
+      answers[key] ??
+      (q._id && answers[q._id]) ??
+      (q.order && answers[q.order]) ??
+      (q.id && answers[q.id])
+    );
+  }).length;
   const markedCount = marked.length;
   const unansweredCount = questions.length - answeredCount;
   return (

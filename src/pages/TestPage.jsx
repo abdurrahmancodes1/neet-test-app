@@ -1,26 +1,39 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { AlertTriangle } from 'lucide-react';
-import { questions as defaultQuestions } from '../data/questions.js';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import TestHeader from '../components/TestHeader.jsx';
 import QuestionCard from '../components/QuestionCard.jsx';
 import QuestionPalette from '../components/QuestionPalette.jsx';
 import TestNavigation from '../components/TestNavigation.jsx';
 import SubmitModal from '../components/SubmitModal.jsx';
 
+function getQKey(q) {
+  return q ? (q.order ?? q.id ?? q._id) : null;
+}
+
 export default function TestPage({ session, updateSession, onSubmit, test }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [autoSubmitNotice, setAutoSubmitNotice] = useState(false);
 
-  const questions = test?.questions || defaultQuestions;
+  const questions = test?.questions || [];
   const testTitle = test?.title || 'NEET Practice Test';
 
-  const currentIndex = Math.min(session.currentQuestion || 0, questions.length - 1);
-  const currentQuestion = questions[currentIndex] || questions[0];
+  const currentIndex = Math.min(session.currentQuestion || 0, Math.max(0, questions.length - 1));
+  const currentQuestion = questions[currentIndex] || questions[0] || {};
+  const currentKey = getQKey(currentQuestion);
   const total = questions.length;
 
   const answeredCount = useMemo(
-    () => questions.filter((q) => session.answers?.[q.id]).length,
+    () =>
+      questions.filter((q) => {
+        const k = getQKey(q);
+        return Boolean(
+          session.answers?.[k] ??
+          (q._id && session.answers?.[q._id]) ??
+          (q.order && session.answers?.[q.order]) ??
+          (q.id && session.answers?.[q.id])
+        );
+      }).length,
     [questions, session.answers]
   );
   const unansweredCount = total - answeredCount;
@@ -28,34 +41,51 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
 
   const selectAnswer = useCallback(
     (letter) => {
+      if (!currentKey) return;
       updateSession((prev) => ({
         ...prev,
-        answers: { ...(prev.answers || {}), [currentQuestion.id]: letter },
+        answers: { ...(prev.answers || {}), [currentKey]: letter },
       }));
     },
-    [currentQuestion.id, updateSession]
+    [currentKey, updateSession]
   );
 
   const clearAnswer = useCallback(() => {
+    if (!currentKey) return;
     updateSession((prev) => {
       const next = { ...(prev.answers || {}) };
-      delete next[currentQuestion.id];
+      delete next[currentKey];
+      if (currentQuestion._id) delete next[currentQuestion._id];
+      if (currentQuestion.order) delete next[currentQuestion.order];
+      if (currentQuestion.id) delete next[currentQuestion.id];
       return { ...prev, answers: next };
     });
-  }, [currentQuestion.id, updateSession]);
+  }, [currentKey, currentQuestion, updateSession]);
 
   const toggleMark = useCallback(() => {
+    if (!currentKey) return;
     updateSession((prev) => {
       const markedList = prev.markedForReview || [];
-      const isMarked = markedList.includes(currentQuestion.id);
+      const isMarked =
+        markedList.includes(currentKey) ||
+        (currentQuestion._id && markedList.includes(currentQuestion._id)) ||
+        (currentQuestion.order && markedList.includes(currentQuestion.order)) ||
+        (currentQuestion.id && markedList.includes(currentQuestion.id));
+
       return {
         ...prev,
         markedForReview: isMarked
-          ? markedList.filter((id) => id !== currentQuestion.id)
-          : [...markedList, currentQuestion.id],
+          ? markedList.filter(
+              (id) =>
+                id !== currentKey &&
+                id !== currentQuestion._id &&
+                id !== currentQuestion.order &&
+                id !== currentQuestion.id
+            )
+          : [...markedList, currentKey],
       };
     });
-  }, [currentQuestion.id, updateSession]);
+  }, [currentKey, currentQuestion, updateSession]);
 
   const goTo = useCallback(
     (idx) => {
@@ -70,7 +100,29 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
     onSubmit(true);
   }, [onSubmit]);
 
-  const marked = (session.markedForReview || []).includes(currentQuestion.id);
+  const marked = Boolean(
+    (session.markedForReview || []).includes(currentKey) ||
+    (currentQuestion._id && (session.markedForReview || []).includes(currentQuestion._id)) ||
+    (currentQuestion.order && (session.markedForReview || []).includes(currentQuestion.order)) ||
+    (currentQuestion.id && (session.markedForReview || []).includes(currentQuestion.id))
+  );
+
+  const selectedAnswer =
+    session.answers?.[currentKey] ??
+    (currentQuestion._id && session.answers?.[currentQuestion._id]) ??
+    (currentQuestion.order && session.answers?.[currentQuestion.order]) ??
+    (currentQuestion.id && session.answers?.[currentQuestion.id]);
+
+  if (questions.length === 0) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-ink-50">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-ink-900" />
+          <p className="text-sm font-semibold text-ink-600">Loading test questions...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-ink-50">
@@ -103,7 +155,7 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
             question={currentQuestion}
             index={currentIndex}
             total={total}
-            selected={session.answers?.[currentQuestion.id]}
+            selected={selectedAnswer}
             marked={marked}
             onSelect={selectAnswer}
             onToggleMark={toggleMark}

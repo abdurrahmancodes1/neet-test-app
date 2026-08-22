@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
-import { questions as defaultQuestions } from '../data/questions.js';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -17,18 +16,30 @@ const STATUS_BADGE = {
 };
 
 export default function QuestionReview({
-  perQuestion,
+  perQuestion = [],
   markedForReview = [],
-  questions = defaultQuestions,
+  questions = [],
 }) {
   const [filter, setFilter] = useState('all');
   const markedSet = useMemo(() => new Set(markedForReview), [markedForReview]);
 
   const items = useMemo(() => {
     return perQuestion
-      .map((r) => ({ ...r, q: questions.find((q) => q.id === r.id) }))
+      .map((r, idx) => {
+        const matchingQ = questions.find((q) => (q.order ?? q.id) === (r.order ?? r.id ?? r.questionNumber)) || {};
+        return {
+          ...matchingQ,
+          ...r,
+          id: r.order ?? r.id ?? r.questionNumber ?? idx + 1,
+          question: r.question || matchingQ.question,
+          options: r.options || matchingQ.options || {},
+          image: r.image || matchingQ.image || null,
+          subject: r.subject || matchingQ.subject,
+          selected: r.selectedOption || r.selected,
+        };
+      })
       .filter((r) => {
-        if (!r.q) return false;
+        if (!r.question) return false;
         if (filter === 'all') return true;
         if (filter === 'marked') return markedSet.has(r.id);
         return r.status === filter;
@@ -64,6 +75,9 @@ export default function QuestionReview({
           {items.map((r) => {
             const badge = STATUS_BADGE[r.status] || STATUS_BADGE.unattempted;
             const Icon = badge.icon;
+            const selectedText = r.selected && r.options ? r.options[r.selected] : null;
+            const correctText = r.correctAnswer && r.options ? r.options[r.correctAnswer] : null;
+
             return (
               <div key={r.id} className="rounded-xl border border-ink-200 p-4 sm:p-5">
                 <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -78,24 +92,26 @@ export default function QuestionReview({
                       Marked
                     </span>
                   )}
-                  {r.q.subject && (
+                  {r.subject && (
                     <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-medium text-ink-700">
-                      {r.q.subject}
+                      {r.subject}
                     </span>
                   )}
-                  <span className="ml-auto rounded-full bg-gold-50 px-2.5 py-0.5 text-xs font-medium text-gold-700">
-                    {r.topic}
-                  </span>
+                  {r.topic && (
+                    <span className="ml-auto rounded-full bg-gold-50 px-2.5 py-0.5 text-xs font-medium text-gold-700">
+                      {r.topic}
+                    </span>
+                  )}
                 </div>
 
                 <p className="chem mb-3 whitespace-pre-line text-sm font-medium leading-relaxed text-ink-900">
-                  {r.q.question}
+                  {r.question}
                 </p>
 
-                {r.q.image && (
+                {r.image && (
                   <div className="mb-4 flex justify-center">
                     <img
-                      src={r.q.image}
+                      src={r.image}
                       alt={`Diagram for question ${r.id}`}
                       className="max-h-64 rounded-lg border border-ink-200 bg-white object-contain p-2"
                     />
@@ -110,13 +126,13 @@ export default function QuestionReview({
                   >
                     <p className="text-xs font-semibold uppercase tracking-wide opacity-70">Your answer</p>
                     <p className="chem font-medium">
-                      {r.selected ? `${r.selected}. ${r.q.options[r.selected]}` : 'Not attempted'}
+                      {r.selected ? `${r.selected}${selectedText ? `. ${selectedText}` : ''}` : 'Not attempted'}
                     </p>
                   </div>
                   <div className="rounded-lg bg-good-100 px-3 py-2">
                     <p className="text-xs font-semibold uppercase tracking-wide opacity-70">Correct answer</p>
                     <p className="chem font-medium">
-                      {r.correctAnswer}. {r.q.options[r.correctAnswer]}
+                      {r.correctAnswer ? `${r.correctAnswer}${correctText ? `. ${correctText}` : ''}` : '—'}
                     </p>
                   </div>
                 </div>

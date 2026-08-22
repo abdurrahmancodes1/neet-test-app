@@ -1,15 +1,17 @@
-import { questions as defaultQuestions, MARKS_CORRECT, MARKS_WRONG, TOTAL_QUESTIONS } from '../data/questions.js';
+export const MARKS_CORRECT = 4;
+export const MARKS_WRONG = -1;
 
 /**
  * Computes NEET-style scoring plus per-question status for a set of answers.
- * @param {Record<number,string>} answers - map of questionId -> selected option letter
- * @param {Array} [questionList] - list of question objects
- * @param {number} [marksCorrect=MARKS_CORRECT] - marks for correct answer
- * @param {number} [marksWrong=MARKS_WRONG] - negative marks for wrong answer
+ * Pure computation utility — independent of static question files.
+ * @param {Record<string|number,string>} answers - map of question identifier -> selected option letter
+ * @param {Array} [questionList=[]] - list of question objects
+ * @param {number} [marksCorrect=4] - marks for correct answer
+ * @param {number} [marksWrong=-1] - negative marks for wrong answer
  */
 export function computeResult(
   answers = {},
-  questionList = defaultQuestions,
+  questionList = [],
   marksCorrect = MARKS_CORRECT,
   marksWrong = MARKS_WRONG
 ) {
@@ -17,24 +19,37 @@ export function computeResult(
   let wrong = 0;
   let unattempted = 0;
 
-  const perQuestion = questionList.map((q) => {
-    const selected = answers[q.id];
-    let status;
+  const perQuestion = questionList.map((q, idx) => {
+    const qKey = q.order ?? q.id ?? q._id ?? idx + 1;
+    const selected =
+      answers[qKey] ??
+      (q._id && answers[q._id]) ??
+      (q.order && answers[q.order]) ??
+      (q.id && answers[q.id]) ??
+      null;
+
+    let status = 'unattempted';
     if (!selected) {
       unattempted += 1;
       status = 'unattempted';
-    } else if (selected === q.correctAnswer) {
+    } else if (q.correctAnswer && selected.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase()) {
       correct += 1;
       status = 'correct';
     } else {
       wrong += 1;
       status = 'wrong';
     }
+
     return {
-      id: q.id,
-      topic: q.topic,
+      id: qKey,
+      questionNumber: qKey,
+      topic: q.topic || 'General',
+      subject: q.subject || 'NEET',
+      question: q.question,
+      options: q.options || {},
+      image: q.image || null,
       selected: selected || null,
-      correctAnswer: q.correctAnswer,
+      correctAnswer: q.correctAnswer || null,
       status,
     };
   });
@@ -54,8 +69,8 @@ export function computeResult(
     rawScore,
     score,
     maxScore,
-    percentage,
-    accuracy,
+    percentage: Math.round(percentage * 10) / 10,
+    accuracy: Math.round(accuracy * 10) / 10,
     perQuestion,
   };
 }

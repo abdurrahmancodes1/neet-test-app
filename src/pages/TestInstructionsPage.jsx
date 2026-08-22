@@ -1,36 +1,41 @@
 import React, { useState } from 'react';
-import { Lock, KeyRound, AlertCircle } from 'lucide-react';
-import { questions as defaultQuestions, TEST_DURATION_MINUTES as defaultDuration } from '../data/questions.js';
+import { Lock, AlertCircle, Loader2, ShieldCheck } from 'lucide-react';
+import { useVerifyTestAccessMutation } from '../features/tests/testsApiSlice.js';
 
 export default function TestInstructionsPage({ test, onBack, onStart }) {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
+  const [verifyAccess, { isLoading: isVerifying }] = useVerifyTestAccessMutation();
 
-  const qCount = test ? test.questions.length : defaultQuestions.length;
-  const duration = test ? test.durationMinutes : defaultDuration;
-  const title = test ? test.title : 'Laws of Motion';
-  const badge = test ? `${test.subject} · ${test.chapter}` : 'Physics · Laws of Motion';
-  const difficulty = test ? test.difficulty : 'Hard';
-  const subject = test ? test.subject : 'Physics';
-  const expectedCode = test?.testCode || 'NEET2025';
-  const allowedCodes = test?.allowedCodes || [expectedCode];
+  const qCount = test?.totalQuestions || test?.questions?.length || 45;
+  const duration = test?.durationMinutes || 60;
+  const title = test?.title || 'NEET Practice Test';
+  const badge = test?.chapter ? `${test.subject} · ${test.chapter}` : test?.subject || 'NEET Test';
+  const difficulty = test?.difficulty || 'Hard';
+  const subject = test?.subject || 'NEET';
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e?.preventDefault();
-    const cleanInput = code.trim().toUpperCase().replace(/\s+/g, '');
+    const cleanInput = code.trim();
     if (!cleanInput) {
-      setError('Please enter a test code to unlock and start the test.');
+      setError('Please enter your test access passcode to begin.');
       return;
     }
-    const isMatch = allowedCodes.some(
-      (c) => c.toUpperCase().replace(/[-\s]/g, '') === cleanInput.replace(/[-\s]/g, '')
-    );
-    if (!isMatch) {
-      setError(`Invalid test code. (Use test code "${expectedCode}")`);
-      return;
-    }
+
     setError('');
-    onStart();
+    try {
+      const response = await verifyAccess({
+        testId: test?.id || test?._id,
+        testCode: cleanInput,
+      }).unwrap();
+
+      if (response && response.unlocked) {
+        onStart();
+      }
+    } catch (err) {
+      const msg = err?.data?.message || err?.error || 'Invalid test access code. Please check your passcode.';
+      setError(msg);
+    }
   };
 
   return (
@@ -46,8 +51,8 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
         <section className="rounded-xl2 border border-ink-200 bg-white p-6 shadow-card sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold-600">{badge}</p>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-50 px-2.5 py-1 text-xs font-semibold text-gold-800 border border-gold-200">
-              <KeyRound size={12} className="text-gold-600" /> Test Code: <strong className="font-mono text-ink-900">{expectedCode}</strong>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-100 px-2.5 py-1 text-xs font-semibold text-ink-700">
+              <ShieldCheck size={13} className="text-gold-600" /> Passcode Protected
             </span>
           </div>
 
@@ -85,7 +90,7 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
           <form onSubmit={handleSubmit} className="mt-7 space-y-4 border-t border-ink-100 pt-6">
             <div>
               <label htmlFor="test-code-input" className="block text-sm font-bold text-ink-900">
-                Enter Test Code to Start
+                Enter Test Passcode to Start
               </label>
               <div className="relative mt-2">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-ink-400">
@@ -99,9 +104,10 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
                     setCode(e.target.value);
                     if (error) setError('');
                   }}
-                  placeholder={`Enter test code (e.g. ${expectedCode})`}
+                  placeholder="Enter private test code"
                   className="w-full rounded-lg border border-ink-200 bg-white py-3 pl-10 pr-4 font-mono text-sm font-semibold uppercase tracking-wider text-ink-900 placeholder:normal-case placeholder:tracking-normal placeholder:font-sans placeholder:text-ink-400 focus:border-ink-900 focus:outline-none focus:ring-1 focus:ring-ink-900"
                   autoComplete="off"
+                  disabled={isVerifying}
                 />
               </div>
               {error && (
@@ -114,9 +120,11 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-ink-900 py-3.5 text-sm font-bold text-white transition hover:bg-ink-800 focus:ring-2 focus:ring-ink-800 focus:ring-offset-2"
+              disabled={isVerifying}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-ink-900 py-3.5 text-sm font-bold text-white transition hover:bg-ink-800 focus:ring-2 focus:ring-ink-800 focus:ring-offset-2 disabled:opacity-60"
             >
-              Unlock &amp; Start Test
+              {isVerifying && <Loader2 size={16} className="animate-spin" />}
+              {isVerifying ? 'Verifying Passcode...' : 'Unlock & Start Test'}
             </button>
           </form>
         </section>

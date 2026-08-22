@@ -1,0 +1,70 @@
+{
+  "title": "Thermodynamics & Thermal Physics Mini Mock",
+  "slug": "thermodynamics-thermal-physics-mock",
+  "subtitle": "Heat transfer, laws of thermodynamics & kinetic theory",
+  "type": "chapter",
+  "subjects": ["Physics"],
+  "chapters": ["Thermodynamics"],
+  "syllabus": "First and Second Laws of Thermodynamics, Carnot Engine, Heat Capacity, Specific Heat",
+  "difficulty": "Hard",
+  "testCode": "NEET-THERMO",
+  "durationMinutes": 10,
+  "markingScheme": {
+    "correct": 4,
+    "wrong": -1,
+    "unattempted": 0
+  },
+  "questions": [
+    {
+      "order": 1,
+      "subject": "Physics",
+      "chapter": "Thermodynamics",
+      "topic": "First Law of Thermodynamics",
+      "difficulty": "Hard",
+      "type": "mcq",
+      "question": "In an adiabatic process, the state of a gas is changed from \\(P_1, V_1, T_1\\) to \\(P_2, V_2, T_2\\). Which of the following relations is correct where \\(\\gamma = C_p/C_v\\)?",
+      "options": {
+        "A": "P_1 V_1^\\gamma = P_2 V_2^\\gamma",
+        "B": "T_1 V_1^\\gamma = T_2 V_2^\\gamma",
+        "C": "P_1 T_1^\\gamma = P_2 T_2^\\gamma",
+        "D": "P_1 V_1 = P_2 V_2"
+      },
+      "correctAnswer": "A",
+      "explanation": "For an adiabatic reversible process of an ideal gas, PV^gamma = constant."
+    },
+    {
+      "order": 2,
+      "subject": "Physics",
+      "chapter": "Thermodynamics",
+      "topic": "Carnot Engine Efficiency",
+      "difficulty": "Hard",
+      "type": "mcq",
+      "question": "A Carnot engine operates between source temperature 500 K and sink temperature 300 K. The efficiency of the engine is:",
+      "options": {
+        "A": "20%",
+        "B": "40%",
+        "C": "60%",
+        "D": "80%"
+      },
+      "correctAnswer": "B",
+      "explanation": "Efficiency η = 1 - T_sink/T_source = 1 - 300/500 = 200/500 = 0.40 (40%)."
+    },
+    {
+      "order": 3,
+      "subject": "Physics",
+      "chapter": "Thermodynamics",
+      "topic": "Work Done in Isothermal Process",
+      "difficulty": "Medium",
+      "type": "mcq",
+      "question": "The work done during an isothermal expansion of 1 mole of an ideal gas from volume \\(V_1\\) to \\(V_2\\) at temperature \\(T\\) is:",
+      "options": {
+        "A": "RT ln(V_2/V_1)",
+        "B": "RT (V_2 - V_1)",
+        "C": "zero",
+        "D": "RT (V_1/V_2)"
+      },
+      "correctAnswer": "A",
+      "explanation": "W = ∫ P dV = ∫ (RT/V) dV = RT ln(V_2/V_1)."
+    }
+  ]
+}

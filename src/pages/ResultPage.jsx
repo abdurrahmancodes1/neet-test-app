@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { RotateCcw, FlaskConical, ArrowLeft } from 'lucide-react';
-import { computeResult, formatDuration } from '../utils/scoring.js';
-import { computeTopicPerformance, getWeakStrongTopics } from '../utils/analytics.js';
+import { RotateCcw, FlaskConical, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { formatDuration } from '../utils/scoring.js';
 import ResultSummary from '../components/ResultSummary.jsx';
 import TopicAnalysis from '../components/TopicAnalysis.jsx';
 import QuestionReview from '../components/QuestionReview.jsx';
@@ -12,23 +11,70 @@ const TABS = [
   { key: 'review', label: 'Question Review' },
 ];
 
-export default function ResultPage({ session, onRetake, test, onBackToChapters }) {
+export default function ResultPage({ session, onRetake, test, backendResult, onBackToChapters }) {
   const [tab, setTab] = useState('overview');
   const [confirmRetake, setConfirmRetake] = useState(false);
 
-  const testQuestions = test?.questions;
-  const testTitle = test?.title || 'Laws of Motion';
-  const testSubtitle = test?.subtitle || 'NEET Practice Test';
+  const testTitle = backendResult?.test?.title || test?.title || 'NEET Practice Test';
+  const testSubtitle = backendResult?.test?.subtitle || test?.subtitle || 'NEET Practice Test';
 
-  const result = useMemo(
-    () => computeResult(session.answers || {}, testQuestions, test?.marksCorrect, test?.marksWrong),
-    [session.answers, testQuestions, test?.marksCorrect, test?.marksWrong]
-  );
+  // Harmonized authoritative result from server
+  const result = useMemo(() => {
+    if (backendResult) {
+      return {
+        score: backendResult.score ?? 0,
+        rawScore: backendResult.rawScore ?? 0,
+        maxScore: backendResult.maxScore ?? (test?.totalQuestions || 45) * 4,
+        percentage: backendResult.percentage ?? 0,
+        accuracy: backendResult.accuracy ?? 0,
+        correct: backendResult.correctCount ?? 0,
+        wrong: backendResult.wrongCount ?? 0,
+        unattempted: backendResult.unattemptedCount ?? 0,
+        totalQuestions: backendResult.totalQuestions ?? 45,
+        perQuestion: (backendResult.answers || []).map((a, idx) => ({
+          id: a.order || idx + 1,
+          questionNumber: a.order || idx + 1,
+          order: a.order || idx + 1,
+          subject: a.subject,
+          chapter: a.chapter,
+          topic: a.topic || 'General',
+          question: a.question || `Question ${a.order || idx + 1}`,
+          options: a.options || {},
+          image: a.image || null,
+          selected: a.selectedOption,
+          selectedOption: a.selectedOption,
+          correctAnswer: a.correctAnswer,
+          explanation: a.explanation,
+          isCorrect: a.isCorrect,
+          marks: a.marksAwarded,
+          status: a.status,
+        })),
+      };
+    }
 
-  const topics = useMemo(() => computeTopicPerformance(result.perQuestion), [result.perQuestion]);
-  const { weakest, strongest } = useMemo(() => getWeakStrongTopics(topics), [topics]);
+    // Fallback if network is completely offline
+    const totalQ = test?.totalQuestions || test?.questions?.length || 45;
+    return {
+      score: 0,
+      rawScore: 0,
+      maxScore: totalQ * 4,
+      percentage: 0,
+      accuracy: 0,
+      correct: 0,
+      wrong: 0,
+      unattempted: totalQ,
+      totalQuestions: totalQ,
+      perQuestion: [],
+    };
+  }, [backendResult, test]);
 
-  const timeTakenMs = session.submittedAt && session.startTime ? session.submittedAt - session.startTime : 0;
+  const topics = backendResult?.topicPerformance || [];
+  const weakest = backendResult?.weakestTopics || [];
+  const strongest = backendResult?.strongestTopics || [];
+
+  const startT = backendResult?.startTime ? new Date(backendResult.startTime).getTime() : session.startTime;
+  const endT = backendResult?.submittedAt ? new Date(backendResult.submittedAt).getTime() : session.submittedAt;
+  const timeTakenMs = endT && startT ? Math.max(0, endT - startT) : 0;
   const timeTakenLabel = formatDuration(timeTakenMs);
   const attempted = result.correct + result.wrong;
   const avgMs = attempted > 0 ? timeTakenMs / attempted : 0;
@@ -46,6 +92,11 @@ export default function ResultPage({ session, onRetake, test, onBackToChapters }
           </div>
 
           <div className="flex items-center gap-2">
+            {backendResult && (
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-good-50 px-2.5 py-1 text-[11px] font-semibold text-good-700 border border-good-200">
+                <CheckCircle2 size={12} className="text-good-600" /> Verified Server Scoring
+              </span>
+            )}
             {onBackToChapters && (
               <button
                 type="button"
@@ -125,7 +176,7 @@ export default function ResultPage({ session, onRetake, test, onBackToChapters }
           <QuestionReview
             perQuestion={result.perQuestion}
             markedForReview={session.markedForReview || []}
-            questions={testQuestions}
+            questions={result.perQuestion}
           />
         )}
       </div>
