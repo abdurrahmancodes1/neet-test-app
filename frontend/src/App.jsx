@@ -11,6 +11,7 @@ import ChapterTestsPage from './pages/ChapterTestsPage.jsx';
 import TestInstructionsPage from './pages/TestInstructionsPage.jsx';
 import TestPage from './pages/TestPage.jsx';
 import ResultPage from './pages/ResultPage.jsx';
+import Class10ChemistryExamPage from './pages/Class10ChemistryExamPage.jsx';
 
 const LOGIN_KEY = 'neet_logged_in';
 const ACTIVE_TEST_KEY = 'neet_active_test_id';
@@ -130,6 +131,12 @@ export default function App() {
     try {
       window.localStorage.setItem(ACTIVE_TEST_KEY, selectedId);
     } catch {}
+
+    if (selectedId === 'class-10-chemistry') {
+      setScreen('class-10-chemistry');
+      return;
+    }
+
     const s = loadSession(selectedId);
     setSession(s);
     if (s.state === 'IN_PROGRESS') {
@@ -216,6 +223,10 @@ export default function App() {
 
   if (screen === 'chapters') {
     return <ChapterTestsPage onSelect={handleSelectTest} onLogout={logout} />;
+  }
+
+  if (screen === 'class-10-chemistry') {
+    return <Class10ChemistryExamPage onBack={backToChapters} />;
   }
 
   if (screen === 'instructions') {

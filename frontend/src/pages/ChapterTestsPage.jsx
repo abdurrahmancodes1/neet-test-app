@@ -59,6 +59,53 @@ export default function ChapterTestsPage({ onSelect, onLogout }) {
           )}
         </div>
 
+        {/* Featured CBSE Class 10 Chemistry Question Paper */}
+        <div className="mb-10 overflow-hidden rounded-2xl border-2 border-gold-300 bg-gradient-to-br from-white via-gold-50/20 to-gold-100/30 p-6 shadow-card transition hover:shadow-pop sm:p-8">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+            <div className="max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-gold-200/80 px-3 py-1 text-xs font-black uppercase tracking-wider text-gold-900">
+                  CBSE Class 10 Science
+                </span>
+                <span className="rounded-full bg-ink-100 px-3 py-1 text-xs font-semibold text-ink-700">
+                  Timed Paper Mode
+                </span>
+              </div>
+              <h2 className="mt-3 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
+                Class 10 Chemistry — CBSE Question Paper
+              </h2>
+              <p className="mt-2 text-sm leading-relaxed text-ink-600">
+                Official CBSE question paper format covering <strong>Chemical Reactions &amp; Equations</strong>, <strong>Acids, Bases &amp; Salts</strong>, and <strong>Metals &amp; Non-metals</strong>. Features a 50-minute continuous countdown timer for handwriting answers on physical paper.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-ink-700">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-white/80 px-3 py-1.5 border border-ink-200">
+                  <Clock size={13} className="text-gold-600" /> 50 Minutes Timed
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-lg bg-white/80 px-3 py-1.5 border border-ink-200">
+                  <BookOpen size={13} className="text-gold-600" /> Physical Answer Sheet
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-lg bg-white/80 px-3 py-1.5 border border-ink-200">
+                  <Award size={13} className="text-gold-600" /> Auto-Locking Timer
+                </span>
+              </div>
+            </div>
+
+            <div className="shrink-0">
+              <button
+                type="button"
+                onClick={() => onSelect('class-10-chemistry')}
+                className="w-full md:w-auto rounded-xl bg-ink-900 px-6 py-4 text-sm font-bold text-white shadow-pop transition hover:bg-ink-800"
+              >
+                Open Question Paper →
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <h2 className="font-serif text-xl font-bold text-ink-900">NEET Mock Tests</h2>
+        </div>
+
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-ink-600" />
