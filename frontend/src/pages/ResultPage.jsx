@@ -77,9 +77,9 @@ export default function ResultPage({ session, onRetake, test, backendResult, onB
     };
   }, [backendResult, test, session?.answers]);
 
-  const topics = backendResult?.topicPerformance || [];
-  const weakest = backendResult?.weakestTopics || [];
-  const strongest = backendResult?.strongestTopics || [];
+  const topics = backendResult?.topicPerformance || result.topicPerformance || [];
+  const weakest = backendResult?.weakestTopics || result.weakestTopics || [];
+  const strongest = backendResult?.strongestTopics || result.strongestTopics || [];
 
   const startT = backendResult?.startTime ? new Date(backendResult.startTime).getTime() : session.startTime;
   const endT = backendResult?.submittedAt ? new Date(backendResult.submittedAt).getTime() : session.submittedAt;

@@ -59,6 +59,31 @@ export function computeResult(
   const attempted = correct + wrong;
   const accuracy = attempted > 0 ? (correct / attempted) * 100 : 0;
 
+  // Topic Performance breakdown
+  const topicMap = {};
+  perQuestion.forEach((pq) => {
+    const topicName = pq.topic || 'General';
+    if (!topicMap[topicName]) {
+      topicMap[topicName] = { topic: topicName, total: 0, correct: 0, wrong: 0, unattempted: 0 };
+    }
+    topicMap[topicName].total += 1;
+    if (pq.status === 'correct') topicMap[topicName].correct += 1;
+    else if (pq.status === 'wrong') topicMap[topicName].wrong += 1;
+    else topicMap[topicName].unattempted += 1;
+  });
+
+  const topicPerformance = Object.values(topicMap).map((t) => ({
+    ...t,
+    mastery: t.total > 0 ? Math.round((t.correct / t.total) * 1000) / 10 : 0,
+  }));
+
+  const sortedByMastery = [...topicPerformance].sort((a, b) => a.mastery - b.mastery);
+  const weakestTopics = sortedByMastery.filter((t) => t.mastery < 70).slice(0, 3);
+  const strongestTopics = [...topicPerformance]
+    .filter((t) => t.correct > 0)
+    .sort((a, b) => b.mastery - a.mastery)
+    .slice(0, 3);
+
   return {
     correct,
     wrong,
@@ -68,6 +93,10 @@ export function computeResult(
     maxScore,
     percentage: Math.round(percentage * 10) / 10,
     accuracy: Math.round(accuracy * 10) / 10,
+    totalQuestions,
+    topicPerformance,
+    weakestTopics,
+    strongestTopics,
     perQuestion,
   };
 }

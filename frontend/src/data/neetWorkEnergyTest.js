@@ -1,6 +1,6 @@
 /**
  * NEET 2027 Comprehensive Mock Test: Work, Energy and Power
- * 60 High-Yield Questions (45 from Yakeen NEET + 15 Curated from Prayas JEE)
+ * 60 High-Yield Questions with Verified Diagrams & Solutions
  * Duration: 120 Minutes (2 Hours) | Marking: +4 / -1 / 0
  */
 
@@ -31,7 +31,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Initial KE = (1/2)mv\u00b2 = (1/2)m(16) = 8m. When KE is halved, KE = 4m. By conservation of mechanical energy: Loss in KE = Gain in PE => 8m - 4m = mgh => 4m = m(10)h => h = 4/10 = 0.4 m.",
     "topic": "Conservation of Energy",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 2,
@@ -46,7 +47,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "Work done = Area under F-x graph from x = 0 to 6 m. Area = Rectangle (0 to 3) + Triangle (3 to 6) = (3 * 3) + (1/2 * 3 * 3) = 9 + 4.5 = 13.5 J.",
     "topic": "Work Done by Variable Force",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": "/questions/wep/q2_force_graph.png"
   },
   {
     "id": 3,
@@ -61,7 +63,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "Watt (J/s) is the SI unit of power. Kilowatt hour, Erg, and Calorie are units of energy/work.",
     "topic": "Power & Units",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 4,
@@ -76,7 +79,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "In vertical circular motion, tension in string is maximum at the lowest point: T_bottom = mg + mv\u00b2/R. Hence it is most likely to break at the lowest point.",
     "topic": "Vertical Circular Motion",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 5,
@@ -91,7 +95,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "Momentum p = \u221a(2m * KE). Since KE is the same, p \u221d \u221am. The heavier body (larger mass m) has greater momentum.",
     "topic": "Kinetic Energy and Momentum",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 6,
@@ -106,7 +111,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Work W = F * d * cos(\u03b8). If displacement d = 0, work done is zero. Reason correctly defines work.",
     "topic": "Work Definition",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 7,
@@ -121,7 +127,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "By conservation of energy: (1/2)mv\u00b2 = (1/2)kx\u00b2 => 0.5 * (1.5)\u00b2 = 50 * x\u00b2 => 0.5 * 2.25 = 50 * x\u00b2 => 1.125 / 50 = x\u00b2 => x\u00b2 = 0.0225 => x = 0.15 m.",
     "topic": "Spring Potential Energy",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": "/questions/wep/q7_spring_collision.png"
   },
   {
     "id": 8,
@@ -136,7 +143,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "W = \u222b F dx = \u222b kx dx = (k/2)(x_f\u00b2 - x_i\u00b2). For (I): (k/2)(16 - 4) = +6k (Positive -> Q). For (II): (k/2)(4 - 16) = -6k (Negative -> P). For (III): (k/2)(4 - 4) = 0 (Zero -> R). Hence B is correct.",
     "topic": "Work by Variable Force",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": "/questions/wep/q8_column_match.png"
   },
   {
     "id": 9,
@@ -151,7 +159,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "W = \u222b\u2080\u2075 (3x\u00b2 + 2x - 7) dx = [x\u00b3 + x\u00b2 - 7x]\u2080\u2075 = (125 + 25 - 35) - 0 = 115 J.",
     "topic": "Integration Work",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 10,
@@ -166,7 +175,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "Work done against gravity depends only on m, g, and h: W = mgh. It is independent of the time taken. Hence the ratio of work done is 1 : 1.",
     "topic": "Work vs Power",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 11,
@@ -181,7 +191,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Mass of hanging part = M/3. Center of mass of hanging part is at distance (L/3)/2 = L/6 below the table edge. Work done = m_hang * g * h_cm = (M/3) * g * (L/6) = MgL/18.",
     "topic": "Work on Chain / Extended Bodies",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 12,
@@ -196,7 +207,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "During free fall, height h decreases, so gravitational potential energy U = mgh decreases (converting into kinetic energy).",
     "topic": "Potential Energy",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 13,
@@ -211,7 +223,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "a = F/m = (2t i\u0302 + 3t\u00b2 j\u0302). Velocity v = \u222b a dt = (t\u00b2 i\u0302 + t\u00b3 j\u0302). Instantaneous Power P = F \u00b7 v = (2t)(t\u00b2) + (3t\u00b2)(t\u00b3) = 2t\u00b3 + 3t\u2075 W.",
     "topic": "Instantaneous Power",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 14,
@@ -226,7 +239,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Work W = F \u00b7 d = (2*3 + 3*4 + 4*5) = 6 + 12 + 20 = 38 J. Average power P = W/t = 38 / 4 = 9.5 W.",
     "topic": "Dot Product and Power",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 15,
@@ -241,7 +255,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "p = \u221a(2m * KE). Since KE is equal, p\u2081/p\u2082 = \u221a(m\u2081/m\u2082) = \u221a(1/4) = 1/2.",
     "topic": "Momentum and Energy",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 16,
@@ -256,7 +271,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "E_k = (1/2)mV\u00b2. Since E_k is directly proportional to V\u00b2, the graph is a parabola symmetric about the E_k axis opening upwards.",
     "topic": "Graphs in Mechanics",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": "/questions/wep/q16_ke_graphs.png"
   },
   {
     "id": 17,
@@ -271,7 +287,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "T_bottom = mg + mv\u00b2/r = mg + m(7gr)/r = mg + 7mg = 8 mg.",
     "topic": "Vertical Circle Dynamics",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 18,
@@ -286,7 +303,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Area from 0 to 4 = (1/2 * 4 * 20) = +40 J. Area from 4 to 8 = (1/2 * 4 * -20) = -40 J. Total work done = +40 - 40 = 0 J.",
     "topic": "F-x Graph Analysis",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": "/questions/wep/q18_force_distance.png"
   },
   {
     "id": 19,
@@ -301,7 +319,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "Decrease in PE = mgh = 0.2 kg * 10 m/s\u00b2 * 200 m = 400 J.",
     "topic": "Conservation of Mechanical Energy",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 20,
@@ -316,7 +335,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "By work-energy theorem: W = \u0394KE = (1/2)mv\u00b2 - 0 = (1/2)mv\u00b2. Hence W is proportional to v\u00b2, which is a parabola opening upwards.",
     "topic": "Work-Energy Theorem Graph",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": "/questions/wep/q20_work_graphs.png"
   },
   {
     "id": 21,
@@ -331,7 +351,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "KE = p\u00b2/(2m). For small percentage changes: %\u0394KE \u2248 2 * %\u0394p = 2 * (0.01%) = 0.02%.",
     "topic": "Approximation in Energy",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 22,
@@ -346,7 +367,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "W = F * d * cos(\u03b8) => 25 = 5 * 10 * cos(\u03b8) => 25 = 50 cos(\u03b8) => cos(\u03b8) = 1/2 => \u03b8 = 60\u00b0.",
     "topic": "Work Formula",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 23,
@@ -361,7 +383,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "For a conservative field, work done is completely independent of the path followed. Therefore, statement B is incorrect.",
     "topic": "Conservative Forces",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 24,
@@ -376,7 +399,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "By energy conservation: v_top\u00b2 = v_bot\u00b2 - 4gR = 400 - 4(10)(5) = 400 - 200 = 200 m\u00b2/s\u00b2. At highest point: N + mg = mv_top\u00b2/R => N = 2*(200)/5 - 2*10 = 80 - 20 = 60 N. In dynes: 60 N = 60 * 10\u2075 dynes = 6 \u00d7 10\u2076 dynes.",
     "topic": "Vertical Circle Track",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 25,
@@ -391,7 +415,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "Power P = F * v = (m * a) * (a * t) = m * a\u00b2 * t. Since m and a are constant, P \u221d t.",
     "topic": "Power and Kinematics",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 26,
@@ -406,7 +431,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Force F = -dU/dx. Magnitude of force is greatest where the absolute slope |dU/dx| of the U-x graph is steepest, which is region CD.",
     "topic": "Potential Energy and Force",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": "/questions/wep/q26_pe_curve.png"
   },
   {
     "id": 27,
@@ -421,7 +447,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "Work done = \u222b\u2080\u1d38 (ax + bx\u00b2) dx = [a x\u00b2/2 + b x\u00b3/3]\u2080\u1d38 = aL\u00b2/2 + bL\u00b3/3.",
     "topic": "Variable Restoring Force",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 28,
@@ -436,7 +463,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Friction always opposes relative motion, so work done by friction along a closed loop is negative (non-zero). Hence friction is a non-conservative force. Both statements are correct.",
     "topic": "Friction and Non-conservative Forces",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 29,
@@ -451,7 +479,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "Total vertical descent h = 2 m + 0.5 m = 2.5 m. Loss in gravitational PE = Gain in spring PE => mg(h + x) = (1/2)kx\u00b2 => (0.2 * 10 * 2.5) = (1/2) * k * (0.5)\u00b2 => 5 = (1/2) * k * 0.25 => 5 = 0.125 k => k = 5 / 0.125 = 40 N/m.",
     "topic": "Spring and Gravity Conservation",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 30,
@@ -466,7 +495,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "t = y^(1/3) + 5 => y^(1/3) = t - 5 => y = (t - 5)\u00b3. Velocity v = dy/dt = 3(t - 5)\u00b2. At t = 0 s, v = 3(-5)\u00b2 = 75 m/s. At t = 10 s, v = 3(10 - 5)\u00b2 = 75 m/s. Since initial and final speed are identical (75 m/s), \u0394KE = 0. By work-energy theorem, Work done = 0 J.",
     "topic": "Work-Energy Theorem Application",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 31,
@@ -481,7 +511,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Work-Energy Theorem: Total work done by all forces (net force) acting on a body equals the change in its kinetic energy: W_net = \u0394K.",
     "topic": "Work-Energy Theorem",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 32,
@@ -496,7 +527,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "v_bot\u00b2 = 8gR. v_top\u00b2 = v_bot\u00b2 - 4gR = 4gR. T_bot = mg + m(8gR)/R = 9mg. T_top = m(4gR)/R - mg = 3mg. T_top / T_bot = 3mg / 9mg = 1/3.",
     "topic": "Vertical Circle Tension Ratio",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 33,
@@ -511,7 +543,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "F = -dU/dx = -(6x - 4) = 4 - 6x. At x = 0, F = +4 N = 4 i\u0302 N.",
     "topic": "Force from Potential Energy",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 34,
@@ -526,7 +559,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Friction opposes motion down the incline (acts up the incline, \u03b8 = 180\u00b0), so work done by friction is negative. Assertion is false; Reason correctly explains positive work.",
     "topic": "Assertion Reason Work",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 35,
@@ -541,7 +575,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "By energy conservation from release to maximum elongation x_max: Loss in gravitational PE = Gain in spring PE => mg x_max = (1/2) k x_max\u00b2 => x_max = 2mg/k.",
     "topic": "Maximum Spring Elongation",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": "/questions/wep/q35_vertical_spring.png"
   },
   {
     "id": 36,
@@ -556,7 +591,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Acceleration a = v\u2081 / t\u2081. Force F = ma = m v\u2081 / t\u2081. Velocity at time t: v(t) = at = (v\u2081 / t\u2081) t. Instantaneous power P = F * v = (m v\u2081 / t\u2081) * (v\u2081 t / t\u2081) = (m v\u2081\u00b2 t) / t\u2081\u00b2.",
     "topic": "Power and Time Relation",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 37,
@@ -571,7 +607,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "W = (1/2)k(x\u2082\u00b2 - x\u2081\u00b2). Here x\u2081 = 0.15 m, x\u2082 = 0.30 m. W = 0.5 * 5000 * (0.09 - 0.0225) = 2500 * 0.0675 = 168.75 J.",
     "topic": "Work Done on Spring",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 38,
@@ -586,7 +623,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Displacement \u0394r = r\u2082 - r\u2081 = (4 - 2)i\u0302 + (3 - 0)j\u0302 + (-1 - 1)k\u0302 = (2i\u0302 + 3j\u0302 - 2k\u0302) m. Work W = F \u00b7 \u0394r = (3*2) + (1*3) + (0*-2) = 6 + 3 + 0 = 9 J.",
     "topic": "3D Work Calculation",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 39,
@@ -601,7 +639,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Since v = \u221a(gR) < \u221a(2gR), the ball will not cross the horizontal level (\u03b8 \u2264 90\u00b0). By energy conservation: (1/2)m v\u00b2 = mgh => (1/2)m (gR) = mgh => h = R/2.",
     "topic": "Vertical Circular Motion Height",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": "/questions/wep/q39_ball_drum.png"
   },
   {
     "id": 40,
@@ -616,7 +655,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Loss in PE = Gain in KE => mgR = (1/2)mv\u00b2 => v = \u221a(2gR) = \u221a(2 * 9.8 * 1) = \u221a19.6 \u2248 4.43 m/s.",
     "topic": "Conservation of Mechanical Energy",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": "/questions/wep/q40_curved_track.png"
   },
   {
     "id": 41,
@@ -631,7 +671,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "W\u2081 = (1/2)m(10\u00b2 - 0\u00b2) = 50m = W. W\u2082 = (1/2)m(20\u00b2 - 10\u00b2) = (1/2)m(400 - 100) = 150m = 3 * (50m) = 3W.",
     "topic": "Work-Energy Theorem",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 42,
@@ -646,7 +687,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "v\u00b2 = |v|\u00b2 = 2\u00b2 + 5\u00b2 = 4 + 25 = 29 m\u00b2/s\u00b2. KE = (1/2)mv\u00b2 = 0.5 * 0.12 kg * 29 = 0.06 * 29 = 1.74 J.",
     "topic": "Kinetic Energy with Vector Velocity",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 43,
@@ -661,7 +703,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Velocity v = dx/dt = 2t/3. At t = 0, v = 0. At t = 2 s, v = 4/3 m/s. Work done W = \u0394KE = (1/2)m(v\u00b2 - 0) = (1/2)(2)(4/3)\u00b2 = 16/9 J.",
     "topic": "Work and Calculus",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 44,
@@ -676,7 +719,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Since force F is always along the instantaneous displacement tangent (cos 0\u00b0 = 1), W = \u222b F ds = F * (Arc length of quarter circle) = F * (\u03c0 l / 2).",
     "topic": "Work on Curved Path",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": "/questions/wep/q44_string_circle.png"
   },
   {
     "id": 45,
@@ -691,7 +735,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "Initial KE = 98 J. Half KE = 49 J. Loss in KE = Gain in PE => 49 = mgh => 49 = (2)(9.8)h => 49 = 19.6 h => h = 49 / 19.6 = 2.5 m.",
     "topic": "Energy Conservation in Projectile",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 46,
@@ -706,7 +751,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "C",
     "explanation": "By work-energy theorem: (1/2)mv\u00b2 = (1/2)K x_max\u00b2 + \u03bcmg x_max => 0.5*(0.04)*(16) = 0.5*(2)*x_max\u00b2 + (0.01)*(0.04)*(10)*x_max => 0.32 = x_max\u00b2 + 0.004 x_max => x\u00b2_max + 0.004 x_max - 0.32 = 0.",
     "topic": "Spring and Friction Work-Energy",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": "/questions/wep/q46_jee_spring_block.png"
   },
   {
     "id": 47,
@@ -721,7 +767,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "Work done by a force is W = +\u222b F\u20d7 \u00b7 dr\u20d7 (the negative sign defines change in potential energy \u0394U = -W). Statement II is false because conservative work is strictly path independent. Hence both statements are false.",
     "topic": "Conservative Force & Potential Energy",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 48,
@@ -736,7 +783,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "At equilibrium, spring elongation x = mg/k. Stored energy U = (1/2)kx\u00b2 = (1/2)k(mg/k)\u00b2 = (m\u00b2g\u00b2)/(2k). Therefore, U_B / U_A = (m_B/m_A)\u00b2 * (k_A/k_B) = (200/100)\u00b2 * (3/4) = 4 * (3/4) = 3. Thus U_B = 3E.",
     "topic": "Spring Energy in Equilibrium",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": "/questions/wep/q48_jee_springs_ab.png"
   },
   {
     "id": 49,
@@ -751,7 +799,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "p = \u221a(2m KE). If KE becomes 4 * KE_initial, p_final = \u221a(4) * p_initial = 2 * p_initial. Percentage increase = ((2p - p)/p) * 100% = 100%.",
     "topic": "Percentage Change in Momentum",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 50,
@@ -766,7 +815,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Mass flow rate dm/dt = \u03c1 * (dV/dt) = 1000 * 0.2 = 200 kg/s. Velocity of water v = (dV/dt) / Area = 0.2 / 10\u207b\u00b2 = 20 m/s. Total height H = 10 + 10 = 20 m. Power P = (dm/dt) * g * H + (1/2)(dm/dt) * v\u00b2 = 200 * 10 * 20 + 0.5 * 200 * (400) = 40,000 + 40,000 = 80,000 W = 80 kW.",
     "topic": "Pump Power Calculation",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 51,
@@ -781,7 +831,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Since force F\u20d7 = (3i\u0302 + 4j\u0302) is constant, it is conservative. The work done by any conservative force is strictly path-independent: W\u2081 = W\u2082 = 3a + 4a = 7a J.",
     "topic": "Path Independence of Work",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": "/questions/wep/q51_jee_paths.png"
   },
   {
     "id": 52,
@@ -796,7 +847,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Minimum potential energy U_min occurs at x = 2 m: U_min = 20 + 0 = 20 J. Maximum KE = Total Mechanical Energy - U_min = 36 J - 20 J = 16 J.",
     "topic": "Oscillation and Maximum KE",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 53,
@@ -811,7 +863,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "By conservation of mechanical energy: KE_final = KE_initial + PE_initial = (1/2)mv\u00b2 + mgh = 0.5 * 10 * (1)\u00b2 + 10 * 10 * 1.5 = 5 + 150 = 155.0 J.",
     "topic": "Projectile Energy Conservation",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 54,
@@ -826,7 +879,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "P = F * v = m * v * (dv/dt) = constant. Integrating: v \u221d t^(1/2). Displacement s = \u222b v dt \u221d t^(3/2) = t^(n/2). Therefore n = 3.",
     "topic": "Constant Power Delivery",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 55,
@@ -841,7 +895,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "F_x = -\u2202U/\u2202x = -\u2202(2x\u00b2)/\u2202x = -4x. At point P(1, 2, 3), |F_x| = |-4(1)| = 4 N.",
     "topic": "Partial Derivatives in Conservative Field",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 56,
@@ -856,7 +911,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "At x = 0, v\u2081 = 0. At x = 2 m, v\u2082 = 5 * (2)^(3/2) => v\u2082\u00b2 = 25 * 8 = 200 m\u00b2/s\u00b2. By work-energy theorem: W = (1/2)m(v\u2082\u00b2 - v\u2081\u00b2) = 0.5 * 0.5 * 200 = 50 J.",
     "topic": "Work-Energy Theorem with Velocity Function",
-    "difficulty": "Hard"
+    "difficulty": "Hard",
+    "image": null
   },
   {
     "id": 57,
@@ -871,7 +927,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "B",
     "explanation": "Change in potential energy is defined as \u0394U = -W_conservative. If W_conservative > 0, then \u0394U < 0 (potential energy decreases).",
     "topic": "Work and Potential Energy Relation",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 58,
@@ -886,7 +943,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Spring force F_s = -kx acts in the direction opposite to displacement. Work done by spring force W_s = -(1/2)kx\u00b2 = -0.5 * 200 * (0.1)\u00b2 = -1 Joule.",
     "topic": "Work Done by Spring",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": null
   },
   {
     "id": 59,
@@ -901,7 +959,8 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "D",
     "explanation": "Non-conservative forces (friction, air resistance, viscous force) dissipate energy and their work done depends on the actual path taken between two points.",
     "topic": "Non-conservative Force Properties",
-    "difficulty": "Easy"
+    "difficulty": "Easy",
+    "image": null
   },
   {
     "id": 60,
@@ -916,6 +975,7 @@ export const NEET_WEP_QUESTIONS = [
     "correctAnswer": "A",
     "explanation": "Initial work w\u2080 = (1/2)k(x\u2080\u00b2 - 0) = (1/2)k x\u2080\u00b2. Work to stretch to 2x\u2080 = (1/2)k(2x\u2080)\u00b2 = 4 * ((1/2)k x\u2080\u00b2) = 4w\u2080. Additional work needed = 4w\u2080 - w\u2080 = 3w\u2080.",
     "topic": "Spring Extension Work Proportions",
-    "difficulty": "Medium"
+    "difficulty": "Medium",
+    "image": "/questions/wep/q60_jee_spring_f.png"
   }
 ];
