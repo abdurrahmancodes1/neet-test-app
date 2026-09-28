@@ -136,6 +136,13 @@ export default function QuestionReview({
                     </p>
                   </div>
                 </div>
+
+                {r.explanation && (
+                  <div className="mt-3 rounded-lg border border-gold-200 bg-gold-50/60 p-3 text-xs leading-relaxed text-ink-800">
+                    <p className="font-bold text-gold-900 mb-1">💡 Step-by-Step Solution &amp; Concept:</p>
+                    <p className="whitespace-pre-line text-ink-700">{r.explanation}</p>
+                  </div>
+                )}
               </div>
             );
           })}

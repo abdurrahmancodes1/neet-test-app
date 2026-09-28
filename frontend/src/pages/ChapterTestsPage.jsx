@@ -1,184 +1,290 @@
-import React from 'react';
-import { useGetTestsQuery } from '../features/tests/testsApiSlice.js';
-import { Loader2, Sparkles, AlertCircle, Clock, BookOpen, Award } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  Clock,
+  BookOpen,
+  Award,
+  Zap,
+  CheckCircle2,
+  GraduationCap,
+  Layers,
+  Sparkles,
+  Calendar,
+  Compass,
+  ArrowRight,
+} from 'lucide-react';
+import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 
 export default function ChapterTestsPage({ onSelect, onLogout }) {
-  const { data: serverTests, isLoading, isError, refetch } = useGetTestsQuery();
+  const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'class10' | 'class9' | 'class8'
 
-  // Normalize tests dynamically from backend REST API
-  const tests = React.useMemo(() => {
-    if (serverTests && serverTests.length > 0) {
-      return serverTests.map((t) => ({
-        id: t.slug || t._id,
-        _id: t._id,
-        title: t.title,
-        subtitle: t.subtitle || '',
-        badgeText: Array.isArray(t.subjects) ? t.subjects.join(' & ') : t.subjects || 'NEET',
-        difficulty: t.difficulty || 'Hard',
-        durationMinutes: t.durationMinutes || 60,
-        totalQuestions: t.totalQuestions || 45,
-        totalMarks: t.totalMarks || (t.totalQuestions || 45) * 4,
-        syllabus: t.syllabus || t.description || '',
-      }));
-    }
-    return [];
-  }, [serverTests]);
+  const categories = [
+    { id: 'neet', label: 'NEET 2027', badge: 'Active Test Series', icon: Zap },
+    { id: 'class10', label: 'Class 10', badge: 'Upcoming in future', icon: GraduationCap },
+    { id: 'class9', label: 'Class 9', badge: 'Upcoming in future', icon: Layers },
+    { id: 'class8', label: 'Class 8', badge: 'Upcoming in future', icon: BookOpen },
+  ];
 
   return (
     <main className="min-h-screen bg-ink-50 px-4 py-6 sm:py-10">
       <div className="mx-auto max-w-5xl">
-        <header className="mb-10 flex items-center justify-between gap-4">
+        {/* Top Header */}
+        <header className="mb-8 flex items-center justify-between gap-4 border-b border-ink-200 pb-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-ink-900 font-black text-gold-300">
-              N
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-ink-900 font-black text-gold-300 shadow-sm">
+              <Zap size={22} className="text-gold-400" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-gold-600">NEET Prep</p>
-              <p className="font-serif text-lg font-bold text-ink-900">Practice Tests</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onLogout}
-            className="rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm font-semibold text-ink-700 transition hover:bg-ink-100"
-          >
-            Logout
-          </button>
-        </header>
-
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-gold-600">NEET Mock &amp; Chapter Tests</p>
-            <h1 className="mt-1 font-serif text-3xl font-bold text-ink-900 sm:text-4xl">Choose a test to begin</h1>
-            <p className="mt-2 text-ink-500">Build speed and accuracy with focused NEET-style practice and realistic timers.</p>
-          </div>
-          {tests.length > 0 && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-good-50 px-3 py-1 text-xs font-semibold text-good-700 border border-good-200">
-              <Sparkles size={13} className="text-good-600" /> Dynamic Cloud Platform
-            </span>
-          )}
-        </div>
-
-        {/* Featured CBSE Class 10 Chemistry Question Paper */}
-        <div className="mb-10 overflow-hidden rounded-2xl border-2 border-gold-300 bg-gradient-to-br from-white via-gold-50/20 to-gold-100/30 p-6 shadow-card transition hover:shadow-pop sm:p-8">
-          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
-            <div className="max-w-2xl">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-gold-200/80 px-3 py-1 text-xs font-black uppercase tracking-wider text-gold-900">
-                  CBSE Class 10 Science
-                </span>
-                <span className="rounded-full bg-ink-100 px-3 py-1 text-xs font-semibold text-ink-700">
-                  Timed Paper Mode
-                </span>
-              </div>
-              <h2 className="mt-3 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
-                Class 10 Chemistry — CBSE Question Paper
-              </h2>
-              <p className="mt-2 text-sm leading-relaxed text-ink-600">
-                Official CBSE question paper format covering <strong>Chemical Reactions &amp; Equations</strong>, <strong>Acids, Bases &amp; Salts</strong>, and <strong>Metals &amp; Non-metals</strong>. Features a 50-minute continuous countdown timer for handwriting answers on physical paper.
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold-600">
+                Exam Preparation Portal
               </p>
-              <div className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-ink-700">
-                <span className="inline-flex items-center gap-1 rounded-lg bg-white/80 px-3 py-1.5 border border-ink-200">
-                  <Clock size={13} className="text-gold-600" /> 50 Minutes Timed
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-lg bg-white/80 px-3 py-1.5 border border-ink-200">
-                  <BookOpen size={13} className="text-gold-600" /> Physical Answer Sheet
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-lg bg-white/80 px-3 py-1.5 border border-ink-200">
-                  <Award size={13} className="text-gold-600" /> Auto-Locking Timer
-                </span>
-              </div>
-            </div>
-
-            <div className="shrink-0">
-              <button
-                type="button"
-                onClick={() => onSelect('class-10-chemistry')}
-                className="w-full md:w-auto rounded-xl bg-ink-900 px-6 py-4 text-sm font-bold text-white shadow-pop transition hover:bg-ink-800"
-              >
-                Open Question Paper →
-              </button>
+              <h1 className="font-serif text-xl font-bold text-ink-900 sm:text-2xl">
+                National Standard Practice &amp; Assessment
+              </h1>
             </div>
           </div>
-        </div>
-
-        <div className="mb-4">
-          <h2 className="font-serif text-xl font-bold text-ink-900">NEET Mock Tests</h2>
-        </div>
-
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-ink-600" />
-            <p className="mt-3 text-sm font-medium text-ink-500">Loading tests from API...</p>
-          </div>
-        ) : isError ? (
-          <div className="rounded-xl border border-bad-200 bg-bad-50 p-6 text-center">
-            <AlertCircle className="mx-auto h-8 w-8 text-bad-600" />
-            <h3 className="mt-2 font-bold text-bad-900">Unable to load tests from backend</h3>
-            <p className="mt-1 text-sm text-bad-700">Please make sure the backend server is running on port 5000.</p>
+          {onLogout && (
             <button
               type="button"
-              onClick={() => refetch()}
-              className="mt-4 rounded-lg bg-bad-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-bad-700"
+              onClick={onLogout}
+              className="rounded-xl border border-ink-200 bg-white px-3.5 py-2 text-xs font-bold text-ink-700 shadow-sm transition hover:bg-ink-100"
             >
-              Retry Connection
+              Sign Out
             </button>
+          )}
+        </header>
+
+        {/* Section / Category Tabs */}
+        <div className="mb-8">
+          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-500">
+            Select Your Target Standard / Exam :
+          </p>
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+            {categories.map((cat) => {
+              const Icon = cat.icon;
+              const isActive = selectedCategory === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`flex flex-col items-start justify-between rounded-2xl border p-4 text-left transition-all ${
+                    isActive
+                      ? 'border-ink-900 bg-ink-900 text-white shadow-pop ring-2 ring-ink-900/20'
+                      : 'border-ink-200 bg-white text-ink-800 hover:border-ink-300 hover:bg-ink-100/50'
+                  }`}
+                >
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <Icon
+                      size={18}
+                      className={isActive ? 'text-gold-300' : 'text-ink-600'}
+                    />
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        isActive
+                          ? cat.id === 'neet'
+                            ? 'bg-good-500/30 text-good-200'
+                            : 'bg-gold-400/20 text-gold-300'
+                          : cat.id === 'neet'
+                            ? 'bg-good-50 text-good-700 border border-good-200'
+                            : 'bg-ink-100 text-ink-500'
+                      }`}
+                    >
+                      {cat.badge}
+                    </span>
+                  </div>
+                  <span className="mt-3 font-serif text-lg font-bold">{cat.label}</span>
+                </button>
+              );
+            })}
           </div>
-        ) : tests.length === 0 ? (
-          <div className="rounded-xl border border-ink-200 bg-white p-12 text-center shadow-card">
-            <p className="text-base font-semibold text-ink-700">No published tests available at the moment.</p>
-            <p className="mt-1 text-xs text-ink-500">Tests created by admin will appear here automatically.</p>
-          </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2">
-            {tests.map((test) => (
-              <article
-                key={test.id}
-                className="flex flex-col justify-between rounded-xl2 border border-ink-200 bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-pop sm:p-6"
-              >
-                <div>
-                  <div className="mb-4 flex items-start justify-between gap-4">
-                    <div>
-                      <span className="rounded-full bg-gold-100 px-2.5 py-1 text-xs font-bold text-gold-700">
-                        {test.badgeText}
-                      </span>
-                      <h2 className="mt-2.5 font-serif text-2xl font-bold text-ink-900">{test.title}</h2>
-                      <p className="mt-1 text-sm text-ink-500">{test.subtitle}</p>
-                    </div>
-                    <div className="shrink-0 rounded-xl bg-ink-100 px-3 py-2 text-right text-xs font-semibold text-ink-600">
-                      <p>{test.totalQuestions} Questions</p>
-                      <p className="mt-1">{test.difficulty}</p>
-                    </div>
+        </div>
+
+        {/* CONTENT FOR NEET SECTION */}
+        {selectedCategory === 'neet' && (
+          <div className="animate-fade-in space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <span className="rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-gold-800">
+                  Physics · Class 11 Drill
+                </span>
+                <h2 className="mt-2 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
+                  NEET 2027: Work, Energy and Power
+                </h2>
+                <p className="mt-1 text-sm text-ink-600">
+                  60 High-Yield Questions curated from authentic NEET and hard conceptual problem sets.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl border border-good-200 bg-good-50 px-3.5 py-2 text-xs font-bold text-good-700">
+                <CheckCircle2 size={16} className="text-good-600" /> Test Ready (2 Hours)
+              </div>
+            </div>
+
+            {/* Test Card */}
+            <article className="overflow-hidden rounded-2xl border-2 border-ink-900 bg-white p-6 shadow-pop sm:p-8">
+              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+                <div className="max-w-2xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-ink-900 px-3 py-1 text-xs font-black uppercase tracking-wider text-gold-300">
+                      NEET Pattern
+                    </span>
+                    <span className="rounded-full bg-gold-100 px-3 py-1 text-xs font-bold text-gold-800">
+                      Hard Level
+                    </span>
                   </div>
 
-                  <div className="mb-5 rounded-lg bg-ink-50 p-3 text-xs leading-relaxed text-ink-600">
-                    <span className="font-semibold text-ink-800">Syllabus: </span>
-                    {test.syllabus}
+                  <h3 className="mt-3 font-serif text-2xl font-black text-ink-900 sm:text-3xl">
+                    {NEET_WEP_TEST.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-600">
+                    Comprehensive full-chapter examination designed to test conceptual clarity, graphical analysis, spring systems, variable forces, and vertical circular motion up to NEET standard.
+                  </p>
+
+                  <div className="mt-5 rounded-xl border border-ink-100 bg-ink-50 p-4 text-xs leading-relaxed text-ink-700">
+                    <span className="font-bold text-ink-900">Syllabus Covered: </span>
+                    {NEET_WEP_TEST.syllabus}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-ink-700">
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 py-2 shadow-xs">
+                      <Clock size={14} className="text-gold-600" />
+                      <strong>2 Hours</strong> (120 Minutes)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 py-2 shadow-xs">
+                      <BookOpen size={14} className="text-gold-600" />
+                      <strong>60 Questions</strong>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 py-2 shadow-xs">
+                      <Award size={14} className="text-gold-600" />
+                      <strong>240 Marks</strong> (+4 / −1 Scheme)
+                    </span>
                   </div>
                 </div>
 
-                <div>
-                  <div className="mb-5 flex flex-wrap gap-2 text-xs font-semibold text-ink-600">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-3 py-1.5">
-                      <Clock size={12} /> {test.durationMinutes} minutes
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-3 py-1.5">
-                      <BookOpen size={12} /> +4 / −1 marking
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-ink-100 px-3 py-1.5">
-                      <Award size={12} /> {test.totalMarks} marks
-                    </span>
-                  </div>
+                <div className="shrink-0">
                   <button
                     type="button"
-                    onClick={() => onSelect(test.id)}
-                    className="w-full rounded-lg bg-ink-900 py-3 text-sm font-bold text-white transition hover:bg-ink-800"
+                    onClick={() => onSelect(NEET_WEP_TEST.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink-900 px-8 py-5 text-sm font-bold text-white shadow-pop transition hover:bg-ink-800 lg:w-auto"
                   >
-                    Start Test
+                    Start 2-Hour Examination <ArrowRight size={16} />
                   </button>
                 </div>
-              </article>
-            ))}
+              </div>
+            </article>
+          </div>
+        )}
+
+        {/* CONTENT FOR CLASS 10 SECTION */}
+        {selectedCategory === 'class10' && (
+          <div className="animate-fade-in space-y-6">
+            <div className="rounded-2xl border border-ink-200 bg-white p-8 text-center shadow-card sm:p-12">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gold-100 text-gold-700">
+                <GraduationCap size={32} />
+              </div>
+              <span className="mt-4 inline-block rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-gold-800">
+                Class 10 CBSE &amp; State Boards
+              </span>
+              <h2 className="mt-3 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
+                Upcoming in Future
+              </h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm text-ink-600">
+                Full-length Board Exam Mock Tests, Chemistry timed question papers, and Chapter Drills for Class 10 will be available in future releases.
+              </p>
+
+              <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
+                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+                  <span className="text-xs font-bold uppercase text-gold-600">Module 1</span>
+                  <h4 className="mt-1 font-bold text-ink-900">Physics &amp; Light</h4>
+                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                </div>
+                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+                  <span className="text-xs font-bold uppercase text-gold-600">Module 2</span>
+                  <h4 className="mt-1 font-bold text-ink-900">Chemistry Drills</h4>
+                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                </div>
+                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+                  <span className="text-xs font-bold uppercase text-gold-600">Module 3</span>
+                  <h4 className="mt-1 font-bold text-ink-900">Life Processes</h4>
+                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CONTENT FOR CLASS 9 SECTION */}
+        {selectedCategory === 'class9' && (
+          <div className="animate-fade-in space-y-6">
+            <div className="rounded-2xl border border-ink-200 bg-white p-8 text-center shadow-card sm:p-12">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-ink-100 text-ink-700">
+                <Layers size={32} />
+              </div>
+              <span className="mt-4 inline-block rounded-full bg-ink-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink-700">
+                Class 9 Foundation
+              </span>
+              <h2 className="mt-3 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
+                Upcoming in Future
+              </h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm text-ink-600">
+                Class 9 Foundation Science and Mathematics assessment modules are scheduled for upcoming future updates.
+              </p>
+
+              <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
+                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+                  <span className="text-xs font-bold uppercase text-ink-600">Physics</span>
+                  <h4 className="mt-1 font-bold text-ink-900">Motion &amp; Force</h4>
+                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                </div>
+                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+                  <span className="text-xs font-bold uppercase text-ink-600">Chemistry</span>
+                  <h4 className="mt-1 font-bold text-ink-900">Matter &amp; Atoms</h4>
+                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                </div>
+                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+                  <span className="text-xs font-bold uppercase text-ink-600">Biology</span>
+                  <h4 className="mt-1 font-bold text-ink-900">Cell &amp; Tissues</h4>
+                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CONTENT FOR CLASS 8 SECTION */}
+        {selectedCategory === 'class8' && (
+          <div className="animate-fade-in space-y-6">
+            <div className="rounded-2xl border border-ink-200 bg-white p-8 text-center shadow-card sm:p-12">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-ink-100 text-ink-700">
+                <BookOpen size={32} />
+              </div>
+              <span className="mt-4 inline-block rounded-full bg-ink-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink-700">
+                Class 8 Junior Foundation
+              </span>
+              <h2 className="mt-3 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
+                Upcoming in Future
+              </h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm text-ink-600">
+                Junior Olympiad and Foundation curriculum for Class 8 students will be launching in the upcoming updates.
+              </p>
+
+              <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
+                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+                  <span className="text-xs font-bold uppercase text-ink-600">Science</span>
+                  <h4 className="mt-1 font-bold text-ink-900">Force &amp; Pressure</h4>
+                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                </div>
+                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+                  <span className="text-xs font-bold uppercase text-ink-600">Science</span>
+                  <h4 className="mt-1 font-bold text-ink-900">Chemical Effects</h4>
+                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                </div>
+                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
+                  <span className="text-xs font-bold uppercase text-ink-600">Math</span>
+                  <h4 className="mt-1 font-bold text-ink-900">Linear Equations</h4>
+                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

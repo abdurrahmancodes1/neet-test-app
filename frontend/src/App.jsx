@@ -1,101 +1,43 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { loadSession, saveSession, clearSession, freshSession } from './utils/storage.js';
-import {
-  useGetTestsQuery,
-  useGetTestByIdQuery,
-  useGetTestQuestionsQuery,
-  useSubmitTestMutation,
-} from './features/tests/testsApiSlice.js';
-import LoginPage from './pages/LoginPage.jsx';
+import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from './data/neetWorkEnergyTest.js';
 import ChapterTestsPage from './pages/ChapterTestsPage.jsx';
 import TestInstructionsPage from './pages/TestInstructionsPage.jsx';
 import TestPage from './pages/TestPage.jsx';
 import ResultPage from './pages/ResultPage.jsx';
-import Class10ChemistryExamPage from './pages/Class10ChemistryExamPage.jsx';
 
-const LOGIN_KEY = 'neet_logged_in';
 const ACTIVE_TEST_KEY = 'neet_active_test_id';
-
-const isLoggedIn = () => {
-  try {
-    return window.localStorage.getItem(LOGIN_KEY) === 'true';
-  } catch {
-    return false;
-  }
-};
 
 const getSavedTestId = () => {
   try {
-    return window.localStorage.getItem(ACTIVE_TEST_KEY) || 'laws-of-motion';
+    return window.localStorage.getItem(ACTIVE_TEST_KEY) || NEET_WEP_TEST.id;
   } catch {
-    return 'laws-of-motion';
+    return NEET_WEP_TEST.id;
   }
 };
 
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(isLoggedIn);
   const [screen, setScreen] = useState('chapters');
   const [testId, setTestId] = useState(getSavedTestId);
   const [session, setSession] = useState(() => loadSession(getSavedTestId()));
-  const [backendResult, setBackendResult] = useState(null);
 
-  // Fetch available tests list from server
-  const { data: serverTests } = useGetTestsQuery();
-
-  // Fetch active test details and questions dynamically from API
-  const { data: serverTest } = useGetTestByIdQuery(testId, { skip: !testId });
-  const { data: serverQuestions } = useGetTestQuestionsQuery(testId, { skip: !testId });
-  const [submitTestApi] = useSubmitTestMutation();
-
-  // Dynamically constructed active test object
+  // Self-contained test configuration (No external DB required)
   const activeTest = React.useMemo(() => {
-    if (serverTest) {
-      return {
-        id: serverTest.slug || serverTest._id || testId,
-        _id: serverTest._id,
-        title: serverTest.title,
-        subtitle: serverTest.subtitle || '',
-        subject: Array.isArray(serverTest.subjects) ? serverTest.subjects.join(' & ') : serverTest.subjects || 'NEET',
-        chapter: serverTest.chapters?.[0] || 'General',
-        syllabus: serverTest.syllabus || serverTest.description || '',
-        difficulty: serverTest.difficulty || 'Hard',
-        durationMinutes: serverTest.durationMinutes || 60,
-        totalQuestions: serverTest.totalQuestions || serverQuestions?.length || 45,
-        totalMarks: serverTest.totalMarks || (serverTest.totalQuestions || 45) * 4,
-        marksCorrect: serverTest.markingScheme?.correct || 4,
-        marksWrong: serverTest.markingScheme?.wrong || -1,
-        testCode: serverTest.testCode || 'NEET2025',
-        allowedCodes: serverTest.allowedCodes || [serverTest.testCode || 'NEET2025'],
-        questions: serverQuestions || [],
-      };
-    }
-    // Default placeholder while loading from API
     return {
-      id: testId,
-      title: 'NEET Practice Test',
-      subtitle: 'Loading test details...',
-      subject: 'NEET',
-      chapter: 'General',
-      syllabus: '',
-      difficulty: 'Hard',
-      durationMinutes: 60,
-      totalQuestions: 45,
-      totalMarks: 180,
-      marksCorrect: 4,
-      marksWrong: -1,
-      testCode: 'NEET2025',
-      allowedCodes: ['NEET2025'],
-      questions: serverQuestions || [],
+      ...NEET_WEP_TEST,
+      questions: NEET_WEP_QUESTIONS,
     };
-  }, [serverTest, serverQuestions, testId]);
+  }, []);
 
-  const durationMs = (activeTest.durationMinutes || 60) * 60 * 1000;
+  const durationMs = (activeTest.durationMinutes || 120) * 60 * 1000;
 
+  // Auto-submission when timer hits 0
   useEffect(() => {
     if (session.state === 'IN_PROGRESS' && session.endTime && Date.now() >= session.endTime) {
       const next = { ...session, state: 'SUBMITTED', submittedAt: session.endTime, autoSubmitted: true };
       saveSession(next, testId);
       setSession(next);
+      setScreen('result');
     }
   }, [session, testId]);
 
@@ -109,33 +51,11 @@ export default function App() {
     [testId]
   );
 
-  const login = useCallback(() => {
-    try {
-      window.localStorage.setItem(LOGIN_KEY, 'true');
-    } catch {}
-    setLoggedIn(true);
-    setScreen('chapters');
-  }, []);
-
-  const logout = useCallback(() => {
-    try {
-      window.localStorage.removeItem(LOGIN_KEY);
-    } catch {}
-    setLoggedIn(false);
-    setScreen('chapters');
-  }, []);
-
   const handleSelectTest = useCallback((selectedId) => {
     setTestId(selectedId);
-    setBackendResult(null);
     try {
       window.localStorage.setItem(ACTIVE_TEST_KEY, selectedId);
     } catch {}
-
-    if (selectedId === 'class-10-chemistry') {
-      setScreen('class-10-chemistry');
-      return;
-    }
 
     const s = loadSession(selectedId);
     setSession(s);
@@ -152,7 +72,6 @@ export default function App() {
     const next = freshSession(durationMs, testId);
     saveSession(next, testId);
     setSession(next);
-    setBackendResult(null);
     setScreen('test');
     try {
       if (document.documentElement.requestFullscreen) {
@@ -164,7 +83,7 @@ export default function App() {
   }, [durationMs, testId]);
 
   const submitTest = useCallback(
-    async (auto) => {
+    (auto = false) => {
       const submittedAt = Math.min(Date.now(), session.endTime ?? Date.now());
       const updatedSession = {
         ...session,
@@ -173,34 +92,15 @@ export default function App() {
         autoSubmitted: auto,
       };
       updateSession(updatedSession);
-
-      // Submit to backend REST API
-      try {
-        const response = await submitTestApi({
-          testId: activeTest._id || activeTest.id,
-          answers: session.answers || {},
-          markedForReview: session.markedForReview || [],
-          autoSubmitted: auto,
-          timeSpentSeconds: Math.round((submittedAt - (session.startTime || submittedAt)) / 1000),
-          startTime: session.startTime,
-        }).unwrap();
-        if (response) {
-          setBackendResult(response);
-        }
-      } catch (err) {
-        console.warn('Backend submission error:', err);
-      }
-
       setScreen('result');
     },
-    [session, updateSession, submitTestApi, activeTest]
+    [session, updateSession]
   );
 
   const retake = useCallback(() => {
     clearSession(testId);
     const s = loadSession(testId);
     setSession(s);
-    setBackendResult(null);
     setScreen('instructions');
   }, [testId]);
 
@@ -212,21 +112,15 @@ export default function App() {
     if (screen !== 'test') return undefined;
     const handleFullscreenChange = () => {
       if (document.fullscreenElement === null) {
-        submitTest(true);
+        // Exited fullscreen
       }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
-  }, [screen, submitTest]);
-
-  if (!loggedIn) return <LoginPage onLogin={login} />;
+  }, [screen]);
 
   if (screen === 'chapters') {
-    return <ChapterTestsPage onSelect={handleSelectTest} onLogout={logout} />;
-  }
-
-  if (screen === 'class-10-chemistry') {
-    return <Class10ChemistryExamPage onBack={backToChapters} />;
+    return <ChapterTestsPage onSelect={handleSelectTest} />;
   }
 
   if (screen === 'instructions') {
@@ -255,7 +149,7 @@ export default function App() {
       session={session}
       onRetake={retake}
       test={activeTest}
-      backendResult={backendResult}
+      backendResult={null}
       onBackToChapters={backToChapters}
     />
   );

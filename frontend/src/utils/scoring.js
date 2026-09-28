@@ -3,7 +3,7 @@ export const MARKS_WRONG = -1;
 
 /**
  * Computes NEET-style scoring plus per-question status for a set of answers.
- * Pure computation utility — independent of static question files.
+ * Pure computation utility — independent of external database.
  * @param {Record<string|number,string>} answers - map of question identifier -> selected option letter
  * @param {Array} [questionList=[]] - list of question objects
  * @param {number} [marksCorrect=4] - marks for correct answer
@@ -20,13 +20,8 @@ export function computeResult(
   let unattempted = 0;
 
   const perQuestion = questionList.map((q, idx) => {
-    const qKey = q.order ?? q.id ?? q._id ?? idx + 1;
-    const selected =
-      answers[qKey] ??
-      (q._id && answers[q._id]) ??
-      (q.order && answers[q.order]) ??
-      (q.id && answers[q.id]) ??
-      null;
+    const qKey = q.number ?? q.id ?? idx + 1;
+    const selected = answers[qKey] ?? answers[q.id] ?? answers[String(qKey)] ?? null;
 
     let status = 'unattempted';
     if (!selected) {
@@ -41,15 +36,17 @@ export function computeResult(
     }
 
     return {
-      id: qKey,
-      questionNumber: qKey,
-      topic: q.topic || 'General',
-      subject: q.subject || 'NEET',
-      question: q.question,
+      id: q.id ?? qKey,
+      questionNumber: q.number ?? qKey,
+      topic: q.topic || 'Work, Energy and Power',
+      subject: q.subject || 'Physics',
+      difficulty: q.difficulty || 'Medium',
+      question: q.text ?? q.question,
       options: q.options || {},
       image: q.image || null,
       selected: selected || null,
       correctAnswer: q.correctAnswer || null,
+      explanation: q.explanation || null,
       status,
     };
   });
@@ -77,19 +74,22 @@ export function computeResult(
 
 export function formatDuration(ms) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const mins = Math.floor(totalSeconds / 60);
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
   const secs = totalSeconds % 60;
-  if (mins >= 60) {
-    const hrs = Math.floor(mins / 60);
-    const remMins = mins % 60;
-    return `${hrs}h ${remMins}m ${secs}s`;
+  if (hrs > 0) {
+    return `${hrs}h ${mins}m ${secs}s`;
   }
   return `${mins}m ${secs}s`;
 }
 
 export function formatClock(ms) {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
-  const mins = Math.floor(totalSeconds / 60);
+  const hrs = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
   const secs = totalSeconds % 60;
+  if (hrs > 0) {
+    return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }

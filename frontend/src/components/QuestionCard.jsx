@@ -48,7 +48,7 @@ export default function QuestionCard({
       </div>
 
       <p className="chem mb-6 whitespace-pre-line text-[15px] font-medium leading-relaxed text-ink-900 sm:text-lg">
-        {question.question}
+        {question.question || question.text}
       </p>
 
       {question.image && (

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { RotateCcw, FlaskConical, ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { formatDuration } from '../utils/scoring.js';
+import { formatDuration, computeResult } from '../utils/scoring.js';
 import ResultSummary from '../components/ResultSummary.jsx';
 import TopicAnalysis from '../components/TopicAnalysis.jsx';
 import QuestionReview from '../components/QuestionReview.jsx';
@@ -18,19 +18,19 @@ export default function ResultPage({ session, onRetake, test, backendResult, onB
   const testTitle = backendResult?.test?.title || test?.title || 'NEET Practice Test';
   const testSubtitle = backendResult?.test?.subtitle || test?.subtitle || 'NEET Practice Test';
 
-  // Harmonized authoritative result from server
+  // Authoritative result calculation (Server result or Pure Client computeResult)
   const result = useMemo(() => {
     if (backendResult) {
       return {
         score: backendResult.score ?? 0,
         rawScore: backendResult.rawScore ?? 0,
-        maxScore: backendResult.maxScore ?? (test?.totalQuestions || 45) * 4,
+        maxScore: backendResult.maxScore ?? (test?.totalQuestions || 60) * 4,
         percentage: backendResult.percentage ?? 0,
         accuracy: backendResult.accuracy ?? 0,
         correct: backendResult.correctCount ?? 0,
         wrong: backendResult.wrongCount ?? 0,
         unattempted: backendResult.unattemptedCount ?? 0,
-        totalQuestions: backendResult.totalQuestions ?? 45,
+        totalQuestions: backendResult.totalQuestions ?? 60,
         perQuestion: (backendResult.answers || []).map((a, idx) => ({
           id: a.order || idx + 1,
           questionNumber: a.order || idx + 1,
@@ -52,8 +52,17 @@ export default function ResultPage({ session, onRetake, test, backendResult, onB
       };
     }
 
-    // Fallback if network is completely offline
-    const totalQ = test?.totalQuestions || test?.questions?.length || 45;
+    // Pure client-side computation from bundled questions
+    if (test?.questions && test.questions.length > 0) {
+      return computeResult(
+        session?.answers || {},
+        test.questions,
+        test.marksCorrect || 4,
+        test.marksWrong || -1
+      );
+    }
+
+    const totalQ = test?.totalQuestions || 60;
     return {
       score: 0,
       rawScore: 0,
@@ -66,7 +75,7 @@ export default function ResultPage({ session, onRetake, test, backendResult, onB
       totalQuestions: totalQ,
       perQuestion: [],
     };
-  }, [backendResult, test]);
+  }, [backendResult, test, session?.answers]);
 
   const topics = backendResult?.topicPerformance || [];
   const weakest = backendResult?.weakestTopics || [];
