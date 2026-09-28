@@ -34,16 +34,16 @@ export function AttemptComparisonChart({ scoreTrend = [] }) {
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#EAF1F4" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#DBEAFE" vertical={false} />
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 12, fill: '#16232F', fontWeight: 600 }}
+            tick={{ fontSize: 12, fill: '#0B2545', fontWeight: 600 }}
             tickLine={false}
           />
           <YAxis
             yAxisId="left"
             domain={[0, 240]}
-            tick={{ fontSize: 11, fill: '#557A92' }}
+            tick={{ fontSize: 11, fill: '#3B82F6' }}
             tickLine={false}
             unit="m"
           />
@@ -51,27 +51,27 @@ export function AttemptComparisonChart({ scoreTrend = [] }) {
             yAxisId="right"
             orientation="right"
             domain={[0, 100]}
-            tick={{ fontSize: 11, fill: '#33A177' }}
+            tick={{ fontSize: 11, fill: '#10B981' }}
             tickLine={false}
             unit="%"
           />
           <Tooltip
             contentStyle={{
               borderRadius: 12,
-              border: '1px solid #D4E2E9',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              border: '1px solid #BFDBFE',
+              boxShadow: '0 4px 12px rgba(11, 37, 69, 0.08)',
               fontSize: 12,
             }}
           />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-          <Bar yAxisId="left" dataKey="Score" fill="#16232F" radius={[6, 6, 0, 0]} maxBarSize={36} />
+          <Bar yAxisId="left" dataKey="Score" fill="#2563EB" radius={[6, 6, 0, 0]} maxBarSize={36} />
           <Line
             yAxisId="right"
             type="monotone"
             dataKey="Accuracy"
-            stroke="#33A177"
+            stroke="#10B981"
             strokeWidth={3}
-            dot={{ r: 4, fill: '#33A177' }}
+            dot={{ r: 4, fill: '#10B981' }}
             activeDot={{ r: 6 }}
           />
         </ComposedChart>
@@ -87,21 +87,21 @@ export function AttemptAccuracyChart({ scoreTrend = [] }) {
     <div className="h-64 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={scoreTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#EAF1F4" vertical={false} />
-          <XAxis dataKey="attempt" tick={{ fontSize: 11, fill: '#16232F' }} tickLine={false} />
-          <YAxis tick={{ fontSize: 11, fill: '#557A92' }} tickLine={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#DBEAFE" vertical={false} />
+          <XAxis dataKey="attempt" tick={{ fontSize: 11, fill: '#0B2545' }} tickLine={false} />
+          <YAxis tick={{ fontSize: 11, fill: '#3B82F6' }} tickLine={false} />
           <Tooltip
             contentStyle={{
               borderRadius: 12,
-              border: '1px solid #D4E2E9',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              border: '1px solid #BFDBFE',
+              boxShadow: '0 4px 12px rgba(11, 37, 69, 0.08)',
               fontSize: 12,
             }}
           />
           <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
-          <Bar dataKey="correct" name="Correct (+4)" fill="#33A177" stackId="a" />
-          <Bar dataKey="wrong" name="Wrong (-1)" fill="#C64848" stackId="a" />
-          <Bar dataKey="unattempted" name="Unattempted (0)" fill="#ACC5D2" stackId="a" radius={[6, 6, 0, 0]} />
+          <Bar dataKey="correct" name="Correct (+4)" fill="#10B981" stackId="a" />
+          <Bar dataKey="wrong" name="Wrong (-1)" fill="#EF4444" stackId="a" />
+          <Bar dataKey="unattempted" name="Unattempted (0)" fill="#93C5FD" stackId="a" radius={[6, 6, 0, 0]} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>

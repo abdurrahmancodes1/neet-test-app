@@ -13,9 +13,9 @@ import {
 } from 'recharts';
 
 const STATUS_COLORS = {
-  Correct: '#33A177',
-  Wrong: '#C64848',
-  Unattempted: '#ACC5D2',
+  Correct: '#10B981',
+  Wrong: '#EF4444',
+  Unattempted: '#93C5FD',
 };
 
 export function ScoreDonut({ correct, wrong, unattempted }) {
@@ -47,7 +47,7 @@ export function ScoreDonut({ correct, wrong, unattempted }) {
             ))}
           </Pie>
           <Tooltip
-            contentStyle={{ borderRadius: 10, border: '1px solid #D4E2E9', fontSize: 13 }}
+            contentStyle={{ borderRadius: 10, border: '1px solid #BFDBFE', fontSize: 13 }}
             formatter={(value, name) => [`${value} questions`, name]}
           />
         </PieChart>
@@ -69,20 +69,20 @@ export function TopicBarChart({ topics }) {
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} layout="vertical" margin={{ top: 4, right: 24, left: 4, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#EAF1F4" horizontal={false} />
-          <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: '#557A92' }} tickFormatter={(v) => `${v}%`} />
+          <CartesianGrid strokeDasharray="3 3" stroke="#DBEAFE" horizontal={false} />
+          <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: '#3B82F6' }} tickFormatter={(v) => `${v}%`} />
           <YAxis
             type="category"
             dataKey="topic"
             width={140}
-            tick={{ fontSize: 12, fill: '#16232F' }}
+            tick={{ fontSize: 12, fill: '#0B2545' }}
           />
           <Tooltip
-            contentStyle={{ borderRadius: 10, border: '1px solid #D4E2E9', fontSize: 13 }}
+            contentStyle={{ borderRadius: 10, border: '1px solid #BFDBFE', fontSize: 13 }}
             formatter={(value) => [`${value}%`, 'Accuracy']}
             labelFormatter={(_, payload) => payload?.[0]?.payload?.fullTopic ?? ''}
           />
-          <Bar dataKey="accuracy" radius={[0, 6, 6, 0]} fill="#2A4356" maxBarSize={18} />
+          <Bar dataKey="accuracy" radius={[0, 6, 6, 0]} fill="#2563EB" maxBarSize={18} />
         </BarChart>
       </ResponsiveContainer>
     </div>

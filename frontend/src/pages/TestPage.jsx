@@ -5,6 +5,7 @@ import QuestionCard from '../components/QuestionCard.jsx';
 import QuestionPalette from '../components/QuestionPalette.jsx';
 import TestNavigation from '../components/TestNavigation.jsx';
 import SubmitModal from '../components/SubmitModal.jsx';
+import QuestionMemeModal from '../components/QuestionMemeModal.jsx';
 
 function getQKey(q) {
   return q ? (q.order ?? q.id ?? q._id) : null;
@@ -14,6 +15,12 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [autoSubmitNotice, setAutoSubmitNotice] = useState(false);
+  const [memeState, setMemeState] = useState({
+    open: false,
+    questionNumber: 1,
+    selectedOption: 'A',
+    isHard: false,
+  });
 
   const questions = test?.questions || [];
   const testTitle = test?.title || 'NEET Practice Test';
@@ -42,12 +49,23 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
   const selectAnswer = useCallback(
     (letter) => {
       if (!currentKey) return;
+      const prevAnswer = session.answers?.[currentKey];
       updateSession((prev) => ({
         ...prev,
         answers: { ...(prev.answers || {}), [currentKey]: letter },
       }));
+
+      // Trigger student-teacher exam meme celebration on solving
+      if (prevAnswer !== letter) {
+        setMemeState({
+          open: true,
+          questionNumber: currentIndex + 1,
+          selectedOption: letter,
+          isHard: currentQuestion.difficulty === 'Hard',
+        });
+      }
     },
-    [currentKey, updateSession]
+    [currentKey, session.answers, updateSession, currentIndex, currentQuestion.difficulty]
   );
 
   const clearAnswer = useCallback(() => {
@@ -184,6 +202,14 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
         answered={answeredCount}
         unanswered={unansweredCount}
         marked={markedCount}
+      />
+
+      <QuestionMemeModal
+        open={memeState.open}
+        questionNumber={memeState.questionNumber}
+        selectedOption={memeState.selectedOption}
+        isHard={memeState.isHard}
+        onClose={() => setMemeState((prev) => ({ ...prev, open: false }))}
       />
 
       {autoSubmitNotice && (
