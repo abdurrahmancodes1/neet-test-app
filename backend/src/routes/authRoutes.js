@@ -14,6 +14,7 @@ router.get('/stats', AuthController.getStats);
 router.get('/leaderboard', AuthController.getLeaderboard);
 router.get('/candidates', AuthController.getCandidates);
 router.get('/admin-overview', AuthController.getAdminOverview);
+router.get('/user-role/:email', AuthController.getUserRole);
 
 // Protected User Endpoints
 router.get('/me', authenticate, AuthController.getMe);

@@ -1,8 +1,9 @@
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { AuthService } from '../services/authService.js';
-import { Result } from '../models/index.js';
+import { Result, User } from '../models/index.js';
 import { env } from '../config/env.js';
+import mongoose from 'mongoose';
 
 export class AuthController {
   /**
@@ -62,6 +63,31 @@ export class AuthController {
   static getMe = asyncHandler(async (req, res) => {
     const user = await AuthService.getUserProfile(req.user.id);
     return ApiResponse.success(res, 'Current user profile retrieved', user);
+  });
+
+  /**
+   * GET /api/auth/user-role/:email - Get live user role from database
+   */
+  static getUserRole = asyncHandler(async (req, res) => {
+    const email = (req.params.email || '').toLowerCase().trim();
+    if (!email) {
+      return ApiResponse.error(res, 'Email is required', 400);
+    }
+
+    const isMongoConnected = mongoose.connection.readyState === 1;
+    if (isMongoConnected) {
+      const user = await User.findOne({ email }).select('name email role status');
+      if (user) {
+        return ApiResponse.success(res, 'User role retrieved', {
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          role: (user.role || 'student').toLowerCase(),
+        });
+      }
+    }
+
+    return ApiResponse.success(res, 'User role retrieved', { role: 'student' });
   });
 
   /**

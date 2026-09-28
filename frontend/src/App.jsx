@@ -33,6 +33,30 @@ export default function App() {
   const [session, setSession] = useState(() => loadSession(getSavedTestId()));
   const [reviewedAttempt, setReviewedAttempt] = useState(null);
 
+  // Live role check on mount / user change (syncs if role was changed in MongoDB Compass)
+  useEffect(() => {
+    if (currentUser?.email) {
+      fetch(`/api/auth/user-role/${encodeURIComponent(currentUser.email)}`)
+        .then((r) => r.json())
+        .then((res) => {
+          if (res?.data?.role) {
+            const freshRole = res.data.role.toLowerCase();
+            if (freshRole !== currentUser.role) {
+              const updated = { ...currentUser, role: freshRole };
+              setCurrentUser(updated);
+              try {
+                window.localStorage.setItem('neet_current_user_v1', JSON.stringify(updated));
+              } catch {}
+              if (freshRole === 'admin') {
+                setScreen('admin');
+              }
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [currentUser?.email]);
+
   // Self-contained active test configuration
   const activeTest = useMemo(() => {
     return {
