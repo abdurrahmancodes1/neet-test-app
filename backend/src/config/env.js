@@ -12,8 +12,7 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   PORT: parseInt(process.env.PORT, 10) || 5000,
   MONGODB_URI:
-    process.env.MONGODB_URI ||
-    'mongodb+srv://ar7862204:piOWFCengEFZxBw8@cluster0.3advex.mongodb.net/testSite',
+    process.env.MONGODB_URI,
   CORS_ORIGIN: process.env.CORS_ORIGIN || 'http://localhost:5173',
   RATE_LIMIT_WINDOW_MINUTES: parseInt(process.env.RATE_LIMIT_WINDOW_MINUTES, 10) || 15,
   RATE_LIMIT_MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
