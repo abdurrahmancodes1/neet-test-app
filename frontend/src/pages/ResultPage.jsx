@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { RotateCcw, FlaskConical, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight } from 'lucide-react';
 import { formatDuration, computeResult } from '../utils/scoring.js';
 import ResultSummary from '../components/ResultSummary.jsx';
 import TopicAnalysis from '../components/TopicAnalysis.jsx';
@@ -128,14 +128,18 @@ export default function ResultPage({
   const avgTimeLabel = attempted > 0 ? `${Math.round(avgMs / 1000)}s` : '—';
 
   return (
-    <div className="min-h-screen bg-ink-50 pb-16">
-      <header className="border-b border-ink-200 bg-white">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-4">
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-900 text-gold-300">
-              <FlaskConical size={16} strokeWidth={2.25} />
+    <div className="min-h-screen bg-[#05070B] text-slate-100 pb-16 relative overflow-hidden selection:bg-blue-600 selection:text-white">
+      {/* Background Glow */}
+      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-96 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-transparent to-transparent blur-2xl" />
+
+      {/* Floating Dark Navigation Header */}
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0D121F]/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs shadow-glow">
+              <Zap size={14} className="fill-white text-white" />
             </div>
-            <p className="text-sm font-semibold text-ink-900">{testTitle} — Result Dashboard</p>
+            <p className="text-xs sm:text-sm font-bold text-white tracking-tight">{testTitle} — Dashboard</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -143,41 +147,43 @@ export default function ResultPage({
               <button
                 type="button"
                 onClick={onGoToDashboard}
-                className="inline-flex items-center gap-1 rounded-lg border border-ink-900 bg-ink-900 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-ink-800"
+                className="rounded-full bg-blue-600 hover:bg-blue-500 text-white px-3.5 sm:px-4 py-1.5 text-xs font-bold shadow-lg shadow-blue-600/25 transition flex items-center gap-1"
               >
-                My Dashboard
+                <span>My Dashboard</span>
+                <ChevronRight size={13} />
               </button>
             )}
             {onBackToChapters && (
               <button
                 type="button"
                 onClick={onBackToChapters}
-                className="inline-flex items-center gap-1 rounded-lg border border-ink-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink-700 transition hover:bg-ink-100"
+                className="rounded-full border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 transition flex items-center gap-1"
               >
                 <ArrowLeft size={13} />
-                All Tests
+                <span>All Tests</span>
               </button>
             )}
             {session?.autoSubmitted && (
-              <span className="rounded-full bg-gold-100 px-2.5 py-1 text-[11px] font-semibold text-gold-700">
-                Auto-submitted at 00:00
+              <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 text-[11px] font-semibold text-amber-300">
+                Auto-submitted
               </span>
             )}
           </div>
         </div>
       </header>
 
-      <div className="mx-auto max-w-4xl px-4 pt-6">
-        <div className="mb-6 flex gap-2 overflow-x-auto">
+      <div className="mx-auto max-w-4xl px-4 pt-6 space-y-6 relative z-10">
+        {/* Tab Pills */}
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {TABS.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
-              className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition ${
                 tab === t.key
-                  ? 'border-ink-900 bg-ink-900 text-white'
-                  : 'border-ink-200 bg-white text-ink-600 hover:border-ink-400'
+                  ? 'border-blue-500 bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                  : 'border-white/10 bg-[#0B0F19] text-slate-400 hover:border-white/20 hover:text-white'
               }`}
             >
               {t.label}
@@ -198,32 +204,32 @@ export default function ResultPage({
               <button
                 type="button"
                 onClick={() => setTab('review')}
-                className="flex-1 rounded-lg border border-ink-200 bg-white py-3 text-sm font-semibold text-ink-800 shadow-sm transition hover:bg-ink-100"
+                className="flex-1 rounded-full border border-white/10 bg-[#0B0F19] hover:bg-[#131926] py-3 text-xs font-semibold text-slate-200 transition"
               >
-                Review Answers
+                Review Answers &amp; Solutions
               </button>
               <button
                 type="button"
                 onClick={() => setTab('analysis')}
-                className="flex-1 rounded-lg border border-ink-200 bg-white py-3 text-sm font-semibold text-ink-800 shadow-sm transition hover:bg-ink-100"
+                className="flex-1 rounded-full border border-white/10 bg-[#0B0F19] hover:bg-[#131926] py-3 text-xs font-semibold text-slate-200 transition"
               >
-                View Analysis
+                View Topic Analysis
               </button>
               {onGoToDashboard && (
                 <button
                   type="button"
                   onClick={onGoToDashboard}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-ink-900 bg-white py-3 text-sm font-bold text-ink-900 shadow-sm transition hover:bg-ink-100"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-600/15 hover:bg-blue-600/25 py-3 text-xs font-bold text-blue-300 transition"
                 >
-                  View Attempt Comparison
+                  Attempt Comparison
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => setConfirmRetake(true)}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-ink-900 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-ink-800"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-blue-600 hover:bg-blue-500 py-3 text-xs font-bold text-white shadow-lg shadow-blue-600/25 transition active:scale-95"
               >
-                <RotateCcw size={15} />
+                <RotateCcw size={14} />
                 Retake Test
               </button>
             </div>
@@ -235,29 +241,29 @@ export default function ResultPage({
         {tab === 'review' && (
           <QuestionReview
             perQuestion={result.perQuestion}
-            markedForReview={session.markedForReview || []}
+            markedForReview={session?.markedForReview || []}
             questions={result.perQuestion}
           />
         )}
       </div>
 
       {confirmRetake && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <button
             aria-label="Close"
-            className="absolute inset-0 bg-ink-950/50 animate-fade-in"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in"
             onClick={() => setConfirmRetake(false)}
           />
-          <div className="animate-rise-in relative w-full max-w-sm rounded-t-2xl bg-white p-6 shadow-pop sm:rounded-2xl">
-            <h2 className="mb-2 text-lg font-bold text-ink-900">Retake this test?</h2>
-            <p className="mb-5 text-sm text-ink-600">
+          <div className="animate-rise-in relative w-full max-w-sm rounded-3xl border border-white/10 bg-[#0B0F19] p-6 sm:p-8 shadow-2xl text-slate-100">
+            <h2 className="mb-2 text-base font-bold text-white">Retake this test?</h2>
+            <p className="mb-6 text-xs text-slate-400 leading-relaxed">
               This clears your current answers, timer, and result, and starts a fresh attempt from Q1.
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmRetake(false)}
-                className="flex-1 rounded-lg border border-ink-200 py-2.5 text-sm font-semibold text-ink-700 transition hover:bg-ink-100"
+                className="flex-1 rounded-full border border-white/10 bg-white/5 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
               >
                 Cancel
               </button>
@@ -267,9 +273,9 @@ export default function ResultPage({
                   setConfirmRetake(false);
                   onRetake();
                 }}
-                className="flex-1 rounded-lg bg-ink-900 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-800"
+                className="flex-1 rounded-full bg-blue-600 hover:bg-blue-500 py-2.5 text-xs font-bold text-white transition"
               >
-                Yes, retake
+                Yes, Retake
               </button>
             </div>
           </div>

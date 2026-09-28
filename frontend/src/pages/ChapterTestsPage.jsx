@@ -11,6 +11,9 @@ import {
   Calendar,
   Compass,
   ArrowRight,
+  ChevronRight,
+  LogOut,
+  BarChart3,
 } from 'lucide-react';
 import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 
@@ -25,52 +28,83 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
   ];
 
   return (
-    <main className="min-h-screen bg-ink-50 px-4 py-6 sm:py-10">
-      <div className="mx-auto max-w-5xl">
-        {/* Top Header */}
-        <header className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-ink-200 pb-5">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-ink-900 font-black text-gold-300 shadow-sm">
-              <Zap size={22} className="text-gold-400" />
+    <main className="min-h-screen bg-[#05070B] text-slate-100 px-4 py-4 sm:py-8 relative overflow-hidden selection:bg-blue-600 selection:text-white">
+      {/* Background Ambient Radial Glow */}
+      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-blue-900/5 to-transparent blur-2xl" />
+
+      <div className="mx-auto max-w-5xl space-y-10 relative z-10 animate-fade-in">
+        {/* Floating Dark Pill Navigation Bar */}
+        <header className="rounded-full border border-white/10 bg-[#0D121F]/90 backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xl flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-black text-xs shadow-glow">
+              <Zap size={15} className="fill-white text-white" />
             </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-gold-600">
-                Exam Preparation Portal
-              </p>
-              <h1 className="font-serif text-xl font-bold text-ink-900 sm:text-2xl">
-                National Standard Practice &amp; Assessment
-              </h1>
-            </div>
+            <span className="truncate font-sans text-sm sm:text-base font-bold tracking-tight text-white">
+              NEET<span className="text-blue-500">2027</span>
+            </span>
           </div>
-          
-          <div className="flex items-center gap-2.5">
+
+          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-300">
             {onGoToDashboard && (
               <button
                 type="button"
                 onClick={onGoToDashboard}
-                className="rounded-xl border border-ink-900 bg-ink-900 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-ink-800"
+                className="text-slate-400 hover:text-white transition flex items-center gap-1.5"
               >
-                My Dashboard
+                <BarChart3 size={14} /> Dashboard
+              </button>
+            )}
+            <span className="text-white flex items-center gap-1.5 cursor-pointer">
+              <Layers size={14} className="text-blue-400" /> Standard Tests
+            </span>
+            <span className="text-slate-500 text-[11px] font-medium border border-white/10 rounded-full px-2.5 py-0.5">
+              Curriculum Drills
+            </span>
+          </nav>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            {onGoToDashboard && (
+              <button
+                type="button"
+                onClick={onGoToDashboard}
+                className="rounded-full bg-blue-600 hover:bg-blue-500 text-white px-4 sm:px-5 py-2 text-xs font-semibold shadow-lg shadow-blue-600/30 transition active:scale-95 flex items-center gap-1.5"
+              >
+                <span>My Dashboard</span>
+                <ChevronRight size={14} />
               </button>
             )}
             {onLogout && (
               <button
                 type="button"
                 onClick={onLogout}
-                className="rounded-xl border border-ink-200 bg-white px-3.5 py-2 text-xs font-bold text-ink-700 shadow-sm transition hover:bg-ink-100"
+                title="Sign Out"
+                className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
               >
-                Sign Out
+                <LogOut size={14} />
               </button>
             )}
           </div>
         </header>
 
+        {/* Hero Section */}
+        <section className="text-center pt-2 sm:pt-4 max-w-3xl mx-auto space-y-3">
+          <p className="font-serif italic text-2xl sm:text-3xl text-slate-300 font-normal">
+            National Standard Practice &amp; Assessment
+          </p>
+          <h1 className="font-sans text-3xl sm:text-4xl font-black tracking-tight text-white">
+            Target Exam &amp; Standard Catalog
+          </h1>
+          <p className="text-sm text-slate-400 max-w-xl mx-auto leading-relaxed font-normal">
+            Select your target standard below to access dedicated full-length chapter examinations and timed assessments.
+          </p>
+        </section>
+
         {/* Section / Category Tabs */}
-        <div className="mb-8">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wider text-ink-500">
+        <div>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
             Select Your Target Standard / Exam :
           </p>
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = selectedCategory === cat.id;
@@ -79,32 +113,31 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                   key={cat.id}
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex flex-col items-start justify-between rounded-2xl border p-4 text-left transition-all ${
+                  className={`flex flex-col items-start justify-between rounded-2xl border p-4 sm:p-5 text-left transition-all ${
                     isActive
-                      ? 'border-ink-900 bg-ink-900 text-white shadow-pop ring-2 ring-ink-900/20'
-                      : 'border-ink-200 bg-white text-ink-800 hover:border-ink-300 hover:bg-ink-100/50'
+                      ? 'border-blue-500 bg-gradient-to-b from-[#0D1528] to-[#0B0F19] text-white shadow-lg shadow-blue-500/10 ring-1 ring-blue-500'
+                      : 'border-white/10 bg-[#0B0F19] text-slate-300 hover:border-white/20 hover:bg-[#0D121F]'
                   }`}
                 >
                   <div className="flex w-full items-center justify-between gap-2">
-                    <Icon
-                      size={18}
-                      className={isActive ? 'text-gold-300' : 'text-ink-600'}
-                    />
+                    <div className={`p-2 rounded-xl ${isActive ? 'bg-blue-600/20 text-blue-400' : 'bg-white/5 text-slate-400'}`}>
+                      <Icon size={18} />
+                    </div>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                         isActive
                           ? cat.id === 'neet'
-                            ? 'bg-good-500/30 text-good-200'
-                            : 'bg-gold-400/20 text-gold-300'
+                            ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
+                            : 'bg-blue-500/20 border border-blue-500/30 text-blue-300'
                           : cat.id === 'neet'
-                            ? 'bg-good-50 text-good-700 border border-good-200'
-                            : 'bg-ink-100 text-ink-500'
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : 'bg-white/5 text-slate-500 border border-white/5'
                       }`}
                     >
                       {cat.badge}
                     </span>
                   </div>
-                  <span className="mt-3 font-serif text-lg font-bold">{cat.label}</span>
+                  <span className="mt-4 font-sans text-base sm:text-lg font-bold">{cat.label}</span>
                 </button>
               );
             })}
@@ -116,58 +149,60 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
           <div className="animate-fade-in space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <span className="rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-gold-800">
+                <span className="rounded-full bg-blue-500/15 border border-blue-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-300">
                   Physics · Class 11 Drill
                 </span>
-                <h2 className="mt-2 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
+                <h2 className="mt-2 font-sans text-2xl sm:text-3xl font-black text-white">
                   NEET 2027: Work, Energy and Power
                 </h2>
-                <p className="mt-1 text-sm text-ink-600">
-                  60 High-Yield Questions curated from authentic NEET and hard conceptual problem sets.
+                <p className="mt-1 text-sm text-slate-400">
+                  60 High-Yield Questions curated from authentic NEET and conceptual problem sets with complete diagrams.
                 </p>
               </div>
-              <div className="flex items-center gap-2 rounded-xl border border-good-200 bg-good-50 px-3.5 py-2 text-xs font-bold text-good-700">
-                <CheckCircle2 size={16} className="text-good-600" /> Test Ready (2 Hours)
+              <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold text-emerald-300">
+                <CheckCircle2 size={16} /> Test Ready (2 Hours)
               </div>
             </div>
 
             {/* Test Card */}
-            <article className="overflow-hidden rounded-2xl border-2 border-ink-900 bg-white p-6 shadow-pop sm:p-8">
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+            <article className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#0D1322] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative">
+              <div className="pointer-events-none absolute -top-12 -right-12 h-48 w-48 rounded-full bg-blue-600/10 blur-3xl" />
+
+              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
                 <div className="max-w-2xl">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-ink-900 px-3 py-1 text-xs font-black uppercase tracking-wider text-gold-300">
+                    <span className="rounded-full bg-blue-600/20 border border-blue-500/30 px-3 py-0.5 text-xs font-bold text-blue-300">
                       NEET Pattern
                     </span>
-                    <span className="rounded-full bg-gold-100 px-3 py-1 text-xs font-bold text-gold-800">
+                    <span className="rounded-full bg-rose-500/20 border border-rose-500/30 px-3 py-0.5 text-xs font-bold text-rose-300">
                       Hard Level
                     </span>
                   </div>
 
-                  <h3 className="mt-3 font-serif text-2xl font-black text-ink-900 sm:text-3xl">
+                  <h3 className="mt-3 font-sans text-2xl sm:text-3xl font-black text-white">
                     {NEET_WEP_TEST.title}
                   </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-600">
+                  <p className="mt-2 text-sm leading-relaxed text-slate-400">
                     Comprehensive full-chapter examination designed to test conceptual clarity, graphical analysis, spring systems, variable forces, and vertical circular motion up to NEET standard.
                   </p>
 
-                  <div className="mt-5 rounded-xl border border-ink-100 bg-ink-50 p-4 text-xs leading-relaxed text-ink-700">
-                    <span className="font-bold text-ink-900">Syllabus Covered: </span>
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs leading-relaxed text-slate-300">
+                    <span className="font-bold text-white">Syllabus Covered: </span>
                     {NEET_WEP_TEST.syllabus}
                   </div>
 
-                  <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-ink-700">
-                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 py-2 shadow-xs">
-                      <Clock size={14} className="text-gold-600" />
-                      <strong>2 Hours</strong> (120 Minutes)
+                  <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Clock size={14} className="text-blue-400" />
+                      <strong className="text-white">2 Hours</strong> (120 Minutes)
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 py-2 shadow-xs">
-                      <BookOpen size={14} className="text-gold-600" />
-                      <strong>60 Questions</strong>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <BookOpen size={14} className="text-blue-400" />
+                      <strong className="text-white">60 Questions</strong>
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-lg border border-ink-200 bg-white px-3 py-2 shadow-xs">
-                      <Award size={14} className="text-gold-600" />
-                      <strong>240 Marks</strong> (+4 / −1 Scheme)
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Award size={14} className="text-blue-400" />
+                      <strong className="text-white">240 Marks</strong> (+4 / −1 Scheme)
                     </span>
                   </div>
                 </div>
@@ -176,7 +211,7 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                   <button
                     type="button"
                     onClick={() => onSelect(NEET_WEP_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-ink-900 px-8 py-5 text-sm font-bold text-white shadow-pop transition hover:bg-ink-800 lg:w-auto"
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-500 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-95 lg:w-auto"
                   >
                     Start 2-Hour Examination <ArrowRight size={16} />
                   </button>
@@ -189,35 +224,35 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
         {/* CONTENT FOR CLASS 10 SECTION */}
         {selectedCategory === 'class10' && (
           <div className="animate-fade-in space-y-6">
-            <div className="rounded-2xl border border-ink-200 bg-white p-8 text-center shadow-card sm:p-12">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gold-100 text-gold-700">
+            <div className="rounded-3xl border border-white/10 bg-[#0B0F19] p-8 text-center shadow-xl sm:p-12">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 shadow-glow">
                 <GraduationCap size={32} />
               </div>
-              <span className="mt-4 inline-block rounded-full bg-gold-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-gold-800">
+              <span className="mt-4 inline-block rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-300">
                 Class 10 CBSE &amp; State Boards
               </span>
-              <h2 className="mt-3 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
+              <h2 className="mt-3 font-serif italic text-2xl sm:text-3xl text-white">
                 Upcoming in Future
               </h2>
-              <p className="mx-auto mt-2 max-w-lg text-sm text-ink-600">
+              <p className="mx-auto mt-2 max-w-lg text-sm text-slate-400">
                 Full-length Board Exam Mock Tests, Chemistry timed question papers, and Chapter Drills for Class 10 will be available in future releases.
               </p>
 
               <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
-                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
-                  <span className="text-xs font-bold uppercase text-gold-600">Module 1</span>
-                  <h4 className="mt-1 font-bold text-ink-900">Physics &amp; Light</h4>
-                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4">
+                  <span className="text-xs font-bold uppercase text-blue-400">Module 1</span>
+                  <h4 className="mt-1 font-bold text-white">Physics &amp; Light</h4>
+                  <p className="mt-1 text-xs text-slate-500">Upcoming in future</p>
                 </div>
-                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
-                  <span className="text-xs font-bold uppercase text-gold-600">Module 2</span>
-                  <h4 className="mt-1 font-bold text-ink-900">Chemistry Drills</h4>
-                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4">
+                  <span className="text-xs font-bold uppercase text-blue-400">Module 2</span>
+                  <h4 className="mt-1 font-bold text-white">Chemistry Drills</h4>
+                  <p className="mt-1 text-xs text-slate-500">Upcoming in future</p>
                 </div>
-                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
-                  <span className="text-xs font-bold uppercase text-gold-600">Module 3</span>
-                  <h4 className="mt-1 font-bold text-ink-900">Life Processes</h4>
-                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4">
+                  <span className="text-xs font-bold uppercase text-blue-400">Module 3</span>
+                  <h4 className="mt-1 font-bold text-white">Life Processes</h4>
+                  <p className="mt-1 text-xs text-slate-500">Upcoming in future</p>
                 </div>
               </div>
             </div>
@@ -227,35 +262,35 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
         {/* CONTENT FOR CLASS 9 SECTION */}
         {selectedCategory === 'class9' && (
           <div className="animate-fade-in space-y-6">
-            <div className="rounded-2xl border border-ink-200 bg-white p-8 text-center shadow-card sm:p-12">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-ink-100 text-ink-700">
+            <div className="rounded-3xl border border-white/10 bg-[#0B0F19] p-8 text-center shadow-xl sm:p-12">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-slate-300">
                 <Layers size={32} />
               </div>
-              <span className="mt-4 inline-block rounded-full bg-ink-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink-700">
+              <span className="mt-4 inline-block rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-300">
                 Class 9 Foundation
               </span>
-              <h2 className="mt-3 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
+              <h2 className="mt-3 font-serif italic text-2xl sm:text-3xl text-white">
                 Upcoming in Future
               </h2>
-              <p className="mx-auto mt-2 max-w-lg text-sm text-ink-600">
+              <p className="mx-auto mt-2 max-w-lg text-sm text-slate-400">
                 Class 9 Foundation Science and Mathematics assessment modules are scheduled for upcoming future updates.
               </p>
 
               <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
-                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
-                  <span className="text-xs font-bold uppercase text-ink-600">Physics</span>
-                  <h4 className="mt-1 font-bold text-ink-900">Motion &amp; Force</h4>
-                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4">
+                  <span className="text-xs font-bold uppercase text-slate-400">Physics</span>
+                  <h4 className="mt-1 font-bold text-white">Motion &amp; Force</h4>
+                  <p className="mt-1 text-xs text-slate-500">Upcoming in future</p>
                 </div>
-                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
-                  <span className="text-xs font-bold uppercase text-ink-600">Chemistry</span>
-                  <h4 className="mt-1 font-bold text-ink-900">Matter &amp; Atoms</h4>
-                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4">
+                  <span className="text-xs font-bold uppercase text-slate-400">Chemistry</span>
+                  <h4 className="mt-1 font-bold text-white">Matter &amp; Atoms</h4>
+                  <p className="mt-1 text-xs text-slate-500">Upcoming in future</p>
                 </div>
-                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
-                  <span className="text-xs font-bold uppercase text-ink-600">Biology</span>
-                  <h4 className="mt-1 font-bold text-ink-900">Cell &amp; Tissues</h4>
-                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4">
+                  <span className="text-xs font-bold uppercase text-slate-400">Biology</span>
+                  <h4 className="mt-1 font-bold text-white">Cell &amp; Tissues</h4>
+                  <p className="mt-1 text-xs text-slate-500">Upcoming in future</p>
                 </div>
               </div>
             </div>
@@ -265,35 +300,35 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
         {/* CONTENT FOR CLASS 8 SECTION */}
         {selectedCategory === 'class8' && (
           <div className="animate-fade-in space-y-6">
-            <div className="rounded-2xl border border-ink-200 bg-white p-8 text-center shadow-card sm:p-12">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-ink-100 text-ink-700">
+            <div className="rounded-3xl border border-white/10 bg-[#0B0F19] p-8 text-center shadow-xl sm:p-12">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-slate-300">
                 <BookOpen size={32} />
               </div>
-              <span className="mt-4 inline-block rounded-full bg-ink-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-ink-700">
+              <span className="mt-4 inline-block rounded-full bg-white/5 border border-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-300">
                 Class 8 Junior Foundation
               </span>
-              <h2 className="mt-3 font-serif text-2xl font-bold text-ink-900 sm:text-3xl">
+              <h2 className="mt-3 font-serif italic text-2xl sm:text-3xl text-white">
                 Upcoming in Future
               </h2>
-              <p className="mx-auto mt-2 max-w-lg text-sm text-ink-600">
+              <p className="mx-auto mt-2 max-w-lg text-sm text-slate-400">
                 Junior Olympiad and Foundation curriculum for Class 8 students will be launching in the upcoming updates.
               </p>
 
               <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
-                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
-                  <span className="text-xs font-bold uppercase text-ink-600">Science</span>
-                  <h4 className="mt-1 font-bold text-ink-900">Force &amp; Pressure</h4>
-                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4">
+                  <span className="text-xs font-bold uppercase text-slate-400">Science</span>
+                  <h4 className="mt-1 font-bold text-white">Force &amp; Pressure</h4>
+                  <p className="mt-1 text-xs text-slate-500">Upcoming in future</p>
                 </div>
-                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
-                  <span className="text-xs font-bold uppercase text-ink-600">Science</span>
-                  <h4 className="mt-1 font-bold text-ink-900">Chemical Effects</h4>
-                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4">
+                  <span className="text-xs font-bold uppercase text-slate-400">Science</span>
+                  <h4 className="mt-1 font-bold text-white">Chemical Effects</h4>
+                  <p className="mt-1 text-xs text-slate-500">Upcoming in future</p>
                 </div>
-                <div className="rounded-xl border border-ink-100 bg-ink-50 p-4">
-                  <span className="text-xs font-bold uppercase text-ink-600">Math</span>
-                  <h4 className="mt-1 font-bold text-ink-900">Linear Equations</h4>
-                  <p className="mt-1 text-xs text-ink-500">Upcoming in future</p>
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4">
+                  <span className="text-xs font-bold uppercase text-slate-400">Math</span>
+                  <h4 className="mt-1 font-bold text-white">Linear Equations</h4>
+                  <p className="mt-1 text-xs text-slate-500">Upcoming in future</p>
                 </div>
               </div>
             </div>

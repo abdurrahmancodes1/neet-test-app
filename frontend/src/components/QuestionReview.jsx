@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { CheckCircle2, XCircle, MinusCircle } from 'lucide-react';
+import { CheckCircle2, XCircle, MinusCircle, BookOpen } from 'lucide-react';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -10,9 +10,9 @@ const FILTERS = [
 ];
 
 const STATUS_BADGE = {
-  correct: { label: 'Correct', className: 'bg-good-100 text-good-700', icon: CheckCircle2 },
-  wrong: { label: 'Incorrect', className: 'bg-bad-100 text-bad-700', icon: XCircle },
-  unattempted: { label: 'Not Attempted', className: 'bg-ink-100 text-ink-600', icon: MinusCircle },
+  correct: { label: 'Correct', className: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', icon: CheckCircle2 },
+  wrong: { label: 'Incorrect', className: 'bg-rose-500/15 text-rose-300 border border-rose-500/30', icon: XCircle },
+  unattempted: { label: 'Not Attempted', className: 'bg-white/5 text-slate-400 border border-white/10', icon: MinusCircle },
 };
 
 export default function QuestionReview({
@@ -47,11 +47,16 @@ export default function QuestionReview({
   }, [perQuestion, questions, filter, markedSet]);
 
   return (
-    <div className="animate-rise-in rounded-xl2 border border-ink-200 bg-white p-6 shadow-card sm:p-8">
-      <h2 className="mb-1 font-serif text-xl font-bold text-ink-900">Question Review</h2>
-      <p className="mb-4 text-sm text-ink-500">Walk through every question with the correct answer shown.</p>
+    <div className="animate-rise-in rounded-3xl border border-white/10 bg-[#0B0F19] p-6 sm:p-8 shadow-2xl space-y-6">
+      <div>
+        <h2 className="mb-1 font-sans text-xl font-bold text-white flex items-center gap-2">
+          <BookOpen size={20} className="text-blue-400" /> Question Review &amp; Solutions
+        </h2>
+        <p className="text-xs text-slate-400">Walk through every question with full verified solutions and explanations.</p>
+      </div>
 
-      <div className="mb-6 flex flex-wrap gap-2">
+      {/* Filter Chips */}
+      <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button
             key={f.key}
@@ -59,8 +64,8 @@ export default function QuestionReview({
             onClick={() => setFilter(f.key)}
             className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition ${
               filter === f.key
-                ? 'border-ink-900 bg-ink-900 text-white'
-                : 'border-ink-200 text-ink-600 hover:border-ink-400'
+                ? 'border-blue-500 bg-blue-600 text-white shadow-sm'
+                : 'border-white/10 bg-[#070A12] text-slate-400 hover:border-white/20 hover:text-white'
             }`}
           >
             {f.label}
@@ -69,9 +74,9 @@ export default function QuestionReview({
       </div>
 
       {items.length === 0 ? (
-        <p className="py-8 text-center text-sm text-ink-400">No questions match this filter.</p>
+        <p className="py-8 text-center text-sm text-slate-500">No questions match this filter.</p>
       ) : (
-        <div className="space-y-5">
+        <div className="space-y-4">
           {items.map((r) => {
             const badge = STATUS_BADGE[r.status] || STATUS_BADGE.unattempted;
             const Icon = badge.icon;
@@ -79,68 +84,72 @@ export default function QuestionReview({
             const correctText = r.correctAnswer && r.options ? r.options[r.correctAnswer] : null;
 
             return (
-              <div key={r.id} className="rounded-xl border border-ink-200 p-4 sm:p-5">
-                <div className="mb-3 flex flex-wrap items-center gap-2">
-                  <span className="rounded-md bg-ink-900 px-2 py-0.5 font-mono text-xs font-bold text-gold-300">
+              <div key={r.id} className="rounded-2xl border border-white/10 bg-[#070A12] p-5 sm:p-6 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-blue-600/20 border border-blue-500/30 px-2.5 py-0.5 font-mono text-xs font-bold text-blue-300">
                     Q{r.id}
                   </span>
                   <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge.className}`}>
                     <Icon size={12} /> {badge.label}
                   </span>
                   {markedSet.has(r.id) && (
-                    <span className="rounded-full bg-gold-100 px-2.5 py-0.5 text-xs font-semibold text-gold-700">
+                    <span className="rounded-full bg-amber-500/20 border border-amber-500/30 px-2.5 py-0.5 text-xs font-semibold text-amber-300">
                       Marked
                     </span>
                   )}
                   {r.subject && (
-                    <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-medium text-ink-700">
+                    <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-xs font-medium text-slate-400">
                       {r.subject}
                     </span>
                   )}
                   {r.topic && (
-                    <span className="ml-auto rounded-full bg-gold-50 px-2.5 py-0.5 text-xs font-medium text-gold-700">
+                    <span className="ml-auto rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-xs font-medium text-slate-400">
                       {r.topic}
                     </span>
                   )}
                 </div>
 
-                <p className="chem mb-3 whitespace-pre-line text-sm font-medium leading-relaxed text-ink-900">
+                <p className="chem whitespace-pre-line text-sm sm:text-base font-medium leading-relaxed text-slate-100">
                   {r.question}
                 </p>
 
                 {r.image && (
-                  <div className="mb-4 flex justify-center">
+                  <div className="my-3 flex justify-center">
                     <img
                       src={r.image}
                       alt={`Diagram for question ${r.id}`}
-                      className="max-h-64 rounded-lg border border-ink-200 bg-white object-contain p-2"
+                      className="max-h-64 rounded-xl border border-white/10 bg-white object-contain p-2"
                     />
                   </div>
                 )}
 
-                <div className="grid gap-2 text-sm sm:grid-cols-2">
+                <div className="grid gap-2 text-xs sm:grid-cols-2">
                   <div
-                    className={`rounded-lg px-3 py-2 ${
-                      r.status === 'wrong' ? 'bg-bad-100' : r.status === 'unattempted' ? 'bg-ink-100' : 'bg-good-100'
+                    className={`rounded-xl border p-3 ${
+                      r.status === 'wrong'
+                        ? 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+                        : r.status === 'unattempted'
+                          ? 'bg-white/5 border-white/10 text-slate-300'
+                          : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
                     }`}
                   >
-                    <p className="text-xs font-semibold uppercase tracking-wide opacity-70">Your answer</p>
-                    <p className="chem font-medium">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">Your answer</p>
+                    <p className="chem mt-1 font-semibold text-sm">
                       {r.selected ? `${r.selected}${selectedText ? `. ${selectedText}` : ''}` : 'Not attempted'}
                     </p>
                   </div>
-                  <div className="rounded-lg bg-good-100 px-3 py-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide opacity-70">Correct answer</p>
-                    <p className="chem font-medium">
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-300">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">Correct answer</p>
+                    <p className="chem mt-1 font-semibold text-sm">
                       {r.correctAnswer ? `${r.correctAnswer}${correctText ? `. ${correctText}` : ''}` : '—'}
                     </p>
                   </div>
                 </div>
 
                 {r.explanation && (
-                  <div className="mt-3 rounded-lg border border-gold-200 bg-gold-50/60 p-3 text-xs leading-relaxed text-ink-800">
-                    <p className="font-bold text-gold-900 mb-1">💡 Step-by-Step Solution &amp; Concept:</p>
-                    <p className="whitespace-pre-line text-ink-700">{r.explanation}</p>
+                  <div className="mt-3 rounded-xl border border-blue-500/20 bg-blue-950/20 p-4 text-xs leading-relaxed text-slate-300">
+                    <p className="font-bold text-blue-400 mb-1">💡 Step-by-Step Solution &amp; Concept:</p>
+                    <p className="whitespace-pre-line text-slate-300">{r.explanation}</p>
                   </div>
                 )}
               </div>

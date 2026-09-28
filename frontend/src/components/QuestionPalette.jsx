@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Layers } from 'lucide-react';
 
 function getQuestionKey(q) {
   return q.order ?? q.id ?? q._id;
@@ -26,18 +26,18 @@ function statusOf(q, answers, marked) {
 }
 
 const STYLES = {
-  answered: 'bg-good-500 text-white border-good-600',
-  unanswered: 'bg-white text-ink-700 border-ink-300',
-  marked: 'bg-gold-500 text-white border-gold-600',
-  'answered-marked': 'bg-ink-800 text-white border-ink-900',
-  current: 'ring-2 ring-offset-2 ring-ink-800',
+  answered: 'bg-emerald-600 text-white border-emerald-500 shadow-xs',
+  unanswered: 'bg-[#070A12] text-slate-400 border-white/10 hover:border-white/20 hover:text-white',
+  marked: 'bg-amber-500 text-slate-950 border-amber-400 font-bold',
+  'answered-marked': 'bg-blue-600 text-white border-blue-400 font-bold',
+  current: 'ring-2 ring-offset-2 ring-blue-500 ring-offset-[#0B0F19] scale-105',
 };
 
 const LEGEND = [
-  { key: 'answered', label: 'Answered', className: 'bg-good-500' },
-  { key: 'unanswered', label: 'Not answered', className: 'bg-white border border-ink-300' },
-  { key: 'marked', label: 'Marked for review', className: 'bg-gold-500' },
-  { key: 'answered-marked', label: 'Answered + marked', className: 'bg-ink-800' },
+  { key: 'answered', label: 'Answered', className: 'bg-emerald-500' },
+  { key: 'unanswered', label: 'Not answered', className: 'bg-[#070A12] border border-white/20' },
+  { key: 'marked', label: 'Marked for review', className: 'bg-amber-500' },
+  { key: 'answered-marked', label: 'Answered + marked', className: 'bg-blue-600' },
 ];
 
 function Grid({ questions, answers, marked, currentIndex, onJump }) {
@@ -54,7 +54,7 @@ function Grid({ questions, answers, marked, currentIndex, onJump }) {
             onClick={() => onJump(idx)}
             aria-label={`Go to question ${idx + 1}, ${status.replace('-', ' ')}${isCurrent ? ', current question' : ''}`}
             aria-current={isCurrent ? 'true' : undefined}
-            className={`flex h-10 w-full items-center justify-center rounded-lg border font-mono text-sm font-semibold transition active:scale-95 ${STYLES[status]} ${
+            className={`flex h-10 w-full items-center justify-center rounded-xl border font-mono text-xs font-bold transition active:scale-95 ${STYLES[status]} ${
               isCurrent ? STYLES.current : ''
             }`}
           >
@@ -68,11 +68,11 @@ function Grid({ questions, answers, marked, currentIndex, onJump }) {
 
 export function PaletteLegend() {
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-ink-600">
+    <div className="flex flex-wrap gap-x-3.5 gap-y-2 text-xs text-slate-400 pt-2">
       {LEGEND.map((item) => (
         <div key={item.key} className="flex items-center gap-1.5">
-          <span className={`h-3 w-3 rounded ${item.className}`} />
-          {item.label}
+          <span className={`h-2.5 w-2.5 rounded-full ${item.className}`} />
+          <span>{item.label}</span>
         </div>
       ))}
     </div>
@@ -93,17 +93,17 @@ export function PaletteSummary({ questions, answers, marked }) {
   const unansweredCount = questions.length - answeredCount;
   return (
     <div className="grid grid-cols-3 gap-2 text-center">
-      <div className="rounded-lg bg-good-100 py-2">
-        <p className="text-lg font-bold text-good-700">{answeredCount}</p>
-        <p className="text-[11px] font-medium text-good-700/80">Answered</p>
+      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 py-2">
+        <p className="text-base font-bold text-emerald-400 font-mono">{answeredCount}</p>
+        <p className="text-[10px] font-semibold text-emerald-300/80 uppercase">Answered</p>
       </div>
-      <div className="rounded-lg bg-ink-100 py-2">
-        <p className="text-lg font-bold text-ink-700">{unansweredCount}</p>
-        <p className="text-[11px] font-medium text-ink-600">Unanswered</p>
+      <div className="rounded-xl border border-white/10 bg-[#070A12] py-2">
+        <p className="text-base font-bold text-slate-200 font-mono">{unansweredCount}</p>
+        <p className="text-[10px] font-semibold text-slate-400 uppercase">Left</p>
       </div>
-      <div className="rounded-lg bg-gold-100 py-2">
-        <p className="text-lg font-bold text-gold-700">{markedCount}</p>
-        <p className="text-[11px] font-medium text-gold-700/80">Marked</p>
+      <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 py-2">
+        <p className="text-base font-bold text-amber-400 font-mono">{markedCount}</p>
+        <p className="text-[10px] font-semibold text-amber-300/80 uppercase">Marked</p>
       </div>
     </div>
   );
@@ -124,10 +124,17 @@ export default function QuestionPalette({
     <>
       {/* Desktop sidebar */}
       <aside className="hidden w-72 shrink-0 lg:block">
-        <div className="sticky top-20 rounded-xl2 border border-ink-200 bg-white p-4 shadow-card">
-          <h2 className="mb-3 text-sm font-bold text-ink-900">Question Palette</h2>
+        <div className="sticky top-20 rounded-3xl border border-white/10 bg-[#0B0F19] p-5 shadow-2xl space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <Layers size={14} className="text-blue-400" /> Question Palette
+            </h2>
+            <span className="text-[11px] font-mono text-slate-500">{questions.length} Total</span>
+          </div>
+
           <PaletteSummary questions={questions} answers={answers} marked={marked} />
-          <div className="my-4 max-h-[46vh] overflow-y-auto pr-1">
+
+          <div className="my-3 max-h-[44vh] overflow-y-auto pr-1">
             <Grid
               questions={questions}
               answers={answers}
@@ -136,11 +143,15 @@ export default function QuestionPalette({
               onJump={onJump}
             />
           </div>
-          <PaletteLegend />
+
+          <div className="border-t border-white/10 pt-2">
+            <PaletteLegend />
+          </div>
+
           <button
             type="button"
             onClick={onSubmit}
-            className="mt-4 w-full rounded-lg bg-ink-900 py-2.5 text-sm font-semibold text-white transition hover:bg-ink-800"
+            className="w-full rounded-full bg-blue-600 hover:bg-blue-500 py-3 text-xs font-bold text-white shadow-lg shadow-blue-600/25 transition active:scale-95"
           >
             Submit Test
           </button>
@@ -152,22 +163,26 @@ export default function QuestionPalette({
         <div className="fixed inset-0 z-50 lg:hidden">
           <button
             aria-label="Close palette"
-            className="absolute inset-0 bg-ink-950/40 animate-fade-in"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in"
             onClick={onClose}
           />
-          <div className="animate-rise-in absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-2xl bg-white p-4 shadow-pop">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-bold text-ink-900">Question Palette</h2>
+          <div className="animate-rise-in absolute bottom-0 left-0 right-0 max-h-[85vh] overflow-y-auto rounded-t-3xl border-t border-white/10 bg-[#0B0F19] p-6 shadow-2xl space-y-4 text-white">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-white flex items-center gap-2">
+                <Layers size={16} className="text-blue-400" /> Question Palette
+              </h2>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="rounded-full p-1.5 text-ink-500 hover:bg-ink-100"
+                className="rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
+
             <PaletteSummary questions={questions} answers={answers} marked={marked} />
+
             <div className="my-4">
               <Grid
                 questions={questions}
@@ -180,11 +195,15 @@ export default function QuestionPalette({
                 }}
               />
             </div>
-            <PaletteLegend />
+
+            <div className="border-t border-white/10 pt-2">
+              <PaletteLegend />
+            </div>
+
             <button
               type="button"
               onClick={onSubmit}
-              className="mt-4 w-full rounded-lg bg-ink-900 py-3 text-sm font-semibold text-white transition hover:bg-ink-800"
+              className="w-full rounded-full bg-blue-600 hover:bg-blue-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition"
             >
               Submit Test
             </button>

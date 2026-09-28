@@ -1,20 +1,22 @@
 import React from 'react';
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { TrendingDown, TrendingUp, BarChart3 } from 'lucide-react';
 import { TopicBarChart } from './Charts.jsx';
 
 function ProgressRow({ topic }) {
   const pct = Math.round(topic.mastery);
   return (
-    <div className="py-2.5">
-      <div className="mb-1.5 flex items-center justify-between text-sm">
-        <span className="font-medium text-ink-800">{topic.topic}</span>
-        <span className="font-mono text-xs text-ink-500">
-          {topic.correct}/{topic.total} correct
+    <div className="py-3">
+      <div className="mb-1.5 flex items-center justify-between text-xs sm:text-sm">
+        <span className="font-semibold text-slate-200">{topic.topic}</span>
+        <span className="font-mono text-xs text-slate-400">
+          {topic.correct}/{topic.total} correct · {pct}%
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-ink-100">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[#070A12]">
         <div
-          className={`h-full rounded-full ${pct >= 70 ? 'bg-good-500' : pct >= 40 ? 'bg-gold-500' : 'bg-bad-500'}`}
+          className={`h-full rounded-full transition-all duration-500 ${
+            pct >= 70 ? 'bg-emerald-500' : pct >= 40 ? 'bg-blue-500' : 'bg-rose-500'
+          }`}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -22,32 +24,34 @@ function ProgressRow({ topic }) {
   );
 }
 
-export default function TopicAnalysis({ topics, weakest, strongest }) {
+export default function TopicAnalysis({ topics = [], weakest = [], strongest = [] }) {
   return (
     <div className="animate-rise-in space-y-6">
-      <div className="rounded-xl2 border border-ink-200 bg-white p-6 shadow-card sm:p-8">
-        <h2 className="mb-1 font-serif text-xl font-bold text-ink-900">Topic Performance</h2>
-        <p className="mb-4 text-sm text-ink-500">Accuracy across every topic covered in this test.</p>
+      <div className="rounded-3xl border border-white/10 bg-[#0B0F19] p-6 sm:p-8 shadow-2xl">
+        <h2 className="mb-1 font-sans text-lg sm:text-xl font-bold text-white flex items-center gap-2">
+          <BarChart3 size={18} className="text-blue-400" /> Topic Performance
+        </h2>
+        <p className="mb-4 text-xs text-slate-400">Accuracy across every topic covered in this examination.</p>
         <TopicBarChart topics={topics} />
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
-        <div className="rounded-xl2 border border-bad-500/20 bg-white p-6 shadow-card">
-          <h3 className="mb-4 flex items-center gap-2 font-serif text-lg font-bold text-bad-700">
-            <TrendingDown size={18} /> Your Weakest Areas
+        <div className="rounded-3xl border border-rose-500/20 bg-[#0B0F19] p-6 shadow-xl">
+          <h3 className="mb-4 flex items-center gap-2 font-sans text-base font-bold text-rose-400">
+            <TrendingDown size={18} /> Weakest Areas
           </h3>
           {weakest.length === 0 ? (
-            <p className="text-sm text-ink-500">No weak spots identified yet — nice work.</p>
+            <p className="text-xs text-slate-400">No weak spots identified — excellent work!</p>
           ) : (
             <ol className="space-y-3">
               {weakest.map((t, i) => (
                 <li key={t.topic} className="flex items-start gap-3">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bad-100 text-xs font-bold text-bad-700">
+                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-500/20 text-xs font-bold text-rose-300">
                     {i + 1}
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-ink-800">{t.topic}</p>
-                    <p className="text-xs text-ink-500">
+                    <p className="text-xs sm:text-sm font-semibold text-slate-200">{t.topic}</p>
+                    <p className="text-xs text-slate-400">
                       {Math.round(t.mastery)}% accuracy · {t.correct}/{t.total} correct
                     </p>
                   </div>
@@ -57,18 +61,18 @@ export default function TopicAnalysis({ topics, weakest, strongest }) {
           )}
         </div>
 
-        <div className="rounded-xl2 border border-good-500/20 bg-white p-6 shadow-card">
-          <h3 className="mb-4 flex items-center gap-2 font-serif text-lg font-bold text-good-700">
+        <div className="rounded-3xl border border-emerald-500/20 bg-[#0B0F19] p-6 shadow-xl">
+          <h3 className="mb-4 flex items-center gap-2 font-sans text-base font-bold text-emerald-400">
             <TrendingUp size={18} /> Strongest Areas
           </h3>
           {strongest.length === 0 ? (
-            <p className="text-sm text-ink-500">Attempt more questions to surface your strengths.</p>
+            <p className="text-xs text-slate-400">Attempt more questions to surface your strengths.</p>
           ) : (
             <ul className="space-y-3">
               {strongest.map((t) => (
                 <li key={t.topic} className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-ink-800">✓ {t.topic}</span>
-                  <span className="font-mono text-xs font-bold text-good-700">{Math.round(t.mastery)}%</span>
+                  <span className="text-xs sm:text-sm font-semibold text-slate-200">✓ {t.topic}</span>
+                  <span className="font-mono text-xs font-bold text-emerald-400">{Math.round(t.mastery)}%</span>
                 </li>
               ))}
             </ul>
@@ -76,9 +80,9 @@ export default function TopicAnalysis({ topics, weakest, strongest }) {
         </div>
       </div>
 
-      <div className="rounded-xl2 border border-ink-200 bg-white p-6 shadow-card sm:p-8">
-        <h3 className="mb-2 font-serif text-lg font-bold text-ink-900">All Topics</h3>
-        <div className="divide-y divide-ink-100">
+      <div className="rounded-3xl border border-white/10 bg-[#0B0F19] p-6 sm:p-8 shadow-xl">
+        <h3 className="mb-2 font-sans text-base font-bold text-white">All Topics Breakdown</h3>
+        <div className="divide-y divide-white/5">
           {topics.map((t) => (
             <ProgressRow key={t.topic} topic={t} />
           ))}
