@@ -1,34 +1,43 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import os from 'os';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const DATA_DIR = path.resolve(__dirname, '../../data');
-const STORE_FILE = path.join(DATA_DIR, 'sync_store.json');
+let memoryStore = { users: [], results: [] };
 
-// Ensure data directory exists
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
+function getStoreFilePath() {
+  try {
+    // In serverless, use OS temp directory
+    const tempDir = os.tmpdir();
+    return path.join(tempDir, 'neet_sync_store.json');
+  } catch {
+    return null;
+  }
 }
 
 function loadStore() {
-  try {
-    if (fs.existsSync(STORE_FILE)) {
-      const raw = fs.readFileSync(STORE_FILE, 'utf-8');
-      return JSON.parse(raw);
+  const filePath = getStoreFilePath();
+  if (filePath) {
+    try {
+      if (fs.existsSync(filePath)) {
+        const raw = fs.readFileSync(filePath, 'utf-8');
+        return JSON.parse(raw);
+      }
+    } catch {
+      // Fallback to memory
     }
-  } catch (err) {
-    console.error('Error loading sync_store.json:', err);
   }
-  return { users: [], results: [] };
+  return memoryStore;
 }
 
 function persistStore(data) {
-  try {
-    fs.writeFileSync(STORE_FILE, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (err) {
-    console.error('Error saving sync_store.json:', err);
+  memoryStore = data;
+  const filePath = getStoreFilePath();
+  if (filePath) {
+    try {
+      fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+    } catch {
+      // Ignore read-only filesystem errors gracefully
+    }
   }
 }
 

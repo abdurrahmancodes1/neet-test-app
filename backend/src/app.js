@@ -10,6 +10,9 @@ import apiRouter from './routes/index.js';
 
 const app = express();
 
+// Trust proxy for Vercel / Cloudflare
+app.set('trust proxy', 1);
+
 // Security Headers
 app.use(helmet());
 
