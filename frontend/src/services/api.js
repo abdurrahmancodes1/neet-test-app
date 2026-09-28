@@ -1,11 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-
-const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '') || 'https://neet-test-app.onrender.com/api';
+import { API_BASE } from '../utils/auth.js';
 
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: API_BASE_URL,
+    baseUrl: API_BASE,
     credentials: 'include', // Automatically attaches HTTP-only session cookies
     prepareHeaders: (headers) => {
       return headers;

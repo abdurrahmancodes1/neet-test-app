@@ -1,7 +1,17 @@
 const USERS_STORAGE_KEY = 'neet_users_list_v1';
 const CURRENT_USER_KEY = 'neet_current_user_v1';
 const ATTEMPTS_STORAGE_PREFIX = 'neet_user_attempts_v1_';
-export const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '') || 'https://neet-test-app.onrender.com/api';
+
+const getApiBase = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (!envUrl || typeof envUrl !== 'string' || !envUrl.trim()) {
+    return 'https://neet-test-app.onrender.com/api';
+  }
+  const clean = envUrl.trim().replace(/\/+$/, '');
+  return clean.endsWith('/api') ? clean : `${clean}/api`;
+};
+
+export const API_BASE = getApiBase();
 
 export function getUsers() {
   try {
@@ -70,6 +80,7 @@ export async function registerUser({ name, email, password, role = 'student' }) 
     const response = await fetch(`${API_BASE}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         name: cleanName,
         email: cleanEmail,
@@ -151,6 +162,7 @@ export async function loginUser({ email, password }) {
     const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         email: cleanEmail,
         password: cleanPassword,
@@ -201,7 +213,10 @@ export async function loginUser({ email, password }) {
 
 export async function logoutUser() {
   try {
-    await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
+    await fetch(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
   } catch (e) {
     // Ignore network errors during logout
   }
@@ -259,6 +274,7 @@ async function syncAttemptToBackend(email, attempt) {
         'Content-Type': 'application/json',
         ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
       },
+      credentials: 'include',
       body: JSON.stringify({
         ...attempt,
         studentEmail: email || currentUser?.email,
@@ -287,7 +303,9 @@ export function deleteUserAttempt(email, attemptId) {
  */
 export async function getGlobalPlatformStats() {
   try {
-    const response = await fetch(`${API_BASE}/auth/stats`);
+    const response = await fetch(`${API_BASE}/auth/stats`, {
+      credentials: 'include',
+    });
     if (response.ok) {
       const data = await response.json();
       if (data?.data) {
@@ -354,6 +372,7 @@ export async function getAdminOverview() {
       headers: {
         ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
       },
+      credentials: 'include',
     });
 
     if (response.ok) {

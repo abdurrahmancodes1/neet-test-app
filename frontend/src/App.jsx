@@ -36,7 +36,9 @@ export default function App() {
   // Live role check on mount / user change (syncs if role was changed in MongoDB Compass)
   useEffect(() => {
     if (currentUser?.email) {
-      fetch(`${API_BASE}/auth/user-role/${encodeURIComponent(currentUser.email)}`)
+      fetch(`${API_BASE}/auth/user-role/${encodeURIComponent(currentUser.email)}`, {
+        credentials: 'include',
+      })
         .then((r) => r.json())
         .then((res) => {
           if (res?.data?.role) {
