@@ -11,45 +11,58 @@ export default function AuthPage({ onAuthSuccess }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    if (isRegister) {
-      const res = registerUser({ name, email, password });
-      setLoading(false);
-      if (res.success) {
-        onAuthSuccess(res.user);
+    try {
+      if (isRegister) {
+        const res = await registerUser({ name, email, password });
+        setLoading(false);
+        if (res.success) {
+          onAuthSuccess(res.user);
+        } else {
+          setError(res.error);
+        }
       } else {
-        setError(res.error);
+        const res = await loginUser({ email, password });
+        setLoading(false);
+        if (res.success) {
+          onAuthSuccess(res.user);
+        } else {
+          setError(res.error);
+        }
       }
-    } else {
-      const res = loginUser({ email, password });
+    } catch (err) {
       setLoading(false);
-      if (res.success) {
-        onAuthSuccess(res.user);
-      } else {
-        setError(res.error);
-      }
+      setError('An unexpected error occurred. Please try again.');
     }
   };
 
-  const handleDemoLogin = () => {
+  const handleDemoLogin = async () => {
     const demoEmail = 'student@neet2027.ai';
     const demoPass = 'neetpass123';
     const demoName = 'Aarav Sharma (NEET Aspirant)';
 
-    const loginRes = loginUser({ email: demoEmail, password: demoPass });
-    if (loginRes.success) {
-      onAuthSuccess(loginRes.user);
-    } else {
-      const regRes = registerUser({ name: demoName, email: demoEmail, password: demoPass });
-      if (regRes.success) {
-        onAuthSuccess(regRes.user);
+    setLoading(true);
+    try {
+      const loginRes = await loginUser({ email: demoEmail, password: demoPass });
+      if (loginRes.success) {
+        setLoading(false);
+        onAuthSuccess(loginRes.user);
       } else {
-        setError(regRes.error);
+        const regRes = await registerUser({ name: demoName, email: demoEmail, password: demoPass });
+        setLoading(false);
+        if (regRes.success) {
+          onAuthSuccess(regRes.user);
+        } else {
+          setError(regRes.error);
+        }
       }
+    } catch (err) {
+      setLoading(false);
+      setError('Demo login error. Please enter custom credentials.');
     }
   };
 
@@ -72,7 +85,7 @@ export default function AuthPage({ onAuthSuccess }) {
           </h1>
           <p className="text-xs text-slate-400 font-normal">
             {isRegister
-              ? 'Register to track test attempts, accuracy metrics & personal progression.'
+              ? 'Register to sync your scores to cloud database and view global candidate rankings.'
               : 'Sign in to access your dashboard, 2-hour examination & comparative analytics.'}
           </p>
         </div>
@@ -185,10 +198,10 @@ export default function AuthPage({ onAuthSuccess }) {
             <button
               type="submit"
               disabled={loading}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-95"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-500 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-95 disabled:opacity-50"
             >
               {loading ? (
-                'Processing...'
+                'Connecting & Syncing...'
               ) : isRegister ? (
                 <>
                   Create Account <ArrowRight size={16} />
@@ -209,7 +222,8 @@ export default function AuthPage({ onAuthSuccess }) {
             <button
               type="button"
               onClick={handleDemoLogin}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 px-4 py-2.5 text-xs font-semibold text-blue-300 transition"
+              disabled={loading}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 px-4 py-2.5 text-xs font-semibold text-blue-300 transition disabled:opacity-50"
             >
               <Sparkles size={14} className="text-blue-400" />
               1-Click Demo Student Access
@@ -221,7 +235,7 @@ export default function AuthPage({ onAuthSuccess }) {
         <div className="grid grid-cols-3 gap-2 text-center text-[11px] font-semibold text-slate-400">
           <div className="flex flex-col items-center gap-1 rounded-2xl bg-[#0B0F19] p-3 border border-white/10">
             <CheckCircle2 size={16} className="text-emerald-400" />
-            <span>Pure Client-Side</span>
+            <span>Cloud & Local Sync</span>
           </div>
           <div className="flex flex-col items-center gap-1 rounded-2xl bg-[#0B0F19] p-3 border border-white/10">
             <Zap size={16} className="text-blue-400" />
@@ -229,7 +243,7 @@ export default function AuthPage({ onAuthSuccess }) {
           </div>
           <div className="flex flex-col items-center gap-1 rounded-2xl bg-[#0B0F19] p-3 border border-white/10">
             <Sparkles size={16} className="text-amber-400" />
-            <span>Analytics</span>
+            <span>All Users Ranks</span>
           </div>
         </div>
       </div>

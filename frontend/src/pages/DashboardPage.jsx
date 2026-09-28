@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Zap,
   Award,
@@ -21,11 +21,15 @@ import {
   LogOut,
   ChevronRight,
   User,
+  Globe,
+  Users,
+  Trophy,
 } from 'lucide-react';
-import { getUserAnalytics } from '../utils/auth.js';
+import { getUserAnalytics, getGlobalPlatformStats } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
 import { AttemptComparisonChart, AttemptAccuracyChart } from '../components/AttemptComparisonChart.jsx';
 import AttemptComparisonModal from '../components/AttemptComparisonModal.jsx';
+import GlobalLeaderboardModal from '../components/GlobalLeaderboardModal.jsx';
 
 export default function DashboardPage({
   user,
@@ -35,6 +39,9 @@ export default function DashboardPage({
   onLogout,
 }) {
   const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
+  const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
+  const [globalStats, setGlobalStats] = useState(null);
+
   const analytics = getUserAnalytics(user?.email);
 
   const {
@@ -50,6 +57,19 @@ export default function DashboardPage({
 
   const hasAttempts = totalAttempts > 0;
 
+  // Load platform-wide global stats (total users, all candidate scores, leaderboard)
+  useEffect(() => {
+    let mounted = true;
+    getGlobalPlatformStats().then((data) => {
+      if (mounted && data) {
+        setGlobalStats(data);
+      }
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [totalAttempts]);
+
   // Calculate delta between latest and previous attempt
   const scoreDelta =
     latestAttempt && previousAttempt ? latestAttempt.score - previousAttempt.score : null;
@@ -64,7 +84,7 @@ export default function DashboardPage({
       <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-blue-900/5 to-transparent blur-2xl" />
 
       <div className="mx-auto max-w-5xl space-y-10 relative z-10 animate-fade-in">
-        {/* Floating Dark Pill Navigation Bar (matching reference image) */}
+        {/* Floating Dark Pill Navigation Bar */}
         <header className="rounded-full border border-white/10 bg-[#0D121F]/90 backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xl flex items-center justify-between gap-3">
           {/* Brand on Left */}
           <div className="flex items-center gap-2.5 min-w-0">
@@ -77,7 +97,7 @@ export default function DashboardPage({
           </div>
 
           {/* Navigation Links in Center */}
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-300">
+          <nav className="hidden md:flex items-center gap-5 text-xs font-semibold text-slate-300">
             <span className="text-white flex items-center gap-1.5 cursor-pointer">
               <BarChart3 size={14} className="text-blue-400" /> Dashboard
             </span>
@@ -88,13 +108,30 @@ export default function DashboardPage({
             >
               <Layers size={14} /> Standard Tests
             </button>
-            <span className="text-slate-500 text-[11px] font-medium border border-white/10 rounded-full px-2.5 py-0.5">
-              CBT Active
+            <button
+              type="button"
+              onClick={() => setLeaderboardModalOpen(true)}
+              className="text-slate-400 hover:text-blue-300 transition flex items-center gap-1.5"
+            >
+              <Trophy size={14} className="text-amber-400" /> Global Leaderboard
+            </button>
+            <span className="text-slate-500 text-[11px] font-medium border border-white/10 rounded-full px-2.5 py-0.5 flex items-center gap-1">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              {globalStats?.totalUsers ? `${globalStats.totalUsers} Candidates` : 'Cloud Active'}
             </span>
           </nav>
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => setLeaderboardModalOpen(true)}
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 px-3.5 py-1.5 text-xs font-semibold transition"
+            >
+              <Users size={13} />
+              <span>All Users &amp; Scores</span>
+            </button>
+
             <button
               type="button"
               onClick={onStartTest}
@@ -117,7 +154,32 @@ export default function DashboardPage({
           </div>
         </header>
 
-        {/* Hero Header Section (Inspired by Reference Typography) */}
+        {/* Global Live Platform Stats Ticker Bar */}
+        <section className="rounded-2xl border border-white/10 bg-gradient-to-r from-[#0D1322] via-[#090D17] to-[#0D1322] p-3 sm:px-6 shadow-xl flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400">
+              <Globe size={15} />
+            </div>
+            <div>
+              <span className="font-bold text-white">Live Platform Status:</span>{' '}
+              <span className="text-slate-300">
+                <strong className="text-blue-400 font-bold">{globalStats?.totalUsers || 1}</strong> Registered Candidate{(globalStats?.totalUsers || 1) > 1 ? 's' : ''} ·{' '}
+                <strong className="text-indigo-400 font-bold">{globalStats?.totalAttempts || totalAttempts}</strong> Tests Submitted ·{' '}
+                Top Score: <strong className="text-amber-400 font-bold">{globalStats?.highestScore ?? (bestAttempt?.score || 0)}/240</strong>
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setLeaderboardModalOpen(true)}
+            className="inline-flex items-center gap-1 rounded-full bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/30 px-3 py-1 text-[11px] font-bold text-blue-300 transition"
+          >
+            <Trophy size={12} className="text-amber-400" />
+            View Leaderboard &amp; Student Scores &rarr;
+          </button>
+        </section>
+
+        {/* Hero Header Section */}
         <section className="text-center pt-2 sm:pt-4 max-w-3xl mx-auto space-y-4">
           <p className="font-serif italic text-2xl sm:text-3xl text-slate-300 font-normal">
             Everything you need
@@ -126,7 +188,7 @@ export default function DashboardPage({
             for NEET 2027 Preparation
           </h1>
           <p className="text-sm sm:text-base text-slate-400 max-w-xl mx-auto leading-relaxed font-normal">
-            The complete national standard assessment platform with timed question drills, step-by-step verified solutions, and personalized attempt analytics.
+            The complete national standard assessment platform with timed question drills, step-by-step verified solutions, and synchronized candidate analytics.
           </p>
 
           {/* Hero CTAs */}
@@ -139,6 +201,14 @@ export default function DashboardPage({
               <Zap size={16} />
               <span>Start Practice Test</span>
               <ArrowRight size={14} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setLeaderboardModalOpen(true)}
+              className="rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 font-semibold text-xs sm:text-sm px-6 py-3 transition flex items-center gap-1.5"
+            >
+              <Trophy size={16} className="text-amber-400" />
+              <span>Global Rankings ({globalStats?.totalUsers || 1} Users)</span>
             </button>
             <button
               type="button"
@@ -231,7 +301,6 @@ export default function DashboardPage({
           <>
             {/* LATEST RESULT SPOTLIGHT CARD */}
             <section className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#0D1322] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative">
-              {/* Subtle ambient glow in top right */}
               <div className="pointer-events-none absolute -top-12 -right-12 h-48 w-48 rounded-full bg-blue-600/10 blur-3xl" />
 
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
@@ -246,16 +315,26 @@ export default function DashboardPage({
                     })}
                   </span>
                 </div>
-                {totalAttempts >= 2 && (
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setComparisonModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 px-3.5 py-1.5 text-xs font-semibold text-blue-300 transition"
+                    onClick={() => setLeaderboardModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 text-xs font-semibold text-amber-300 transition"
                   >
-                    <Columns size={13} />
-                    Compare with Previous Attempts
+                    <Trophy size={13} />
+                    View Global Ranks
                   </button>
-                )}
+                  {totalAttempts >= 2 && (
+                    <button
+                      type="button"
+                      onClick={() => setComparisonModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 px-3.5 py-1.5 text-xs font-semibold text-blue-300 transition"
+                    >
+                      <Columns size={13} />
+                      Compare Attempts
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-center">
@@ -361,16 +440,26 @@ export default function DashboardPage({
                     Detailed record of your previous tests with instant solution reviews.
                   </p>
                 </div>
-                {totalAttempts >= 2 && (
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setComparisonModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-600/15 hover:bg-blue-600/25 px-3.5 py-1.5 text-xs font-semibold text-blue-300 transition"
+                    onClick={() => setLeaderboardModalOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 px-3.5 py-1.5 text-xs font-semibold text-amber-300 transition"
                   >
-                    <Columns size={13} />
-                    Side-by-Side Compare
+                    <Trophy size={13} />
+                    All Candidates Ranks
                   </button>
-                )}
+                  {totalAttempts >= 2 && (
+                    <button
+                      type="button"
+                      onClick={() => setComparisonModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-600/15 hover:bg-blue-600/25 px-3.5 py-1.5 text-xs font-semibold text-blue-300 transition"
+                    >
+                      <Columns size={13} />
+                      Side-by-Side Compare
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="overflow-x-auto">
@@ -455,7 +544,7 @@ export default function DashboardPage({
               Welcome to Your NEET 2027 Dashboard, <span className="font-sans not-italic font-black text-white">{user?.name || 'Aspirant'}</span>!
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-slate-400 leading-relaxed font-normal">
-              You haven't completed any practice tests yet. Start your first timed 2-hour examination to generate instant scoring, topic analysis, and attempt comparison.
+              You haven't completed any practice tests yet. Start your first timed 2-hour examination to generate instant scoring, topic analysis, and national ranking.
             </p>
 
             <div className="mx-auto mt-8 max-w-xl rounded-2xl border border-white/10 bg-[#070A12] p-6 text-left">
@@ -467,17 +556,25 @@ export default function DashboardPage({
                 <li>• <strong className="text-white">60 High-Yield Questions:</strong> Curated NEET &amp; hard conceptual diagrams.</li>
                 <li>• <strong className="text-white">2 Hours Continuous Timer:</strong> Timed CBT environment.</li>
                 <li>• <strong className="text-white">Marking Scheme:</strong> +4 marks for correct, −1 mark for incorrect answers.</li>
-                <li>• <strong className="text-white">Personal Progression:</strong> Track your score improvements over time.</li>
+                <li>• <strong className="text-white">Global Leaderboard:</strong> Live cross-candidate comparison &amp; ranks.</li>
               </ul>
             </div>
 
-            <div className="mt-8">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={onStartTest}
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-500 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-95"
               >
                 Begin 2-Hour Examination <ArrowRight size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeaderboardModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 px-6 py-4 text-sm font-semibold text-blue-300 transition"
+              >
+                <Trophy size={16} className="text-amber-400" />
+                View All Users ({globalStats?.totalUsers || 1})
               </button>
             </div>
           </section>
@@ -489,6 +586,14 @@ export default function DashboardPage({
           onClose={() => setComparisonModalOpen(false)}
           attempts={allAttempts}
           onSelectReview={onReviewAttempt}
+        />
+
+        {/* GLOBAL LEADERBOARD & CANDIDATES MODAL */}
+        <GlobalLeaderboardModal
+          open={leaderboardModalOpen}
+          onClose={() => setLeaderboardModalOpen(false)}
+          stats={globalStats}
+          currentUserEmail={user?.email}
         />
       </div>
     </main>

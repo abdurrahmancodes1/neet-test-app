@@ -1,6 +1,7 @@
 const USERS_STORAGE_KEY = 'neet_users_list_v1';
 const CURRENT_USER_KEY = 'neet_current_user_v1';
 const ATTEMPTS_STORAGE_PREFIX = 'neet_user_attempts_v1_';
+const API_BASE = '/api';
 
 export function getUsers() {
   try {
@@ -42,7 +43,10 @@ export function setCurrentUser(user) {
   }
 }
 
-export function registerUser({ name, email, password }) {
+/**
+ * Register user with Backend API sync and LocalStorage fallback
+ */
+export async function registerUser({ name, email, password }) {
   const cleanName = (name || '').trim();
   const cleanEmail = (email || '').toLowerCase().trim();
   const cleanPassword = (password || '').trim();
@@ -59,39 +63,74 @@ export function registerUser({ name, email, password }) {
     return { success: false, error: 'Password must be at least 6 characters long.' };
   }
 
+  let sessionUser = null;
+
+  // 1. Try Backend API Registration
+  try {
+    const response = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: cleanName,
+        email: cleanEmail,
+        password: cleanPassword,
+        role: 'student',
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data?.data?.user) {
+      sessionUser = {
+        id: data.data.user.id || data.data.user._id,
+        name: data.data.user.name,
+        email: data.data.user.email,
+        targetExam: 'NEET 2027',
+        token: data.data.token,
+        createdAt: data.data.user.createdAt || new Date().toISOString(),
+      };
+    } else if (!response.ok && data?.message) {
+      // If backend explicitly rejected (e.g. duplicate email)
+      return { success: false, error: data.message };
+    }
+  } catch (err) {
+    console.warn('Backend sync unavailable during registration, using local store:', err.message);
+  }
+
+  // 2. Local Fallback if server offline or to mirror locally
   const users = getUsers();
   const existing = users.find((u) => u.email.toLowerCase() === cleanEmail);
 
-  if (existing) {
-    return { success: false, error: 'An account with this email address already exists. Please sign in.' };
+  if (!sessionUser) {
+    if (existing) {
+      return { success: false, error: 'An account with this email address already exists. Please sign in.' };
+    }
+
+    sessionUser = {
+      id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      name: cleanName,
+      email: cleanEmail,
+      targetExam: 'NEET 2027',
+      createdAt: new Date().toISOString(),
+    };
   }
 
-  const newUser = {
-    id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-    name: cleanName,
-    email: cleanEmail,
-    password: cleanPassword,
-    targetExam: 'NEET 2027',
-    createdAt: new Date().toISOString(),
-  };
+  if (!existing) {
+    users.push({
+      ...sessionUser,
+      password: cleanPassword,
+    });
+    saveUsers(users);
+  }
 
-  users.push(newUser);
-  saveUsers(users);
-
-  // Auto-login registered user (without exposing password in session state)
-  const sessionUser = {
-    id: newUser.id,
-    name: newUser.name,
-    email: newUser.email,
-    targetExam: newUser.targetExam,
-    createdAt: newUser.createdAt,
-  };
   setCurrentUser(sessionUser);
-
   return { success: true, user: sessionUser };
 }
 
-export function loginUser({ email, password }) {
+/**
+ * Login user with Backend API sync and LocalStorage fallback
+ */
+export async function loginUser({ email, password }) {
   const cleanEmail = (email || '').toLowerCase().trim();
   const cleanPassword = (password || '').trim();
 
@@ -103,26 +142,65 @@ export function loginUser({ email, password }) {
     return { success: false, error: 'Password is required.' };
   }
 
-  const users = getUsers();
-  const user = users.find((u) => u.email.toLowerCase() === cleanEmail);
+  let sessionUser = null;
 
-  if (!user || user.password !== cleanPassword) {
-    return { success: false, error: 'Invalid email or password. Please try again.' };
+  // 1. Try Backend API Login
+  try {
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: cleanEmail,
+        password: cleanPassword,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data?.data?.user) {
+      sessionUser = {
+        id: data.data.user.id || data.data.user._id,
+        name: data.data.user.name,
+        email: data.data.user.email,
+        targetExam: 'NEET 2027',
+        token: data.data.token,
+        createdAt: data.data.user.createdAt || new Date().toISOString(),
+      };
+    } else if (response.status === 401 || response.status === 403) {
+      return { success: false, error: data?.message || 'Invalid email or password.' };
+    }
+  } catch (err) {
+    console.warn('Backend sync unavailable during login, trying local store:', err.message);
   }
 
-  const sessionUser = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    targetExam: user.targetExam || 'NEET 2027',
-    createdAt: user.createdAt,
-  };
-  setCurrentUser(sessionUser);
+  // 2. Local Fallback Verification
+  if (!sessionUser) {
+    const users = getUsers();
+    const user = users.find((u) => u.email.toLowerCase() === cleanEmail);
 
+    if (!user || user.password !== cleanPassword) {
+      return { success: false, error: 'Invalid email or password. Please try again.' };
+    }
+
+    sessionUser = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      targetExam: user.targetExam || 'NEET 2027',
+      createdAt: user.createdAt,
+    };
+  }
+
+  setCurrentUser(sessionUser);
   return { success: true, user: sessionUser };
 }
 
-export function logoutUser() {
+export async function logoutUser() {
+  try {
+    await fetch(`${API_BASE}/auth/logout`, { method: 'POST' });
+  } catch (e) {
+    // Ignore network errors during logout
+  }
   setCurrentUser(null);
 }
 
@@ -142,6 +220,9 @@ export function getUserAttempts(email) {
   }
 }
 
+/**
+ * Save user test attempt locally and sync to Backend MongoDB
+ */
 export function saveUserAttempt(email, attemptData) {
   try {
     const attempts = getUserAttempts(email);
@@ -149,14 +230,39 @@ export function saveUserAttempt(email, attemptData) {
       id: `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       timestamp: new Date().toISOString(),
       attemptNumber: attempts.length + 1,
+      studentEmail: email,
       ...attemptData,
     };
     attempts.push(newAttempt);
     window.localStorage.setItem(getAttemptsKey(email), JSON.stringify(attempts));
+
+    // Asynchronously sync to Backend API
+    syncAttemptToBackend(email, newAttempt);
+
     return newAttempt;
   } catch (err) {
     console.error('Failed to save user attempt:', err);
     return null;
+  }
+}
+
+async function syncAttemptToBackend(email, attempt) {
+  try {
+    const currentUser = getCurrentUser();
+    await fetch(`${API_BASE}/results/sync`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
+      },
+      body: JSON.stringify({
+        ...attempt,
+        studentEmail: email || currentUser?.email,
+        studentName: currentUser?.name || attempt.studentName || 'Student',
+      }),
+    });
+  } catch (err) {
+    console.warn('Could not sync attempt to backend in real-time:', err.message);
   }
 }
 
@@ -170,6 +276,68 @@ export function deleteUserAttempt(email, attemptId) {
     console.error('Failed to delete user attempt:', err);
     return [];
   }
+}
+
+/**
+ * Fetch live platform stats (Total registered users, total tests, global leaderboard)
+ */
+export async function getGlobalPlatformStats() {
+  try {
+    const response = await fetch(`${API_BASE}/auth/stats`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.data) {
+        return {
+          ...data.data,
+          isLive: true,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to fetch stats from backend API, calculating local fallback:', err.message);
+  }
+
+  // Local fallback calculation
+  const users = getUsers();
+  const allAttempts = [];
+  users.forEach((u) => {
+    const userAttempts = getUserAttempts(u.email);
+    userAttempts.forEach((a) => {
+      allAttempts.push({
+        ...a,
+        studentName: u.name,
+        email: u.email,
+      });
+    });
+  });
+
+  const scores = allAttempts.map((a) => a.score || 0);
+  const highestScore = scores.length > 0 ? Math.max(...scores) : 0;
+  const avgScore =
+    scores.length > 0 ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : 0;
+
+  const leaderboard = allAttempts
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
+    .slice(0, 10)
+    .map((item, idx) => ({
+      rank: idx + 1,
+      studentName: item.studentName || 'Student',
+      score: item.score || 0,
+      maxScore: item.maxScore || 240,
+      accuracy: Math.round(item.accuracy || 0),
+      submittedAt: item.timestamp,
+    }));
+
+  return {
+    totalUsers: Math.max(users.length, 1),
+    totalAttempts: allAttempts.length,
+    averageScore: avgScore,
+    highestScore,
+    leaderboard,
+    recentSubmissions: allAttempts.slice(0, 5),
+    allCandidates: users,
+    isLive: false,
+  };
 }
 
 export function getUserAnalytics(email) {

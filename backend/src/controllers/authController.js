@@ -20,7 +20,7 @@ export class AuthController {
       'Registration successful',
       {
         user: result.user,
-        token: result.token, // Also return token for clients that prefer Bearer auth
+        token: result.token,
       },
       201
     );
@@ -75,6 +75,37 @@ export class AuthController {
 
     return ApiResponse.success(res, 'User test history retrieved', results, 200, {
       total: results.length,
+    });
+  });
+
+  /**
+   * GET /api/auth/stats - Get platform global stats, user count, and leaderboard
+   */
+  static getStats = asyncHandler(async (req, res) => {
+    const stats = await AuthService.getPlatformStats();
+    return ApiResponse.success(res, 'Platform statistics retrieved successfully', stats);
+  });
+
+  /**
+   * GET /api/auth/leaderboard - Get global student leaderboard
+   */
+  static getLeaderboard = asyncHandler(async (req, res) => {
+    const stats = await AuthService.getPlatformStats();
+    return ApiResponse.success(res, 'Leaderboard retrieved successfully', {
+      totalUsers: stats.totalUsers,
+      totalAttempts: stats.totalAttempts,
+      leaderboard: stats.leaderboard,
+    });
+  });
+
+  /**
+   * GET /api/auth/candidates - Get list of all registered candidates
+   */
+  static getCandidates = asyncHandler(async (req, res) => {
+    const stats = await AuthService.getPlatformStats();
+    return ApiResponse.success(res, 'All registered candidates retrieved', {
+      total: stats.allCandidates.length,
+      candidates: stats.allCandidates,
     });
   });
 }
