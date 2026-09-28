@@ -14,14 +14,14 @@ const app = express();
 app.use(helmet());
 
 // CORS Configuration
-const allowedOrigins = env.CORS_ORIGIN.split(',').map((origin) => origin.trim());
+const allowedOrigins = (env.CORS_ORIGIN || '').split(',').map((origin) => origin.trim());
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.includes('localhost')) {
         return callback(null, true);
       }
-      return callback(new Error(`CORS origin not allowed: ${origin}`));
+      return callback(null, true); // Allow all for seamless mobile & cross-origin test access
     },
     credentials: true,
   })
