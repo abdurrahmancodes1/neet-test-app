@@ -44,13 +44,19 @@ export class ResultController {
     // Save to MongoDB if connected
     if (mongoose.connection.readyState === 1) {
       try {
+        let effectiveUserId = req.user?._id || null;
+        if (!effectiveUserId && cleanAttempt.studentEmail) {
+          const userDoc = await User.findOne({ email: cleanAttempt.studentEmail.toLowerCase() });
+          if (userDoc) {
+            effectiveUserId = userDoc._id;
+          }
+        }
+
         await Result.findOneAndUpdate(
           { attemptId: cleanAttempt.attemptId },
           {
-            testId: mongoose.Types.ObjectId.isValid(cleanAttempt.testId)
-              ? cleanAttempt.testId
-              : new mongoose.Types.ObjectId('000000000000000000000001'),
-            userId: req.user?._id || null,
+            testId: cleanAttempt.testId,
+            userId: effectiveUserId,
             attemptId: cleanAttempt.attemptId,
             studentName: cleanAttempt.studentName,
             studentRollNumber: cleanAttempt.studentRollNumber,

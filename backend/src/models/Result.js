@@ -114,9 +114,8 @@ const chapterStatSchema = new mongoose.Schema(
 const resultSchema = new mongoose.Schema(
   {
     testId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Test',
-      required: [true, 'Test ID reference is required'],
+      type: mongoose.Schema.Types.Mixed,
+      default: 'neet-work-energy-power',
       index: true,
     },
     userId: {
