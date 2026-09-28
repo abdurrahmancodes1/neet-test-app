@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { loadSession, saveSession, clearSession, freshSession } from './utils/storage.js';
-import { getCurrentUser, logoutUser, saveUserAttempt } from './utils/auth.js';
+import { getCurrentUser, logoutUser, saveUserAttempt, API_BASE } from './utils/auth.js';
 import { computeResult } from './utils/scoring.js';
 import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from './data/neetWorkEnergyTest.js';
 import AuthPage from './pages/AuthPage.jsx';
@@ -36,7 +36,7 @@ export default function App() {
   // Live role check on mount / user change (syncs if role was changed in MongoDB Compass)
   useEffect(() => {
     if (currentUser?.email) {
-      fetch(`/api/auth/user-role/${encodeURIComponent(currentUser.email)}`)
+      fetch(`${API_BASE}/auth/user-role/${encodeURIComponent(currentUser.email)}`)
         .then((r) => r.json())
         .then((res) => {
           if (res?.data?.role) {

@@ -1,7 +1,7 @@
 const USERS_STORAGE_KEY = 'neet_users_list_v1';
 const CURRENT_USER_KEY = 'neet_current_user_v1';
 const ATTEMPTS_STORAGE_PREFIX = 'neet_user_attempts_v1_';
-const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '') || '/api';
+export const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '') || 'https://neet-test-app.onrender.com/api';
 
 export function getUsers() {
   try {
