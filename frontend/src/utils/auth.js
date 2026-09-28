@@ -46,7 +46,7 @@ export function setCurrentUser(user) {
 /**
  * Register user with Backend API sync and LocalStorage fallback
  */
-export async function registerUser({ name, email, password }) {
+export async function registerUser({ name, email, password, role = 'student' }) {
   const cleanName = (name || '').trim();
   const cleanEmail = (email || '').toLowerCase().trim();
   const cleanPassword = (password || '').trim();
@@ -74,7 +74,7 @@ export async function registerUser({ name, email, password }) {
         name: cleanName,
         email: cleanEmail,
         password: cleanPassword,
-        role: 'student',
+        role: role.toLowerCase(),
       }),
     });
 
@@ -85,6 +85,7 @@ export async function registerUser({ name, email, password }) {
         id: data.data.user.id || data.data.user._id,
         name: data.data.user.name,
         email: data.data.user.email,
+        role: (data.data.user.role || role || 'student').toLowerCase(),
         targetExam: 'NEET 2027',
         token: data.data.token,
         createdAt: data.data.user.createdAt || new Date().toISOString(),
@@ -110,6 +111,7 @@ export async function registerUser({ name, email, password }) {
       id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       name: cleanName,
       email: cleanEmail,
+      role: role.toLowerCase(),
       targetExam: 'NEET 2027',
       createdAt: new Date().toISOString(),
     };
@@ -162,6 +164,7 @@ export async function loginUser({ email, password }) {
         id: data.data.user.id || data.data.user._id,
         name: data.data.user.name,
         email: data.data.user.email,
+        role: (data.data.user.role || 'student').toLowerCase(),
         targetExam: 'NEET 2027',
         token: data.data.token,
         createdAt: data.data.user.createdAt || new Date().toISOString(),
@@ -186,6 +189,7 @@ export async function loginUser({ email, password }) {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: (user.role || 'student').toLowerCase(),
       targetExam: user.targetExam || 'NEET 2027',
       createdAt: user.createdAt,
     };
@@ -336,6 +340,56 @@ export async function getGlobalPlatformStats() {
     leaderboard,
     recentSubmissions: allAttempts.slice(0, 5),
     allCandidates: users,
+    isLive: false,
+  };
+}
+
+/**
+ * Fetch detailed Admin Overview (total users, active users, student progress)
+ */
+export async function getAdminOverview() {
+  try {
+    const currentUser = getCurrentUser();
+    const response = await fetch(`${API_BASE}/admin/overview`, {
+      headers: {
+        ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data?.data) {
+        return {
+          ...data.data,
+          isLive: true,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to fetch admin overview from backend API:', err.message);
+  }
+
+  // Fallback if backend offline
+  const stats = await getGlobalPlatformStats();
+  return {
+    totalUsers: stats.totalUsers,
+    activeUsers: stats.allCandidates?.length || 0,
+    totalAttempts: stats.totalAttempts,
+    averageScore: stats.averageScore,
+    students: (stats.allCandidates || []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      role: c.role || 'student',
+      status: 'active',
+      registeredAt: c.registeredAt || c.createdAt,
+      lastActive: c.registeredAt || c.createdAt,
+      totalAttempts: 0,
+      latestScore: null,
+      bestScore: null,
+      averageAccuracy: null,
+      attempts: [],
+    })),
     isLive: false,
   };
 }

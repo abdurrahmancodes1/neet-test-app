@@ -19,6 +19,7 @@ router.use('/results', resultRoutes);
 router.get('/stats', AuthController.getStats);
 router.get('/leaderboard', AuthController.getLeaderboard);
 router.get('/candidates', AuthController.getCandidates);
+router.get('/admin/overview', AuthController.getAdminOverview);
 
 // Protected Admin routes (Requires valid authentication + ADMIN role)
 router.use('/admin', authenticate, requireRole('admin'), adminRoutes);

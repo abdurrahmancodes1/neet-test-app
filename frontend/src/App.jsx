@@ -5,6 +5,7 @@ import { computeResult } from './utils/scoring.js';
 import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from './data/neetWorkEnergyTest.js';
 import AuthPage from './pages/AuthPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 import ChapterTestsPage from './pages/ChapterTestsPage.jsx';
 import TestInstructionsPage from './pages/TestInstructionsPage.jsx';
 import TestPage from './pages/TestPage.jsx';
@@ -22,7 +23,12 @@ const getSavedTestId = () => {
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
-  const [screen, setScreen] = useState(() => (getCurrentUser() ? 'dashboard' : 'auth'));
+  const [screen, setScreen] = useState(() => {
+    const user = getCurrentUser();
+    if (!user) return 'auth';
+    if (user.role === 'admin') return 'admin';
+    return 'dashboard';
+  });
   const [testId, setTestId] = useState(getSavedTestId);
   const [session, setSession] = useState(() => loadSession(getSavedTestId()));
   const [reviewedAttempt, setReviewedAttempt] = useState(null);
@@ -88,7 +94,11 @@ export default function App() {
 
   const handleAuthSuccess = useCallback((user) => {
     setCurrentUser(user);
-    setScreen('dashboard');
+    if (user?.role === 'admin') {
+      setScreen('admin');
+    } else {
+      setScreen('dashboard');
+    }
   }, []);
 
   const handleLogout = useCallback(() => {
@@ -100,6 +110,11 @@ export default function App() {
   const handleGoToDashboard = useCallback(() => {
     setReviewedAttempt(null);
     setScreen('dashboard');
+  }, []);
+
+  const handleGoToAdmin = useCallback(() => {
+    setReviewedAttempt(null);
+    setScreen('admin');
   }, []);
 
   const handleBrowseTests = useCallback(() => {
@@ -212,7 +227,18 @@ export default function App() {
     return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }
 
-  // Dashboard Page
+  // Admin Portal Dashboard
+  if (screen === 'admin') {
+    return (
+      <AdminDashboardPage
+        user={currentUser}
+        onGoToStudentDashboard={handleGoToDashboard}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Student Dashboard Page
   if (screen === 'dashboard') {
     return (
       <DashboardPage
@@ -220,6 +246,7 @@ export default function App() {
         onStartTest={() => handleSelectTest(NEET_WEP_TEST.id)}
         onBrowseTests={handleBrowseTests}
         onReviewAttempt={handleReviewAttempt}
+        onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
         onLogout={handleLogout}
       />
     );

@@ -36,6 +36,7 @@ export default function DashboardPage({
   onStartTest,
   onBrowseTests,
   onReviewAttempt,
+  onGoToAdmin,
   onLogout,
 }) {
   const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
@@ -115,6 +116,15 @@ export default function DashboardPage({
             >
               <Trophy size={14} className="text-amber-400" /> Global Leaderboard
             </button>
+            {user?.role === 'admin' && onGoToAdmin && (
+              <button
+                type="button"
+                onClick={onGoToAdmin}
+                className="rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:bg-amber-500/30 px-3 py-1 font-bold text-xs transition flex items-center gap-1.5"
+              >
+                🛡️ Admin Portal
+              </button>
+            )}
             <span className="text-slate-500 text-[11px] font-medium border border-white/10 rounded-full px-2.5 py-0.5 flex items-center gap-1">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               {globalStats?.totalUsers ? `${globalStats.totalUsers} Candidates` : 'Cloud Active'}
@@ -123,6 +133,15 @@ export default function DashboardPage({
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {user?.role === 'admin' && onGoToAdmin && (
+              <button
+                type="button"
+                onClick={onGoToAdmin}
+                className="sm:hidden inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/20 text-amber-300 px-3 py-1 text-xs font-bold"
+              >
+                🛡️ Admin
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setLeaderboardModalOpen(true)}

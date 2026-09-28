@@ -13,6 +13,7 @@ router.post('/logout', AuthController.logout);
 router.get('/stats', AuthController.getStats);
 router.get('/leaderboard', AuthController.getLeaderboard);
 router.get('/candidates', AuthController.getCandidates);
+router.get('/admin-overview', AuthController.getAdminOverview);
 
 // Protected User Endpoints
 router.get('/me', authenticate, AuthController.getMe);

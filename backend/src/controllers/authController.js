@@ -108,4 +108,12 @@ export class AuthController {
       candidates: stats.allCandidates,
     });
   });
+
+  /**
+   * GET /api/auth/admin-overview - Get admin analytics (total users, active users, student progress)
+   */
+  static getAdminOverview = asyncHandler(async (req, res) => {
+    const overview = await AuthService.getAdminOverview();
+    return ApiResponse.success(res, 'Admin overview retrieved successfully', overview);
+  });
 }

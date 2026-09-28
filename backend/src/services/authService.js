@@ -14,7 +14,7 @@ export class AuthService {
     return jwt.sign(
       {
         id,
-        role: user.role || 'student',
+        role: (user.role || 'student').toLowerCase(),
         email: user.email,
         name: user.name,
       },
@@ -81,7 +81,7 @@ export class AuthService {
         id: userDoc ? userDoc._id.toString() : fallbackUser.id,
         name: fallbackUser.name,
         email: fallbackUser.email,
-        role: fallbackUser.role,
+        role: (userDoc?.role || fallbackUser.role || 'student').toLowerCase(),
         rollNumber: fallbackUser.rollNumber,
         targetExam: fallbackUser.targetExam,
         createdAt: fallbackUser.createdAt,
@@ -140,7 +140,7 @@ export class AuthService {
         id: user._id ? user._id.toString() : user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: (user.role || 'student').toLowerCase(),
         rollNumber: user.rollNumber,
         targetExam: user.targetExam || 'NEET 2027',
       },
@@ -160,7 +160,7 @@ export class AuthService {
           id: user._id.toString(),
           name: user.name,
           email: user.email,
-          role: user.role,
+          role: (user.role || 'student').toLowerCase(),
           rollNumber: user.rollNumber,
           status: user.status,
           createdAt: user.createdAt,
@@ -175,7 +175,7 @@ export class AuthService {
         id: found.id,
         name: found.name,
         email: found.email,
-        role: found.role || 'student',
+        role: (found.role || 'student').toLowerCase(),
         rollNumber: found.rollNumber,
         targetExam: found.targetExam || 'NEET 2027',
         status: 'active',
@@ -286,5 +286,124 @@ export class AuthService {
         isLiveDb: false,
       };
     }
+  }
+
+  /**
+   * Get detailed Admin overview including active users, total users, and per-student progress
+   */
+  static async getAdminOverview() {
+    const isMongoConnected = mongoose.connection.readyState === 1;
+    let totalUsers = 0;
+    let activeUsers = 0;
+    let totalAttempts = 0;
+    let averageScore = 0;
+    let students = [];
+
+    if (isMongoConnected) {
+      const allUsers = await User.find().select('name email rollNumber role createdAt status').sort({ createdAt: -1 }).lean();
+      const allResults = await Result.find({ status: 'submitted' }).sort({ createdAt: -1 }).lean();
+
+      totalUsers = allUsers.length;
+      totalAttempts = allResults.length;
+
+      // Map results to user
+      const resultsByUser = new Map();
+      allResults.forEach((r) => {
+        const idKey = r.userId ? r.userId.toString().toLowerCase() : null;
+        const emailKey = r.studentEmail ? r.studentEmail.toLowerCase().trim() : null;
+
+        if (idKey) {
+          if (!resultsByUser.has(idKey)) resultsByUser.set(idKey, []);
+          resultsByUser.get(idKey).push(r);
+        }
+        if (emailKey) {
+          if (!resultsByUser.has(emailKey)) resultsByUser.set(emailKey, []);
+          resultsByUser.get(emailKey).push(r);
+        }
+      });
+
+      students = allUsers.map((u) => {
+        const idKey = u._id.toString().toLowerCase();
+        const emailKey = (u.email || '').toLowerCase().trim();
+
+        const combinedResults = [
+          ...(resultsByUser.get(idKey) || []),
+          ...(resultsByUser.get(emailKey) || []),
+        ];
+
+        // Deduplicate
+        const userResults = combinedResults.filter(
+          (v, i, a) => a.findIndex((t) => (t._id?.toString() || t.attemptId) === (v._id?.toString() || v.attemptId)) === i
+        );
+
+        const attemptsCount = userResults.length;
+        const scores = userResults.map((r) => r.score ?? 0);
+        const accuracies = userResults.map((r) => r.accuracy ?? 0);
+
+        const latestResult = userResults[0] || null;
+        const bestScore = scores.length > 0 ? Math.max(...scores) : null;
+        const latestScore = latestResult ? latestResult.score : null;
+        const avgAccuracy =
+          accuracies.length > 0
+            ? Math.round(accuracies.reduce((a, b) => a + b, 0) / accuracies.length)
+            : null;
+
+        return {
+          id: u._id.toString(),
+          name: u.name,
+          email: u.email,
+          role: u.role || 'student',
+          status: u.status || 'active',
+          registeredAt: u.createdAt,
+          lastActive: latestResult ? (latestResult.submittedAt || latestResult.createdAt) : u.createdAt,
+          totalAttempts: attemptsCount,
+          latestScore,
+          bestScore,
+          averageAccuracy: avgAccuracy,
+          attempts: userResults.map((r) => ({
+            id: r._id?.toString() || r.attemptId,
+            testId: r.testId,
+            score: r.score,
+            maxScore: r.maxScore || 240,
+            percentage: r.percentage,
+            accuracy: Math.round(r.accuracy || 0),
+            correct: r.correctCount ?? r.correct ?? 0,
+            wrong: r.wrongCount ?? r.wrong ?? 0,
+            unattempted: r.unattemptedCount ?? r.unattempted ?? 0,
+            submittedAt: r.submittedAt || r.createdAt,
+          })),
+        };
+      });
+
+      activeUsers = students.filter((s) => s.totalAttempts > 0).length;
+
+      if (allResults.length > 0) {
+        const allScores = allResults.map((r) => r.score || 0);
+        averageScore = Math.round((allScores.reduce((a, b) => a + b, 0) / allResults.length) * 10) / 10;
+      }
+    } else {
+      const storeStats = SyncStore.getStats();
+      totalUsers = storeStats.totalUsers;
+      totalAttempts = storeStats.totalAttempts;
+      averageScore = storeStats.averageScore;
+      activeUsers = storeStats.allCandidates.length;
+      students = storeStats.allCandidates.map((c) => ({
+        ...c,
+        status: 'active',
+        totalAttempts: 0,
+        latestScore: null,
+        bestScore: null,
+        averageAccuracy: null,
+        attempts: [],
+      }));
+    }
+
+    return {
+      totalUsers,
+      activeUsers,
+      totalAttempts,
+      averageScore,
+      students,
+    };
   }
 }
