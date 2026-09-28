@@ -11,15 +11,48 @@ const TABS = [
   { key: 'review', label: 'Question Review' },
 ];
 
-export default function ResultPage({ session, onRetake, test, backendResult, onBackToChapters }) {
+export default function ResultPage({
+  session,
+  onRetake,
+  test,
+  backendResult,
+  onBackToChapters,
+  onGoToDashboard,
+  reviewedAttempt = null,
+}) {
   const [tab, setTab] = useState('overview');
   const [confirmRetake, setConfirmRetake] = useState(false);
 
-  const testTitle = backendResult?.test?.title || test?.title || 'NEET Practice Test';
-  const testSubtitle = backendResult?.test?.subtitle || test?.subtitle || 'NEET Practice Test';
+  const testTitle =
+    reviewedAttempt?.testTitle ||
+    backendResult?.test?.title ||
+    test?.title ||
+    'NEET Practice Test';
+  const testSubtitle =
+    backendResult?.test?.subtitle ||
+    test?.subtitle ||
+    'NEET 2027 Assessment';
 
-  // Authoritative result calculation (Server result or Pure Client computeResult)
+  // Authoritative result calculation
   const result = useMemo(() => {
+    if (reviewedAttempt) {
+      return {
+        score: reviewedAttempt.score ?? 0,
+        rawScore: reviewedAttempt.rawScore ?? reviewedAttempt.score ?? 0,
+        maxScore: reviewedAttempt.maxScore ?? (test?.totalQuestions || 60) * 4,
+        percentage: reviewedAttempt.percentage ?? 0,
+        accuracy: reviewedAttempt.accuracy ?? 0,
+        correct: reviewedAttempt.correct ?? 0,
+        wrong: reviewedAttempt.wrong ?? 0,
+        unattempted: reviewedAttempt.unattempted ?? 0,
+        totalQuestions: reviewedAttempt.totalQuestions ?? 60,
+        topicPerformance: reviewedAttempt.topicPerformance || [],
+        weakestTopics: reviewedAttempt.weakestTopics || [],
+        strongestTopics: reviewedAttempt.strongestTopics || [],
+        perQuestion: reviewedAttempt.perQuestion || [],
+      };
+    }
+
     if (backendResult) {
       return {
         score: backendResult.score ?? 0,
@@ -75,15 +108,20 @@ export default function ResultPage({ session, onRetake, test, backendResult, onB
       totalQuestions: totalQ,
       perQuestion: [],
     };
-  }, [backendResult, test, session?.answers]);
+  }, [reviewedAttempt, backendResult, test, session?.answers]);
 
-  const topics = backendResult?.topicPerformance || result.topicPerformance || [];
-  const weakest = backendResult?.weakestTopics || result.weakestTopics || [];
-  const strongest = backendResult?.strongestTopics || result.strongestTopics || [];
+  const topics = reviewedAttempt?.topicPerformance || backendResult?.topicPerformance || result.topicPerformance || [];
+  const weakest = reviewedAttempt?.weakestTopics || backendResult?.weakestTopics || result.weakestTopics || [];
+  const strongest = reviewedAttempt?.strongestTopics || backendResult?.strongestTopics || result.strongestTopics || [];
 
-  const startT = backendResult?.startTime ? new Date(backendResult.startTime).getTime() : session.startTime;
-  const endT = backendResult?.submittedAt ? new Date(backendResult.submittedAt).getTime() : session.submittedAt;
-  const timeTakenMs = endT && startT ? Math.max(0, endT - startT) : 0;
+  const timeTakenMs = reviewedAttempt
+    ? reviewedAttempt.timeTakenMs || 0
+    : (() => {
+        const startT = backendResult?.startTime ? new Date(backendResult.startTime).getTime() : session?.startTime;
+        const endT = backendResult?.submittedAt ? new Date(backendResult.submittedAt).getTime() : session?.submittedAt;
+        return endT && startT ? Math.max(0, endT - startT) : 0;
+      })();
+
   const timeTakenLabel = formatDuration(timeTakenMs);
   const attempted = result.correct + result.wrong;
   const avgMs = attempted > 0 ? timeTakenMs / attempted : 0;
@@ -101,10 +139,14 @@ export default function ResultPage({ session, onRetake, test, backendResult, onB
           </div>
 
           <div className="flex items-center gap-2">
-            {backendResult && (
-              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-good-50 px-2.5 py-1 text-[11px] font-semibold text-good-700 border border-good-200">
-                <CheckCircle2 size={12} className="text-good-600" /> Verified Server Scoring
-              </span>
+            {onGoToDashboard && (
+              <button
+                type="button"
+                onClick={onGoToDashboard}
+                className="inline-flex items-center gap-1 rounded-lg border border-ink-900 bg-ink-900 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition hover:bg-ink-800"
+              >
+                My Dashboard
+              </button>
             )}
             {onBackToChapters && (
               <button
@@ -116,7 +158,7 @@ export default function ResultPage({ session, onRetake, test, backendResult, onB
                 All Tests
               </button>
             )}
-            {session.autoSubmitted && (
+            {session?.autoSubmitted && (
               <span className="rounded-full bg-gold-100 px-2.5 py-1 text-[11px] font-semibold text-gold-700">
                 Auto-submitted at 00:00
               </span>
@@ -167,6 +209,15 @@ export default function ResultPage({ session, onRetake, test, backendResult, onB
               >
                 View Analysis
               </button>
+              {onGoToDashboard && (
+                <button
+                  type="button"
+                  onClick={onGoToDashboard}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border border-ink-900 bg-white py-3 text-sm font-bold text-ink-900 shadow-sm transition hover:bg-ink-100"
+                >
+                  View Attempt Comparison
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setConfirmRetake(true)}

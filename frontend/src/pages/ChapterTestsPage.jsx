@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 
-export default function ChapterTestsPage({ onSelect, onLogout }) {
+export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard }) {
   const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'class10' | 'class9' | 'class8'
 
   const categories = [
@@ -28,7 +28,7 @@ export default function ChapterTestsPage({ onSelect, onLogout }) {
     <main className="min-h-screen bg-ink-50 px-4 py-6 sm:py-10">
       <div className="mx-auto max-w-5xl">
         {/* Top Header */}
-        <header className="mb-8 flex items-center justify-between gap-4 border-b border-ink-200 pb-5">
+        <header className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-ink-200 pb-5">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-ink-900 font-black text-gold-300 shadow-sm">
               <Zap size={22} className="text-gold-400" />
@@ -42,15 +42,27 @@ export default function ChapterTestsPage({ onSelect, onLogout }) {
               </h1>
             </div>
           </div>
-          {onLogout && (
-            <button
-              type="button"
-              onClick={onLogout}
-              className="rounded-xl border border-ink-200 bg-white px-3.5 py-2 text-xs font-bold text-ink-700 shadow-sm transition hover:bg-ink-100"
-            >
-              Sign Out
-            </button>
-          )}
+          
+          <div className="flex items-center gap-2.5">
+            {onGoToDashboard && (
+              <button
+                type="button"
+                onClick={onGoToDashboard}
+                className="rounded-xl border border-ink-900 bg-ink-900 px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-ink-800"
+              >
+                My Dashboard
+              </button>
+            )}
+            {onLogout && (
+              <button
+                type="button"
+                onClick={onLogout}
+                className="rounded-xl border border-ink-200 bg-white px-3.5 py-2 text-xs font-bold text-ink-700 shadow-sm transition hover:bg-ink-100"
+              >
+                Sign Out
+              </button>
+            )}
+          </div>
         </header>
 
         {/* Section / Category Tabs */}

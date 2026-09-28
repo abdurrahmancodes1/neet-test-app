@@ -1,6 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { loadSession, saveSession, clearSession, freshSession } from './utils/storage.js';
+import { getCurrentUser, logoutUser, saveUserAttempt } from './utils/auth.js';
+import { computeResult } from './utils/scoring.js';
 import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from './data/neetWorkEnergyTest.js';
+import AuthPage from './pages/AuthPage.jsx';
+import DashboardPage from './pages/DashboardPage.jsx';
 import ChapterTestsPage from './pages/ChapterTestsPage.jsx';
 import TestInstructionsPage from './pages/TestInstructionsPage.jsx';
 import TestPage from './pages/TestPage.jsx';
@@ -17,12 +21,14 @@ const getSavedTestId = () => {
 };
 
 export default function App() {
-  const [screen, setScreen] = useState('chapters');
+  const [currentUser, setCurrentUser] = useState(() => getCurrentUser());
+  const [screen, setScreen] = useState(() => (getCurrentUser() ? 'dashboard' : 'auth'));
   const [testId, setTestId] = useState(getSavedTestId);
   const [session, setSession] = useState(() => loadSession(getSavedTestId()));
+  const [reviewedAttempt, setReviewedAttempt] = useState(null);
 
-  // Self-contained test configuration (No external DB required)
-  const activeTest = React.useMemo(() => {
+  // Self-contained active test configuration
+  const activeTest = useMemo(() => {
     return {
       ...NEET_WEP_TEST,
       questions: NEET_WEP_QUESTIONS,
@@ -31,15 +37,44 @@ export default function App() {
 
   const durationMs = (activeTest.durationMinutes || 120) * 60 * 1000;
 
-  // Auto-submission when timer hits 0
+  // Auto-submission when timer expires
   useEffect(() => {
     if (session.state === 'IN_PROGRESS' && session.endTime && Date.now() >= session.endTime) {
-      const next = { ...session, state: 'SUBMITTED', submittedAt: session.endTime, autoSubmitted: true };
+      const submittedAt = session.endTime;
+      const next = { ...session, state: 'SUBMITTED', submittedAt, autoSubmitted: true };
       saveSession(next, testId);
       setSession(next);
+
+      // Save to user history
+      if (currentUser?.email) {
+        const computed = computeResult(next.answers || {}, activeTest.questions);
+        const timeTakenMs = next.startTime ? Math.max(0, submittedAt - next.startTime) : durationMs;
+        saveUserAttempt(currentUser.email, {
+          testId: activeTest.id,
+          testTitle: activeTest.title,
+          score: computed.score,
+          rawScore: computed.rawScore,
+          maxScore: computed.maxScore,
+          percentage: computed.percentage,
+          accuracy: computed.accuracy,
+          correct: computed.correct,
+          wrong: computed.wrong,
+          unattempted: computed.unattempted,
+          totalQuestions: computed.totalQuestions,
+          topicPerformance: computed.topicPerformance,
+          weakestTopics: computed.weakestTopics,
+          strongestTopics: computed.strongestTopics,
+          perQuestion: computed.perQuestion,
+          answers: next.answers || {},
+          timeTakenMs,
+          autoSubmitted: true,
+        });
+      }
+
+      setReviewedAttempt(null);
       setScreen('result');
     }
-  }, [session, testId]);
+  }, [session, testId, currentUser, activeTest, durationMs]);
 
   const updateSession = useCallback(
     (updater) =>
@@ -51,8 +86,30 @@ export default function App() {
     [testId]
   );
 
+  const handleAuthSuccess = useCallback((user) => {
+    setCurrentUser(user);
+    setScreen('dashboard');
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    logoutUser();
+    setCurrentUser(null);
+    setScreen('auth');
+  }, []);
+
+  const handleGoToDashboard = useCallback(() => {
+    setReviewedAttempt(null);
+    setScreen('dashboard');
+  }, []);
+
+  const handleBrowseTests = useCallback(() => {
+    setReviewedAttempt(null);
+    setScreen('chapters');
+  }, []);
+
   const handleSelectTest = useCallback((selectedId) => {
     setTestId(selectedId);
+    setReviewedAttempt(null);
     try {
       window.localStorage.setItem(ACTIVE_TEST_KEY, selectedId);
     } catch {}
@@ -69,6 +126,7 @@ export default function App() {
   }, []);
 
   const startTest = useCallback(async () => {
+    setReviewedAttempt(null);
     const next = freshSession(durationMs, testId);
     saveSession(next, testId);
     setSession(next);
@@ -92,20 +150,50 @@ export default function App() {
         autoSubmitted: auto,
       };
       updateSession(updatedSession);
+
+      // Record snapshot to user attempt history
+      if (currentUser?.email) {
+        const computed = computeResult(updatedSession.answers || {}, activeTest.questions);
+        const timeTakenMs = session.startTime ? Math.max(0, submittedAt - session.startTime) : 0;
+        saveUserAttempt(currentUser.email, {
+          testId: activeTest.id,
+          testTitle: activeTest.title,
+          score: computed.score,
+          rawScore: computed.rawScore,
+          maxScore: computed.maxScore,
+          percentage: computed.percentage,
+          accuracy: computed.accuracy,
+          correct: computed.correct,
+          wrong: computed.wrong,
+          unattempted: computed.unattempted,
+          totalQuestions: computed.totalQuestions,
+          topicPerformance: computed.topicPerformance,
+          weakestTopics: computed.weakestTopics,
+          strongestTopics: computed.strongestTopics,
+          perQuestion: computed.perQuestion,
+          answers: updatedSession.answers || {},
+          timeTakenMs,
+          autoSubmitted: auto,
+        });
+      }
+
+      setReviewedAttempt(null);
       setScreen('result');
     },
-    [session, updateSession]
+    [session, updateSession, currentUser, activeTest]
   );
 
   const retake = useCallback(() => {
+    setReviewedAttempt(null);
     clearSession(testId);
     const s = loadSession(testId);
     setSession(s);
     setScreen('instructions');
   }, [testId]);
 
-  const backToChapters = useCallback(() => {
-    setScreen('chapters');
+  const handleReviewAttempt = useCallback((attempt) => {
+    setReviewedAttempt(attempt);
+    setScreen('result');
   }, []);
 
   useEffect(() => {
@@ -119,20 +207,48 @@ export default function App() {
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, [screen]);
 
-  if (screen === 'chapters') {
-    return <ChapterTestsPage onSelect={handleSelectTest} />;
+  // If not logged in, render authentication page
+  if (!currentUser || screen === 'auth') {
+    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }
 
+  // Dashboard Page
+  if (screen === 'dashboard') {
+    return (
+      <DashboardPage
+        user={currentUser}
+        onStartTest={() => handleSelectTest(NEET_WEP_TEST.id)}
+        onBrowseTests={handleBrowseTests}
+        onReviewAttempt={handleReviewAttempt}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // Chapters / All Standard Tests Portal
+  if (screen === 'chapters') {
+    return (
+      <ChapterTestsPage
+        onSelect={handleSelectTest}
+        onLogout={handleLogout}
+        user={currentUser}
+        onGoToDashboard={handleGoToDashboard}
+      />
+    );
+  }
+
+  // Instructions Page
   if (screen === 'instructions') {
     return (
       <TestInstructionsPage
         test={activeTest}
-        onBack={backToChapters}
+        onBack={handleGoToDashboard}
         onStart={startTest}
       />
     );
   }
 
+  // Test In-Progress Page
   if (screen === 'test') {
     return (
       <TestPage
@@ -144,13 +260,16 @@ export default function App() {
     );
   }
 
+  // Result and Solution Review Page
   return (
     <ResultPage
       session={session}
       onRetake={retake}
       test={activeTest}
       backendResult={null}
-      onBackToChapters={backToChapters}
+      onBackToChapters={handleBrowseTests}
+      onGoToDashboard={handleGoToDashboard}
+      reviewedAttempt={reviewedAttempt}
     />
   );
 }
