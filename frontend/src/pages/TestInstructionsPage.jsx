@@ -46,7 +46,9 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
             </div>
             <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-center">
               <p className="font-mono text-xl sm:text-2xl font-black text-white">{duration}m</p>
-              <p className="mt-1 text-[11px] font-semibold text-slate-400">Duration (2h)</p>
+              <p className="mt-1 text-[11px] font-semibold text-slate-400">
+                Duration ({Math.floor(duration / 60)}h{duration % 60 ? ` ${duration % 60}m` : ''})
+              </p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-center">
               <p className="font-mono text-xl sm:text-2xl font-black text-white">{qCount * 4}</p>
@@ -77,9 +79,9 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
                 Examination Rules &amp; CBT Navigation :
               </h2>
               <ul className="mt-2 space-y-1.5 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                <li>• <strong className="text-white">2 Hours Continuous Timer:</strong> The countdown timer will run continuously. Refreshing the browser will restore your active attempt.</li>
+                <li>• <strong className="text-white">Continuous Timer ({duration} Mins):</strong> The countdown timer will run continuously. Refreshing the browser will restore your active attempt.</li>
                 <li>• <strong className="text-white">Question Palette:</strong> Use the sidebar palette to quickly navigate, review marked questions, and track unanswered questions.</li>
-                <li>• <strong className="text-white">Auto-Submission:</strong> The examination will automatically submit when the 2 hours expire.</li>
+                <li>• <strong className="text-white">Auto-Submission:</strong> The examination will automatically submit when the timer expires.</li>
                 <li>• <strong className="text-white">Instant Result &amp; Solutions:</strong> Full score report, accuracy analysis, and question-by-question explanations will be displayed immediately upon submission.</li>
               </ul>
             </div>
@@ -91,7 +93,7 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
               onClick={onStart}
               className="flex flex-1 items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-500 py-4 text-center text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-95"
             >
-              Begin 2-Hour Examination <ArrowRight size={16} />
+              Begin Timed Examination ({duration}m) <ArrowRight size={16} />
             </button>
             <button
               type="button"

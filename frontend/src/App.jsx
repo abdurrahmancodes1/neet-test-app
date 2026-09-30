@@ -3,6 +3,7 @@ import { loadSession, saveSession, clearSession, freshSession } from './utils/st
 import { getCurrentUser, logoutUser, saveUserAttempt, API_BASE } from './utils/auth.js';
 import { computeResult } from './utils/scoring.js';
 import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from './data/neetWorkEnergyTest.js';
+import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from './data/neetCalculusTest.js';
 import AuthPage from './pages/AuthPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
@@ -13,9 +14,21 @@ import ResultPage from './pages/ResultPage.jsx';
 
 const ACTIVE_TEST_KEY = 'neet_active_test_id';
 
+const ALL_TESTS = {
+  [NEET_WEP_TEST.id]: {
+    ...NEET_WEP_TEST,
+    questions: NEET_WEP_QUESTIONS,
+  },
+  [NEET_CALCULUS_TEST.id]: {
+    ...NEET_CALCULUS_TEST,
+    questions: NEET_CALCULUS_QUESTIONS,
+  },
+};
+
 const getSavedTestId = () => {
   try {
-    return window.localStorage.getItem(ACTIVE_TEST_KEY) || NEET_WEP_TEST.id;
+    const saved = window.localStorage.getItem(ACTIVE_TEST_KEY);
+    return saved && ALL_TESTS[saved] ? saved : NEET_WEP_TEST.id;
   } catch {
     return NEET_WEP_TEST.id;
   }
@@ -59,13 +72,10 @@ export default function App() {
     }
   }, [currentUser?.email]);
 
-  // Self-contained active test configuration
+  // Dynamically resolve active test configuration
   const activeTest = useMemo(() => {
-    return {
-      ...NEET_WEP_TEST,
-      questions: NEET_WEP_QUESTIONS,
-    };
-  }, []);
+    return ALL_TESTS[testId] || ALL_TESTS[NEET_WEP_TEST.id];
+  }, [testId]);
 
   const durationMs = (activeTest.durationMinutes || 120) * 60 * 1000;
 
