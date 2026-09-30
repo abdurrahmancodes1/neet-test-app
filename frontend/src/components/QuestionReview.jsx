@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, MinusCircle, BookOpen } from 'lucide-react';
+import MathRenderer from './MathRenderer.jsx';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -109,9 +110,9 @@ export default function QuestionReview({
                   )}
                 </div>
 
-                <p className="chem whitespace-pre-line text-sm sm:text-base font-medium leading-relaxed text-slate-100">
-                  {r.question}
-                </p>
+                <div className="text-sm sm:text-base font-medium leading-relaxed text-slate-100">
+                  <MathRenderer text={r.question} />
+                </div>
 
                 {r.image && (
                   <div className="my-3 flex justify-center">
@@ -134,22 +135,36 @@ export default function QuestionReview({
                     }`}
                   >
                     <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">Your answer</p>
-                    <p className="chem mt-1 font-semibold text-sm">
-                      {r.selected ? `${r.selected}${selectedText ? `. ${selectedText}` : ''}` : 'Not attempted'}
-                    </p>
+                    <div className="mt-1 font-semibold text-sm">
+                      {r.selected ? (
+                        <span>
+                          <strong className="font-mono mr-1">{r.selected}.</strong>
+                          <MathRenderer text={selectedText || ''} inline />
+                        </span>
+                      ) : (
+                        'Not attempted'
+                      )}
+                    </div>
                   </div>
                   <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-300">
                     <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">Correct answer</p>
-                    <p className="chem mt-1 font-semibold text-sm">
-                      {r.correctAnswer ? `${r.correctAnswer}${correctText ? `. ${correctText}` : ''}` : '—'}
-                    </p>
+                    <div className="mt-1 font-semibold text-sm">
+                      {r.correctAnswer ? (
+                        <span>
+                          <strong className="font-mono mr-1">{r.correctAnswer}.</strong>
+                          <MathRenderer text={correctText || ''} inline />
+                        </span>
+                      ) : (
+                        '—'
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {r.explanation && (
                   <div className="mt-3 rounded-xl border border-blue-500/20 bg-blue-950/20 p-4 text-xs leading-relaxed text-slate-300">
                     <p className="font-bold text-blue-400 mb-1">💡 Step-by-Step Solution &amp; Concept:</p>
-                    <p className="whitespace-pre-line text-slate-300">{r.explanation}</p>
+                    <MathRenderer text={r.explanation} />
                   </div>
                 )}
               </div>

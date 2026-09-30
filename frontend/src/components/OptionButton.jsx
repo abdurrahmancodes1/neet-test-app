@@ -1,4 +1,5 @@
 import React from 'react';
+import MathRenderer from './MathRenderer.jsx';
 
 export default function OptionButton({ letter, text, selected, onSelect, disabled }) {
   return (
@@ -23,7 +24,9 @@ export default function OptionButton({ letter, text, selected, onSelect, disable
       >
         {letter}
       </span>
-      <span className="flex-1 font-medium whitespace-pre-line tracking-tight text-slate-100">{text}</span>
+      <span className="flex-1 font-medium tracking-tight text-slate-100">
+        <MathRenderer text={text} inline />
+      </span>
     </button>
   );
 }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bookmark, BookmarkCheck, RotateCcw, ImageIcon, Zap } from 'lucide-react';
 import OptionButton from './OptionButton.jsx';
+import MathRenderer from './MathRenderer.jsx';
 
 export default function QuestionCard({
   question,
@@ -60,9 +61,9 @@ export default function QuestionCard({
       </div>
 
       {/* Question Text */}
-      <p className="mb-6 whitespace-pre-line text-base font-medium leading-relaxed text-slate-100 sm:text-lg">
-        {qText}
-      </p>
+      <div className="mb-6 text-base font-medium leading-relaxed text-slate-100 sm:text-lg">
+        <MathRenderer text={qText} />
+      </div>
 
       {/* Question Diagram / Image */}
       {question.image && (

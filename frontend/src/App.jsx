@@ -275,18 +275,14 @@ export default function App() {
   }
 
   // Student Dashboard Page
-  if (screen === 'dashboard') {
-    return (
       <DashboardPage
         user={currentUser}
-        onStartTest={() => handleSelectTest(NEET_WEP_TEST.id)}
+        onStartTest={(id) => handleSelectTest(id || NEET_CALCULUS_TEST.id)}
         onBrowseTests={handleBrowseTests}
         onReviewAttempt={handleReviewAttempt}
         onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
         onLogout={handleLogout}
       />
-    );
-  }
 
   // Chapters / All Standard Tests Portal
   if (screen === 'chapters') {
