@@ -30,6 +30,7 @@ import {
   Check,
   ArrowDown,
   ExternalLink,
+  Atom,
 } from 'lucide-react';
 import { getUserAnalytics, getGlobalPlatformStats } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
@@ -38,6 +39,7 @@ import AttemptComparisonModal from '../components/AttemptComparisonModal.jsx';
 import GlobalLeaderboardModal from '../components/GlobalLeaderboardModal.jsx';
 import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
+import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 
 export default function DashboardPage({
   user,
@@ -54,7 +56,7 @@ export default function DashboardPage({
   const testsSectionRef = useRef(null);
 
   const standards = [
-    { id: 'neet', label: 'NEET 2027', badge: '2 Active Tests', active: true, icon: Zap },
+    { id: 'neet', label: 'NEET 2027', badge: '3 Active Tests', active: true, icon: Zap },
     { id: 'class10', label: 'Class 10', badge: 'Upcoming in future', active: false, icon: GraduationCap },
     { id: 'class9', label: 'Class 9', badge: 'Upcoming in future', active: false, icon: Layers },
     { id: 'class8', label: 'Class 8', badge: 'Upcoming in future', active: false, icon: BookOpen },
@@ -281,7 +283,7 @@ export default function DashboardPage({
             </div>
             <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-white">
               {latestAttempt ? latestAttempt.score : '—'}
-              <span className="text-xs font-semibold text-slate-500 sm:text-sm"> / 240</span>
+              <span className="text-xs font-semibold text-slate-500 sm:text-sm"> / {latestAttempt?.maxScore || 240}</span>
             </p>
             <div className="mt-1 flex items-center gap-1 text-xs">
               {scoreDelta !== null ? (
@@ -310,7 +312,7 @@ export default function DashboardPage({
             </div>
             <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-white">
               {bestAttempt ? bestAttempt.score : '—'}
-              <span className="text-xs font-semibold text-slate-500 sm:text-sm"> / 240</span>
+              <span className="text-xs font-semibold text-slate-500 sm:text-sm"> / {bestAttempt?.maxScore || 240}</span>
             </p>
             <p className="mt-1 text-xs font-semibold text-amber-400">
               {bestAttempt ? `${bestAttempt.percentage}% Peak Score` : 'No attempts yet'}
@@ -381,7 +383,7 @@ export default function DashboardPage({
                     <span>{std.label}</span>
                     {std.id === 'neet' && (
                       <span className="ml-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-1.5 py-0.2 text-[9px] text-emerald-300 font-bold">
-                        2 Active
+                        3 Active
                       </span>
                     )}
                   </button>
@@ -395,30 +397,90 @@ export default function DashboardPage({
             <div className="space-y-4">
               <div className="flex items-center justify-between text-xs text-slate-400 px-1">
                 <span className="font-semibold text-slate-300">
-                  Showing 2 Full CBT Mock Tests strictly inside NEET Section
+                  Showing 3 Full CBT Mock Tests strictly inside NEET Section
                 </span>
                 <span className="text-[11px] text-blue-400 font-mono">
                   All tests synced with Cloud Leaderboard &amp; KaTeX Typography
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* 1. CALCULUS TEST CARD */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {/* 1. NEW NEET 2026 & RE-NEET CORE TOPICS DRILL */}
+                <div className="rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-[#0D1E22] via-[#09151A] to-[#0B0F19] p-6 shadow-2xl relative flex flex-col justify-between hover:border-emerald-500/70 transition group ring-1 ring-emerald-500/20">
+                  <div className="pointer-events-none absolute top-0 right-0 w-36 h-36 bg-emerald-600/10 rounded-full blur-2xl" />
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="rounded-full bg-emerald-600/20 border border-emerald-500/30 px-3 py-1 text-[11px] font-bold text-emerald-300 flex items-center gap-1.5">
+                        <Sparkles size={12} className="text-emerald-400" /> NEET 2026 &amp; Re-NEET
+                      </span>
+                      <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 uppercase">
+                        NEW TEST
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="font-sans text-lg font-black text-white group-hover:text-emerald-200 transition">
+                        {NEET_2026_CORE_TEST.title}
+                      </h3>
+                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                        {NEET_2026_CORE_TEST.subtitle}
+                      </p>
+                    </div>
+
+                    {/* Highlights & Chips */}
+                    <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Questions</span>
+                        <strong className="font-mono text-xs sm:text-sm text-white font-black">55 Qs</strong>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
+                        <strong className="font-mono text-xs sm:text-sm text-amber-400 font-black">55 Mins</strong>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
+                        <strong className="font-mono text-xs sm:text-sm text-emerald-400 font-black">220 Mks</strong>
+                      </div>
+                    </div>
+
+                    {/* Syllabus summary */}
+                    <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3 text-xs text-slate-300 space-y-1">
+                      <p className="font-bold text-emerald-400 text-[11px]">🧪 Key High-Yield Syllabus:</p>
+                      <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-3">
+                        Vectors, Units &amp; Dimensions, Rectilinear Motion, Circular Motion, Work &amp; Rotational Dynamics, Mole Concept, Atomic Structure, Periodic Trends, Chemical Bonding, Thermodynamics.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-5">
+                    <button
+                      type="button"
+                      onClick={() => onStartTest(NEET_2026_CORE_TEST.id)}
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 py-3 text-xs sm:text-sm font-bold text-white shadow-lg shadow-emerald-600/30 transition active:scale-98"
+                    >
+                      <span>Start Core Drill (55m)</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. CALCULUS TEST CARD */}
                 <div className="rounded-3xl border border-blue-500/30 bg-gradient-to-b from-[#0D1527] to-[#0B0F19] p-6 shadow-2xl relative flex flex-col justify-between hover:border-blue-500/60 transition group">
-                  <div className="pointer-events-none absolute top-0 right-0 w-40 h-40 bg-blue-600/10 rounded-full blur-2xl" />
+                  <div className="pointer-events-none absolute top-0 right-0 w-36 h-36 bg-blue-600/10 rounded-full blur-2xl" />
 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between gap-2">
                       <span className="rounded-full bg-blue-600/20 border border-blue-500/30 px-3 py-1 text-[11px] font-bold text-blue-300 flex items-center gap-1.5">
-                        <Zap size={12} className="text-blue-400" /> NEET Section · JEE Standard Timing
+                        <Zap size={12} className="text-blue-400" /> NEET Section · JEE Standard
                       </span>
-                      <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 uppercase">
+                      <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2.5 py-0.5 text-[10px] font-bold text-blue-300 uppercase">
                         Active Exam
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="font-sans text-xl font-black text-white group-hover:text-blue-200 transition">
+                      <h3 className="font-sans text-lg font-black text-white group-hover:text-blue-200 transition">
                         {NEET_CALCULUS_TEST.title}
                       </h3>
                       <p className="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -427,58 +489,58 @@ export default function DashboardPage({
                     </div>
 
                     {/* Highlights & Chips */}
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                    <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Questions</span>
-                        <strong className="font-mono text-sm text-white font-black">60 Qs</strong>
+                        <strong className="font-mono text-xs sm:text-sm text-white font-black">60 Qs</strong>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
-                        <strong className="font-mono text-sm text-amber-400 font-black">144 Mins</strong>
+                        <strong className="font-mono text-xs sm:text-sm text-amber-400 font-black">144 Mins</strong>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
-                        <strong className="font-mono text-sm text-emerald-400 font-black">240 Mks</strong>
+                        <strong className="font-mono text-xs sm:text-sm text-emerald-400 font-black">240 Mks</strong>
                       </div>
                     </div>
 
                     {/* Syllabus summary */}
-                    <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-xs text-slate-300 space-y-1">
-                      <p className="font-bold text-blue-400 text-[11px]">📐 Covered High-Difficulty Topics:</p>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">
-                        Definite Integrals (King's Rule, Leibniz Formula, Fractional Part <code className="text-blue-300">{`{x}`}</code>), Indefinite Integrals (Partial Fractions, Radical Inversions, Trigonometric Substitution).
+                    <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3 text-xs text-slate-300 space-y-1">
+                      <p className="font-bold text-blue-400 text-[11px]">📐 Calculus Integration:</p>
+                      <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-3">
+                        Definite Integrals (King's Rule, Leibniz Formula, Fractional Part <code className="text-blue-300">{`{x}`}</code>), Indefinite Integrals (Partial Fractions, Radical Inversions).
                       </p>
                     </div>
                   </div>
 
-                  <div className="pt-6">
+                  <div className="pt-5">
                     <button
                       type="button"
                       onClick={() => onStartTest(NEET_CALCULUS_TEST.id)}
-                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-500 py-3.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-98"
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-500 py-3 text-xs sm:text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-98"
                     >
-                      <span>Start Calculus Examination (144m)</span>
-                      <ArrowRight size={15} />
+                      <span>Start Calculus Exam (144m)</span>
+                      <ArrowRight size={14} />
                     </button>
                   </div>
                 </div>
 
-                {/* 2. WORK ENERGY POWER TEST CARD */}
+                {/* 3. WORK ENERGY POWER TEST CARD */}
                 <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-[#101426] to-[#0B0F19] p-6 shadow-2xl relative flex flex-col justify-between hover:border-indigo-500/60 transition group">
-                  <div className="pointer-events-none absolute top-0 right-0 w-40 h-40 bg-indigo-600/10 rounded-full blur-2xl" />
+                  <div className="pointer-events-none absolute top-0 right-0 w-36 h-36 bg-indigo-600/10 rounded-full blur-2xl" />
 
                   <div className="space-y-4">
                     <div className="flex items-center justify-between gap-2">
                       <span className="rounded-full bg-indigo-600/20 border border-indigo-500/30 px-3 py-1 text-[11px] font-bold text-indigo-300 flex items-center gap-1.5">
-                        <Zap size={12} className="text-indigo-400" /> NEET Section · High-Yield Physics
+                        <Zap size={12} className="text-indigo-400" /> NEET Section · Physics
                       </span>
-                      <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 uppercase">
+                      <span className="rounded-full bg-indigo-500/20 border border-indigo-500/30 px-2.5 py-0.5 text-[10px] font-bold text-indigo-300 uppercase">
                         Active Exam
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="font-sans text-xl font-black text-white group-hover:text-indigo-200 transition">
+                      <h3 className="font-sans text-lg font-black text-white group-hover:text-indigo-200 transition">
                         {NEET_WEP_TEST.title}
                       </h3>
                       <p className="text-xs text-slate-300 mt-1 leading-relaxed">
@@ -487,38 +549,38 @@ export default function DashboardPage({
                     </div>
 
                     {/* Highlights & Chips */}
-                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                    <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Questions</span>
-                        <strong className="font-mono text-sm text-white font-black">60 Qs</strong>
+                        <strong className="font-mono text-xs sm:text-sm text-white font-black">60 Qs</strong>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
-                        <strong className="font-mono text-sm text-amber-400 font-black">120 Mins</strong>
+                        <strong className="font-mono text-xs sm:text-sm text-amber-400 font-black">120 Mins</strong>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
-                        <strong className="font-mono text-sm text-emerald-400 font-black">240 Mks</strong>
+                        <strong className="font-mono text-xs sm:text-sm text-emerald-400 font-black">240 Mks</strong>
                       </div>
                     </div>
 
                     {/* Syllabus summary */}
-                    <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-xs text-slate-300 space-y-1">
-                      <p className="font-bold text-indigo-400 text-[11px]">⚡ Covered Physics Concepts:</p>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">
+                    <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3 text-xs text-slate-300 space-y-1">
+                      <p className="font-bold text-indigo-400 text-[11px]">⚡ Work, Energy &amp; Power:</p>
+                      <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-3">
                         Work-Energy Theorem, Conservative &amp; Non-Conservative Forces, Potential Energy Curves, Vertical Circular Motion, Power &amp; Collisions.
                       </p>
                     </div>
                   </div>
 
-                  <div className="pt-6">
+                  <div className="pt-5">
                     <button
                       type="button"
                       onClick={() => onStartTest(NEET_WEP_TEST.id)}
-                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 py-3.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition active:scale-98"
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 py-3 text-xs sm:text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition active:scale-98"
                     >
-                      <span>Start Physics Examination (120m)</span>
-                      <ArrowRight size={15} />
+                      <span>Start Physics Exam (120m)</span>
+                      <ArrowRight size={14} />
                     </button>
                   </div>
                 </div>
@@ -761,7 +823,7 @@ export default function DashboardPage({
                 {/* Score Big Display */}
                 <div className="space-y-1.5">
                   <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">
-                    {latestAttempt.testTitle?.includes('Calculus') ? 'Calculus Drill Result' : 'Physics Drill Result'}
+                    {latestAttempt.testTitle || 'Exam Result'}
                   </span>
                   <h2 className="font-serif text-3xl sm:text-4xl font-black text-white">
                     {latestAttempt.score}{' '}
@@ -773,7 +835,7 @@ export default function DashboardPage({
                     {latestAttempt.percentage}% Final Score · {latestAttempt.accuracy?.toFixed(1)}% Accuracy
                   </p>
                   <p className="text-xs text-slate-500">
-                    {latestAttempt.testTitle || 'NEET 2027: Definite & Indefinite Integration'}
+                    {latestAttempt.testTitle || 'NEET 2027 Assessment'}
                   </p>
                 </div>
 
@@ -805,7 +867,7 @@ export default function DashboardPage({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onStartTest(latestAttempt.testId || NEET_CALCULUS_TEST.id)}
+                    onClick={() => onStartTest(latestAttempt.testId || NEET_2026_CORE_TEST.id)}
                     className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 py-3 text-xs font-semibold text-slate-300 transition"
                   >
                     <RotateCcw size={14} /> Retake This Examination
@@ -824,7 +886,7 @@ export default function DashboardPage({
                       Score &amp; Accuracy Progression
                     </h3>
                     <p className="text-xs text-slate-400">
-                      Track score (/240) and accuracy (%) over sequential attempts.
+                      Track score and accuracy (%) over sequential attempts.
                     </p>
                   </div>
                   <Award size={18} className="text-blue-400" />
@@ -889,7 +951,7 @@ export default function DashboardPage({
                       <th className="px-3.5 py-3 rounded-l-xl">Attempt</th>
                       <th className="px-3.5 py-3">Test Title</th>
                       <th className="px-3.5 py-3">Date &amp; Time</th>
-                      <th className="px-3.5 py-3">Score / 240</th>
+                      <th className="px-3.5 py-3">Score</th>
                       <th className="px-3.5 py-3">Accuracy</th>
                       <th className="px-3.5 py-3">Breakdown</th>
                       <th className="px-3.5 py-3">Time Spent</th>
@@ -899,6 +961,7 @@ export default function DashboardPage({
                   <tbody className="divide-y divide-white/5">
                     {allAttempts.map((att, idx) => {
                       const isLatest = idx === 0;
+                      const maxScore = att.maxScore || 240;
                       return (
                         <tr key={att.id} className="hover:bg-white/[0.02] transition">
                           <td className="px-3.5 py-3.5 font-mono font-bold text-white">
@@ -910,7 +973,7 @@ export default function DashboardPage({
                             )}
                           </td>
                           <td className="px-3.5 py-3.5 text-slate-300 font-medium">
-                            {att.testTitle || (att.testId?.includes('calculus') ? 'Calculus Drill' : 'Work, Energy & Power')}
+                            {att.testTitle || 'NEET Standard Mock'}
                           </td>
                           <td className="px-3.5 py-3.5 text-slate-400">
                             {new Date(att.timestamp).toLocaleDateString(undefined, {
@@ -921,7 +984,7 @@ export default function DashboardPage({
                           </td>
                           <td className="px-3.5 py-3.5 font-bold text-white">
                             <span className="text-sm font-black">{att.score}</span>
-                            <span className="text-[11px] text-slate-500"> / 240</span>
+                            <span className="text-[11px] text-slate-500"> / {maxScore}</span>
                             <span className="ml-1.5 text-[11px] text-blue-400">({att.percentage}%)</span>
                           </td>
                           <td className="px-3.5 py-3.5 font-semibold text-emerald-400">
@@ -968,11 +1031,31 @@ export default function DashboardPage({
               Welcome to Your NEET 2027 Dashboard, <span className="font-sans not-italic font-black text-white">{user?.name || 'Aspirant'}</span>!
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-slate-400 leading-relaxed font-normal">
-              You haven't completed any practice tests yet. Select a test from the section above or launch one of our full-length mock examinations below:
+              You haven't completed any practice tests yet. Select any of our authentic full-length mock examinations below to start:
             </p>
 
             {/* Quick Test Launchers in Empty State */}
-            <div className="mx-auto mt-8 max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+            <div className="mx-auto mt-8 max-w-4xl grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+              <div className="rounded-2xl border border-emerald-500/40 bg-[#070A12] p-5 flex flex-col justify-between space-y-3 hover:border-emerald-500/70 transition">
+                <div>
+                  <span className="rounded-full bg-emerald-600/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                    55 Mins · 55 Questions · NEW
+                  </span>
+                  <h4 className="text-white font-bold text-sm mt-2">NEET 2026 Core Drill</h4>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Authentic questions from NEET &amp; Re-NEET 2026.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onStartTest(NEET_2026_CORE_TEST.id)}
+                  className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-2.5 text-xs font-bold text-white transition shadow-sm"
+                >
+                  <span>Launch Core Exam</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
+
               <div className="rounded-2xl border border-blue-500/30 bg-[#070A12] p-5 flex flex-col justify-between space-y-3 hover:border-blue-500/60 transition">
                 <div>
                   <span className="rounded-full bg-blue-600/20 border border-blue-500/30 px-2 py-0.5 text-[10px] font-bold text-blue-300">
@@ -980,7 +1063,7 @@ export default function DashboardPage({
                   </span>
                   <h4 className="text-white font-bold text-sm mt-2">Calculus Mastery Drill</h4>
                   <p className="text-xs text-slate-400 mt-1">
-                    Definite &amp; Indefinite Integration with KaTeX math rendering.
+                    Definite &amp; Indefinite Integration with KaTeX formulas.
                   </p>
                 </div>
                 <button
@@ -998,9 +1081,9 @@ export default function DashboardPage({
                   <span className="rounded-full bg-indigo-600/20 border border-indigo-500/30 px-2 py-0.5 text-[10px] font-bold text-indigo-300">
                     120 Mins · 60 Questions
                   </span>
-                  <h4 className="text-white font-bold text-sm mt-2">Work, Energy &amp; Power Drill</h4>
+                  <h4 className="text-white font-bold text-sm mt-2">Work, Energy &amp; Power</h4>
                   <p className="text-xs text-slate-400 mt-1">
-                    Physics mock with conceptual diagrams and full score sync.
+                    Physics mock with conceptual diagrams &amp; solutions.
                   </p>
                 </div>
                 <button
