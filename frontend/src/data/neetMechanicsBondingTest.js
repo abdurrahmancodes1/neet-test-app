@@ -342,9 +342,12 @@ const DIAGRAMS = {
 export const NEET_MECHANICS_BONDING_TEST = {
   id: "neet-mechanics-chemical-bonding-drill",
   title: "NEET & JEE Drill: Mechanics (WEP, COM, Rotation) & Chemical Bonding",
-  subtitle: "120 Advanced Questions · 60 Physics (WEP, COM, Rigid Body Dynamics) + 60 Chemistry (Chemical Bonding) · 2 Hours Timed Examination",
+  subtitle: "120 Advanced Questions · 60 Physics (WEP, COM, Rigid Body Dynamics) + 60 Chemistry (Chemical Bonding) · Customizable Duration (Max 3 Hours)",
   subject: "Physics & Chemistry Core Foundation (Class 11)",
   durationMinutes: 120,
+  allowCustomDuration: true,
+  maxCustomDurationMinutes: 180, // Student can set up to 3 Hours (180 mins)
+  minCustomDurationMinutes: 10,
   totalQuestions: 120,
   totalMarks: 480,
   marksCorrect: 4,

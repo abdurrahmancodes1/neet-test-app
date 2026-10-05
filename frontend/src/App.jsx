@@ -92,7 +92,12 @@ export default function App() {
     return ALL_TESTS[testId] || ALL_TESTS[NEET_WEP_TEST.id];
   }, [testId]);
 
-  const durationMs = (activeTest.durationMinutes || 120) * 60 * 1000;
+  const durationMs = useMemo(() => {
+    if (session?.endTime && session?.startTime) {
+      return Math.max(0, session.endTime - session.startTime);
+    }
+    return (activeTest.durationMinutes || 120) * 60 * 1000;
+  }, [session?.endTime, session?.startTime, activeTest.durationMinutes]);
 
   // Auto-submission when timer expires
   useEffect(() => {
@@ -191,20 +196,31 @@ export default function App() {
     }
   }, []);
 
-  const startTest = useCallback(async () => {
-    setReviewedAttempt(null);
-    const next = freshSession(durationMs, testId);
-    saveSession(next, testId);
-    setSession(next);
-    setScreen('test');
-    try {
-      if (document.documentElement.requestFullscreen) {
-        await document.documentElement.requestFullscreen();
+  const startTest = useCallback(
+    async (customDurationMinutes) => {
+      setReviewedAttempt(null);
+      let effectiveMinutes = activeTest.durationMinutes || 120;
+      if (customDurationMinutes && !isNaN(Number(customDurationMinutes))) {
+        const maxCap = activeTest.maxCustomDurationMinutes || 180; // Maximum 3 hours (180 mins)
+        const minCap = activeTest.minCustomDurationMinutes || 10;
+        effectiveMinutes = Math.max(minCap, Math.min(maxCap, Number(customDurationMinutes)));
       }
-    } catch (error) {
-      console.warn('Fullscreen request failed:', error);
-    }
-  }, [durationMs, testId]);
+      const effectiveDurationMs = effectiveMinutes * 60 * 1000;
+      const next = freshSession(effectiveDurationMs, testId);
+      next.durationMinutes = effectiveMinutes;
+      saveSession(next, testId);
+      setSession(next);
+      setScreen('test');
+      try {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+      } catch (error) {
+        console.warn('Fullscreen request failed:', error);
+      }
+    },
+    [activeTest, testId]
+  );
 
   const submitTest = useCallback(
     (auto = false) => {
