@@ -18,6 +18,7 @@ import {
 import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
+import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 
 export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard }) {
   const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'class10' | 'class9' | 'class8'
@@ -162,11 +163,69 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                 </p>
               </div>
               <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold text-emerald-300">
-                <CheckCircle2 size={16} /> 3 Tests Available
+                <CheckCircle2 size={16} /> 4 Tests Available
               </div>
             </div>
 
-            {/* Test Card 1: NEET 2026 & Re-NEET Core Topics Drill */}
+            {/* Test Card 1: NEET 2026 & Re-NEET Biology Foundation Drill */}
+            <article className="overflow-hidden rounded-3xl border border-teal-500/40 bg-gradient-to-b from-[#0B1E1E] via-[#081717] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-teal-500/25">
+              <div className="pointer-events-none absolute -top-12 -right-12 h-56 w-56 rounded-full bg-teal-600/15 blur-3xl" />
+
+              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
+                <div className="max-w-2xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-0.5 text-xs font-bold text-emerald-300">
+                      NEW BIOLOGY EXAM
+                    </span>
+                    <span className="rounded-full bg-teal-600/20 border border-teal-500/30 px-3 py-0.5 text-xs font-bold text-teal-300">
+                      NEET 2026 + Re-NEET
+                    </span>
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-0.5 text-xs font-bold text-emerald-300">
+                      Botany &amp; Human Physiology
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3 font-sans text-2xl sm:text-3xl font-black text-white">
+                    {NEET_BIOLOGY_TEST.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                    50 curated high-yield questions from official NEET 2026 and Re-NEET 2026 papers. Covers Living World, Biological Classification, Plant Morphology &amp; Anatomy, Cell Structure &amp; Division, Biomolecules, and Core Human Physiology.
+                  </p>
+
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs leading-relaxed text-slate-300">
+                    <span className="font-bold text-white">Syllabus Covered: </span>
+                    {NEET_BIOLOGY_TEST.syllabus}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Clock size={14} className="text-teal-400" />
+                      <strong className="text-white">50 Minutes</strong> (1 min/Q NEET Standard)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <BookOpen size={14} className="text-teal-400" />
+                      <strong className="text-white">50 Questions</strong> (Botany &amp; Zoology)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Award size={14} className="text-teal-400" />
+                      <strong className="text-white">200 Marks</strong> (+4 / −1 Scheme)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(NEET_BIOLOGY_TEST.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-teal-600 hover:bg-teal-500 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-teal-600/30 transition active:scale-95 lg:w-auto"
+                  >
+                    Start 50-Min Examination <ArrowRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            {/* Test Card 2: NEET 2026 & Re-NEET Core Topics Drill */}
             <article className="overflow-hidden rounded-3xl border border-emerald-500/40 bg-gradient-to-b from-[#0D1E22] via-[#09151A] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-emerald-500/25">
               <div className="pointer-events-none absolute -top-12 -right-12 h-56 w-56 rounded-full bg-emerald-600/15 blur-3xl" />
 
