@@ -42,6 +42,7 @@ import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
+import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
 
 export default function DashboardPage({
   user,
@@ -58,7 +59,7 @@ export default function DashboardPage({
   const testsSectionRef = useRef(null);
 
   const standards = [
-    { id: 'neet', label: 'NEET 2027', badge: '4 Active Tests', active: true, icon: Zap },
+    { id: 'neet', label: 'NEET 2027', badge: '5 Active Tests', active: true, icon: Zap },
     { id: 'class10', label: 'Class 10', badge: 'Upcoming in future', active: false, icon: GraduationCap },
     { id: 'class9', label: 'Class 9', badge: 'Upcoming in future', active: false, icon: Layers },
     { id: 'class8', label: 'Class 8', badge: 'Upcoming in future', active: false, icon: BookOpen },
@@ -407,7 +408,79 @@ export default function DashboardPage({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* 1. NEW NEET 2026 & RE-NEET BIOLOGY FOUNDATION DRILL */}
+                {/* 1. NEW NEET & JEE MECHANICS + CHEMICAL BONDING DRILL */}
+                <div className="rounded-3xl border border-violet-500/50 bg-gradient-to-b from-[#160E2E] via-[#100A22] to-[#0B0F19] p-6 shadow-2xl relative flex flex-col justify-between hover:border-violet-500/80 transition group ring-1 ring-violet-500/30 md:col-span-2">
+                  <div className="pointer-events-none absolute top-0 right-0 w-48 h-48 bg-violet-600/15 rounded-full blur-3xl" />
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="rounded-full bg-violet-600/20 border border-violet-500/40 px-3 py-1 text-[11px] font-bold text-violet-300 flex items-center gap-1.5">
+                        <Zap size={12} className="text-violet-400" /> NEET &amp; JEE Advanced Section · Physics &amp; Chemistry
+                      </span>
+                      <span className="rounded-full bg-violet-500/25 border border-violet-500/40 px-2.5 py-0.5 text-[10px] font-bold text-violet-200 uppercase tracking-wider">
+                        ⭐ 120 Questions Mega Drill
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="font-sans text-xl sm:text-2xl font-black text-white group-hover:text-violet-200 transition">
+                        {NEET_MECHANICS_BONDING_TEST.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-300 mt-1 leading-relaxed">
+                        {NEET_MECHANICS_BONDING_TEST.subtitle}
+                      </p>
+                    </div>
+
+                    {/* Highlights & Chips */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Total Questions</span>
+                        <strong className="font-mono text-sm text-white font-black">120 Qs</strong>
+                        <span className="text-[10px] text-slate-500 block">60 Phys + 60 Chem</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
+                        <strong className="font-mono text-sm text-amber-400 font-black">120 Mins</strong>
+                        <span className="text-[10px] text-amber-500/80 block">2 Hours CBT</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
+                        <strong className="font-mono text-sm text-emerald-400 font-black">480 Marks</strong>
+                        <span className="text-[10px] text-emerald-500/80 block">+4 / -1 Scheme</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Visual Assets</span>
+                        <strong className="font-mono text-sm text-violet-400 font-black">Vector Diagrams</strong>
+                        <span className="text-[10px] text-violet-500/80 block">KaTeX Formulas</span>
+                      </div>
+                    </div>
+
+                    {/* Syllabus summary */}
+                    <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-xs text-slate-300 space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-violet-400 text-[11px]">⚡ Physics (60 Qs):</span>
+                        <span className="text-[11px] text-slate-300">Work, Energy &amp; Power, Centre of Mass, Discrete &amp; Continuous Systems, 2D Inelastic Collisions, Rotational Mechanics (Strictly excluding pure rolling).</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-violet-400 text-[11px]">🧪 Chemistry (60 Qs):</span>
+                        <span className="text-[11px] text-slate-300">Complete Chemical Bonding (VSEPR, Hybridization, Molecular Orbital Theory, Dipole Moments, H-Bonding, Backbonding, Lattice Energies).</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6">
+                    <button
+                      type="button"
+                      onClick={() => onStartTest(NEET_MECHANICS_BONDING_TEST.id)}
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 py-4 text-xs sm:text-sm font-black text-white shadow-xl shadow-violet-600/30 transition active:scale-98"
+                    >
+                      <span>Start Mechanics &amp; Chemical Bonding Mega Examination (120m)</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. NEET 2026 & RE-NEET BIOLOGY FOUNDATION DRILL */}
                 <div className="rounded-3xl border border-teal-500/40 bg-gradient-to-b from-[#0B1E1E] via-[#081717] to-[#0B0F19] p-6 shadow-2xl relative flex flex-col justify-between hover:border-teal-500/70 transition group ring-1 ring-teal-500/20">
                   <div className="pointer-events-none absolute top-0 right-0 w-36 h-36 bg-teal-600/10 rounded-full blur-2xl" />
 

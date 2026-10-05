@@ -19,6 +19,7 @@ import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
+import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
 
 export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard }) {
   const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'class10' | 'class9' | 'class8'
@@ -162,12 +163,70 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                   Select a timed examination below to begin your CBT assessment with authentic PYQs and instant solutions.
                 </p>
               </div>
-              <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-bold text-emerald-300">
-                <CheckCircle2 size={16} /> 4 Tests Available
+              <div className="flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-bold text-violet-300">
+                <CheckCircle2 size={16} /> 5 Tests Available
               </div>
             </div>
 
-            {/* Test Card 1: NEET 2026 & Re-NEET Biology Foundation Drill */}
+            {/* Test Card 1: NEET & JEE Mechanics + Chemical Bonding Drill */}
+            <article className="overflow-hidden rounded-3xl border border-violet-500/50 bg-gradient-to-b from-[#160E2E] via-[#100A22] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-violet-500/30">
+              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-violet-600/20 blur-3xl" />
+
+              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
+                <div className="max-w-2xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-violet-500/20 border border-violet-500/40 px-3 py-0.5 text-xs font-bold text-violet-300">
+                      ⭐ 120 QUESTIONS MEGA DRILL
+                    </span>
+                    <span className="rounded-full bg-blue-600/20 border border-blue-500/30 px-3 py-0.5 text-xs font-bold text-blue-300">
+                      NEET &amp; JEE Advanced
+                    </span>
+                    <span className="rounded-full bg-indigo-500/20 border border-indigo-500/30 px-3 py-0.5 text-xs font-bold text-indigo-300">
+                      Mechanics &amp; Chemical Bonding
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3 font-sans text-2xl sm:text-3xl font-black text-white">
+                    {NEET_MECHANICS_BONDING_TEST.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                    120 curated challenging questions: 60 Physics (Work Energy &amp; Power, Centre of Mass, System of Particles &amp; Rotational Dynamics excluding pure rolling) + 60 Chemistry (Complete Chemical Bonding &amp; Molecular Structure with MOT, VSEPR, Resonating Forms, and Dipole Moments).
+                  </p>
+
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs leading-relaxed text-slate-300">
+                    <span className="font-bold text-white">Syllabus Covered: </span>
+                    {NEET_MECHANICS_BONDING_TEST.syllabus}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Clock size={14} className="text-amber-400" />
+                      <strong className="text-white">120 Minutes</strong> (2 Hours Continuous CBT)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <BookOpen size={14} className="text-blue-400" />
+                      <strong className="text-white">120 Questions</strong> (60 Phys + 60 Chem)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Award size={14} className="text-emerald-400" />
+                      <strong className="text-white">480 Marks</strong> (+4 / −1 Marking Scheme)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(NEET_MECHANICS_BONDING_TEST.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-violet-600/30 transition active:scale-95 lg:w-auto"
+                  >
+                    Start 120-Min Examination <ArrowRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            {/* Test Card 2: NEET 2026 & Re-NEET Biology Foundation Drill */}
             <article className="overflow-hidden rounded-3xl border border-teal-500/40 bg-gradient-to-b from-[#0B1E1E] via-[#081717] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-teal-500/25">
               <div className="pointer-events-none absolute -top-12 -right-12 h-56 w-56 rounded-full bg-teal-600/15 blur-3xl" />
 
