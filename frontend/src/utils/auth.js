@@ -366,6 +366,7 @@ export async function getGlobalPlatformStats() {
  * Fetch detailed Admin Overview (total users, active users, student progress)
  */
 export async function getAdminOverview() {
+  let remoteData = null;
   try {
     const currentUser = getCurrentUser();
     const response = await fetch(`${API_BASE}/admin/overview`, {
@@ -378,37 +379,73 @@ export async function getAdminOverview() {
     if (response.ok) {
       const data = await response.json();
       if (data?.data) {
-        return {
-          ...data.data,
-          isLive: true,
-        };
+        remoteData = data.data;
       }
     }
   } catch (err) {
     console.warn('Failed to fetch admin overview from backend API:', err.message);
   }
 
-  // Fallback if backend offline
+  // Fallback and local reconciliation
   const stats = await getGlobalPlatformStats();
-  return {
-    totalUsers: stats.totalUsers,
-    activeUsers: stats.allCandidates?.length || 0,
-    totalAttempts: stats.totalAttempts,
-    averageScore: stats.averageScore,
-    students: (stats.allCandidates || []).map((c) => ({
-      id: c.id,
-      name: c.name,
-      email: c.email,
-      role: c.role || 'student',
+  const allUsers = getUsers();
+
+  const studentsList = allUsers.map((u) => {
+    const attempts = getUserAttempts(u.email);
+    const scores = attempts.map((a) => a.score ?? 0);
+    const latest = attempts.length > 0 ? attempts[attempts.length - 1] : null;
+    const best = scores.length > 0 ? Math.max(...scores) : null;
+    const avgAcc =
+      attempts.length > 0
+        ? Math.round((attempts.reduce((sum, a) => sum + (a.accuracy || 0), 0) / attempts.length) * 10) / 10
+        : null;
+
+    return {
+      id: u.id || `user_${u.email}`,
+      name: u.name || 'Candidate',
+      email: u.email,
+      role: u.role || 'student',
       status: 'active',
-      registeredAt: c.registeredAt || c.createdAt,
-      lastActive: c.registeredAt || c.createdAt,
-      totalAttempts: 0,
-      latestScore: null,
-      bestScore: null,
-      averageAccuracy: null,
-      attempts: [],
-    })),
+      registeredAt: u.registeredAt || u.createdAt || new Date().toISOString(),
+      lastActive: latest?.timestamp || u.registeredAt || u.createdAt,
+      totalAttempts: attempts.length,
+      latestScore: latest?.score ?? null,
+      bestScore: best,
+      averageAccuracy: avgAcc,
+      attempts: [...attempts].reverse(), // latest first
+    };
+  });
+
+  if (remoteData?.students && remoteData.students.length > 0) {
+    // Merge remote students with local attempts if available
+    const mergedStudents = remoteData.students.map((rs) => {
+      const local = studentsList.find((s) => s.email.toLowerCase() === (rs.email || '').toLowerCase());
+      const atts = (rs.attempts && rs.attempts.length > 0) ? rs.attempts : (local?.attempts || []);
+      return {
+        ...rs,
+        attempts: atts,
+        totalAttempts: atts.length || rs.totalAttempts || 0,
+        latestScore: atts.length > 0 ? atts[0].score : (rs.latestScore ?? null),
+        bestScore: atts.length > 0 ? Math.max(...atts.map((a) => a.score ?? 0)) : (rs.bestScore ?? null),
+      };
+    });
+
+    return {
+      ...remoteData,
+      students: mergedStudents,
+      isLive: true,
+    };
+  }
+
+  const activeCount = studentsList.filter((s) => s.totalAttempts > 0).length;
+  const allAttCount = studentsList.reduce((sum, s) => sum + s.totalAttempts, 0);
+
+  return {
+    totalUsers: Math.max(studentsList.length, stats.totalUsers || 1),
+    activeUsers: activeCount,
+    totalAttempts: allAttCount,
+    averageScore: stats.averageScore || 0,
+    students: studentsList,
     isLive: false,
   };
 }

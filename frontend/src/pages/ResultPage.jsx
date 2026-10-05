@@ -4,6 +4,7 @@ import { formatDuration, computeResult } from '../utils/scoring.js';
 import ResultSummary from '../components/ResultSummary.jsx';
 import TopicAnalysis from '../components/TopicAnalysis.jsx';
 import QuestionReview from '../components/QuestionReview.jsx';
+import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
 
 const TABS = [
   { key: 'overview', label: 'Overview' },
@@ -32,6 +33,11 @@ export default function ResultPage({
     backendResult?.test?.subtitle ||
     test?.subtitle ||
     'NEET 2027 Assessment';
+  const activeTestId =
+    reviewedAttempt?.testId ||
+    backendResult?.test?.id ||
+    test?.id ||
+    '';
 
   // Authoritative result calculation
   const result = useMemo(() => {
@@ -199,6 +205,16 @@ export default function ResultPage({
               avgTimeLabel={avgTimeLabel}
               testTitle={testTitle}
               testSubtitle={testSubtitle}
+            />
+
+            {/* NEET Score & AIR Rank Projector (Only for the 2 newly added tests) */}
+            <NeetScorePredictorCard
+              testId={activeTestId}
+              score={result.score}
+              maxScore={result.maxScore}
+              accuracy={result.accuracy}
+              correct={result.correct}
+              wrong={result.wrong}
             />
             <div className="flex flex-col gap-3 sm:flex-row">
               <button

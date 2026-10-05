@@ -122,3 +122,139 @@ export function formatClock(ms) {
   }
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 }
+
+/**
+ * Predicts NEET score, Section score, All India Rank (AIR) band, and national percentile
+ * specifically for the two newly added comprehensive drills:
+ * 1. 'neet-biology-core-drill' (Biology Core Foundation Drill - 50 Qs / 200 Marks)
+ * 2. 'neet-mechanics-chemical-bonding-drill' (Mechanics & Chemical Bonding Drill - 120 Qs / 480 Marks)
+ */
+export function getNeetPrediction(testId, score, maxScore, accuracy = 0, correct = 0, wrong = 0) {
+  const isBiology = testId === 'neet-biology-core-drill';
+  const isMechanicsBonding = testId === 'neet-mechanics-chemical-bonding-drill';
+
+  if (!isBiology && !isMechanicsBonding) {
+    return null; // Prediction active specifically for the two tests added today
+  }
+
+  const fraction = maxScore > 0 ? Math.max(0, score / maxScore) : 0;
+
+  if (isBiology) {
+    const projectedSectionScore = Math.min(360, Math.round(fraction * 360));
+    const projectedNeetScore = Math.min(720, Math.round(fraction * 720));
+
+    let percentile = 0;
+    let airBand = '';
+    let statusBadge = '';
+    let tone = 'emerald';
+    let recommendation = '';
+
+    if (projectedNeetScore >= 680) {
+      percentile = 99.85;
+      airBand = 'AIR < 1,000 (Top 0.15%)';
+      statusBadge = 'AIIMS & Premier GMC Qualifier';
+      tone = 'emerald';
+      recommendation = 'Exceptional Botany & Human Physiology command. Continue speed drills and revise NCERT micro-details.';
+    } else if (projectedNeetScore >= 630) {
+      percentile = 99.1;
+      airBand = 'AIR 1,000 – 6,000';
+      statusBadge = 'Top State Govt Medical College';
+      tone = 'teal';
+      recommendation = 'Strong grasp. Eliminate negative marks on statement-based questions to comfortably cross 350+ in Biology.';
+    } else if (projectedNeetScore >= 580) {
+      percentile = 97.8;
+      airBand = 'AIR 6,000 – 18,000';
+      statusBadge = 'Government Medical College (MBBS)';
+      tone = 'blue';
+      recommendation = 'Solid foundation. Focus on weaker chapters highlighted in diagnostics below to push score into top tier.';
+    } else if (projectedNeetScore >= 500) {
+      percentile = 93.5;
+      airBand = 'AIR 18,000 – 50,000';
+      statusBadge = 'Borderline GMC / Dental Qualifier';
+      tone = 'amber';
+      recommendation = 'Revise NCERT floral formulas, cell cycle stages, and excretory/circulatory pathways.';
+    } else {
+      percentile = Math.max(50, Math.round(fraction * 100));
+      airBand = 'AIR > 50,000';
+      statusBadge = 'Intensive Revision Needed';
+      tone = 'rose';
+      recommendation = 'Target high-yield NCERT chapters (Cell Unit, Biomolecules, Breathing & Circulation) and re-take the drill.';
+    }
+
+    return {
+      testId,
+      testType: 'biology',
+      sectionName: 'Biology (Botany & Zoology)',
+      projectedSectionScore,
+      projectedSectionMax: 360,
+      projectedNeetScore,
+      projectedNeetMax: 720,
+      percentile,
+      airBand,
+      statusBadge,
+      tone,
+      recommendation,
+    };
+  }
+
+  if (isMechanicsBonding) {
+    const projectedSectionScore = Math.min(360, Math.round(fraction * 360));
+    const projectedNeetScore = Math.min(720, Math.round(fraction * 720));
+
+    let percentile = 0;
+    let airBand = '';
+    let statusBadge = '';
+    let tone = 'violet';
+    let recommendation = '';
+
+    if (projectedNeetScore >= 680) {
+      percentile = 99.9;
+      airBand = 'AIR < 800 (National Elite)';
+      statusBadge = 'Top 0.1% National Ranker';
+      tone = 'emerald';
+      recommendation = 'Mastery across Rigid Body Mechanics & Chemical Bonding! Vector torques and MO configurations are exam-perfect.';
+    } else if (projectedNeetScore >= 630) {
+      percentile = 99.2;
+      airBand = 'AIR 800 – 5,000';
+      statusBadge = 'Premier Medical & Central College';
+      tone = 'violet';
+      recommendation = 'Superb performance in difficult topics. Fine-tune rotational equilibrium and VSEPR exception cases.';
+    } else if (projectedNeetScore >= 580) {
+      percentile = 98.0;
+      airBand = 'AIR 5,000 – 16,000';
+      statusBadge = 'Government Medical College (MBBS)';
+      tone = 'blue';
+      recommendation = 'Strong analytical problem-solving. Review 2D collision momentum vectors and backbonding concepts.';
+    } else if (projectedNeetScore >= 500) {
+      percentile = 94.0;
+      airBand = 'AIR 16,000 – 45,000';
+      statusBadge = 'GMC / High State Merit';
+      tone = 'amber';
+      recommendation = 'Practice more Parallel Axis theorem problems, dipole vector calculations, and hybridization steps.';
+    } else {
+      percentile = Math.max(50, Math.round(fraction * 100));
+      airBand = 'AIR > 45,000';
+      statusBadge = 'Core Remediation Needed';
+      tone = 'rose';
+      recommendation = 'Focus on Work-Energy theorem basics, VSEPR shapes, and hybridization identification.';
+    }
+
+    return {
+      testId,
+      testType: 'mechanics_bonding',
+      sectionName: 'Physics & Chemistry (Mechanics + Chemical Bonding)',
+      projectedSectionScore,
+      projectedSectionMax: 360,
+      projectedNeetScore,
+      projectedNeetMax: 720,
+      percentile,
+      airBand,
+      statusBadge,
+      tone,
+      recommendation,
+    };
+  }
+
+  return null;
+}
+

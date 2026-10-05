@@ -43,6 +43,7 @@ import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
+import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
 
 export default function DashboardPage({
   user,
@@ -1008,6 +1009,18 @@ export default function DashboardPage({
                     <RotateCcw size={14} /> Retake This Examination
                   </button>
                 </div>
+              </div>
+
+              {/* NEET Score & AIR Projector if latest attempt is eligible */}
+              <div className="mt-6 border-t border-white/10 pt-6">
+                <NeetScorePredictorCard
+                  testId={latestAttempt.testId}
+                  score={latestAttempt.score}
+                  maxScore={latestAttempt.maxScore}
+                  accuracy={latestAttempt.accuracy}
+                  correct={latestAttempt.correct}
+                  wrong={latestAttempt.wrong}
+                />
               </div>
             </section>
 
