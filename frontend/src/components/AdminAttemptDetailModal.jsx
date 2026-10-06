@@ -204,7 +204,8 @@ export default function AdminAttemptDetailModal({
   attempt,
   student,
 }) {
-  const [activeTab, setActiveTab] = useState('wrong'); // 'wrong' | 'all' | 'correct' | 'unattempted' | 'diagnostics'
+  // Focused exclusively on wrong and skipped questions to keep the app ultra-fast and lightweight
+  const [activeTab, setActiveTab] = useState('wrong'); // 'wrong' | 'unattempted' | 'diagnostics'
 
   // Authoritative resolution of attempt diagnostics and question review
   const resolved = useMemo(() => {
@@ -437,12 +438,11 @@ export default function AdminAttemptDetailModal({
   const candidateName = student?.name || attempt.studentName || 'Candidate';
   const candidateEmail = student?.email || attempt.studentEmail || '';
 
-  // Filter questions based on active tab
+  // Focus only on Wrong or Skipped questions for optimal rendering speed
   const displayedQuestions = perQuestion.filter((q) => {
     if (activeTab === 'wrong') return q.status === 'wrong';
-    if (activeTab === 'correct') return q.status === 'correct';
     if (activeTab === 'unattempted') return q.status === 'unattempted';
-    return true; // 'all' or 'diagnostics'
+    return false;
   });
 
   return (
@@ -529,14 +529,14 @@ export default function AdminAttemptDetailModal({
           </div>
         </div>
 
-        {/* Navigation & Filter Tabs */}
+        {/* Focused Fast Tabs (Wrong Questions | Skipped Questions | Topic Diagnostics) */}
         <div className="flex items-center justify-between border-b border-white/10 bg-[#070A12] px-4 sm:px-7 py-2.5 overflow-x-auto gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Wrong Questions Filter Button */}
+          <div className="flex items-center gap-2">
+            {/* 1. Wrong Questions Tab (Primary Target) */}
             <button
               type="button"
               onClick={() => setActiveTab('wrong')}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'wrong'
                   ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-1 ring-rose-400'
                   : 'bg-rose-500/10 text-rose-300 border border-rose-500/20 hover:bg-rose-500/20'
@@ -546,53 +546,25 @@ export default function AdminAttemptDetailModal({
               <span>Wrong Questions ({wrong})</span>
             </button>
 
-            {/* All Questions Button */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('all')}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'all'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                  : 'text-slate-400 hover:text-white bg-white/5'
-              }`}
-            >
-              <Layers size={13} />
-              <span>All Questions ({perQuestion.length})</span>
-            </button>
-
-            {/* Correct Questions Button */}
-            <button
-              type="button"
-              onClick={() => setActiveTab('correct')}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
-                activeTab === 'correct'
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                  : 'text-slate-400 hover:text-white bg-white/5'
-              }`}
-            >
-              <CheckCircle2 size={13} />
-              <span>Correct ({correct})</span>
-            </button>
-
-            {/* Skipped Questions Button */}
+            {/* 2. Skipped Questions Tab */}
             <button
               type="button"
               onClick={() => setActiveTab('unattempted')}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'unattempted'
-                  ? 'bg-slate-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white bg-white/5'
+                  ? 'bg-slate-600 text-white shadow-md ring-1 ring-slate-400'
+                  : 'text-slate-400 hover:text-white bg-white/5 border border-white/10'
               }`}
             >
               <MinusCircle size={13} />
-              <span>Skipped ({unattempted})</span>
+              <span>Skipped Questions ({unattempted})</span>
             </button>
 
-            {/* Topic Diagnostics & NEET Predictor Tab */}
+            {/* 3. Topic Diagnostics & NEET Predictor Tab */}
             <button
               type="button"
               onClick={() => setActiveTab('diagnostics')}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+              className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'diagnostics'
                   ? 'bg-violet-600 text-white shadow-md shadow-violet-600/30'
                   : 'text-violet-300 hover:text-white bg-violet-500/10 border border-violet-500/20'
@@ -744,7 +716,7 @@ export default function AdminAttemptDetailModal({
             </div>
           )}
 
-          {/* QUESTION REVIEW VIEW (Wrong, All, Correct, Skipped) */}
+          {/* FOCUSED ERROR & REMEDIATION REVIEW VIEW (Wrong & Skipped Questions ONLY) */}
           {activeTab !== 'diagnostics' && (
             <div className="space-y-5 animate-fade-in">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
@@ -753,11 +725,7 @@ export default function AdminAttemptDetailModal({
                   <strong className="text-white capitalize">
                     {activeTab === 'wrong'
                       ? `Incorrect / Wrong Questions (${displayedQuestions.length} Questions)`
-                      : activeTab === 'correct'
-                      ? `Correct Questions (${displayedQuestions.length} Questions)`
-                      : activeTab === 'unattempted'
-                      ? `Skipped Questions (${displayedQuestions.length} Questions)`
-                      : `All Questions (${displayedQuestions.length} Questions)`}
+                      : `Skipped / Unattempted Questions (${displayedQuestions.length} Questions)`}
                   </strong>
                 </span>
                 <span className="text-[11px] text-slate-400">
@@ -766,24 +734,16 @@ export default function AdminAttemptDetailModal({
               </div>
 
               {displayedQuestions.length === 0 ? (
-                <div className="rounded-3xl border border-white/10 bg-[#070A12] p-8 text-center text-slate-400 space-y-3">
+                <div className="rounded-3xl border border-white/10 bg-[#070A12] p-8 text-center text-slate-400 space-y-2">
                   <CheckCircle2 size={40} className="mx-auto text-emerald-400" />
                   <p className="text-sm font-bold text-white">
                     {activeTab === 'wrong'
                       ? '✨ Zero Incorrect Questions! The student answered all attempted questions correctly.'
-                      : 'No questions match this category.'}
+                      : '✨ Zero Skipped Questions! The student attempted all questions in this exam.'}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Switch to "All Questions" tab to review all {perQuestion.length} questions and solutions.
+                    Switch to "Topic Diagnostics" to review curriculum mastery and NEET projection.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('all')}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 text-xs font-bold transition shadow-md"
-                  >
-                    <Layers size={13} />
-                    <span>View All {perQuestion.length} Questions</span>
-                  </button>
                 </div>
               ) : (
                 <div className="space-y-5">
@@ -794,8 +754,6 @@ export default function AdminAttemptDetailModal({
 
                     const borderTone = isWrong
                       ? 'border-rose-500/40 bg-gradient-to-b from-[#180A0E] via-[#11070A] to-[#070A12]'
-                      : isCorrect
-                      ? 'border-emerald-500/30 bg-gradient-to-b from-[#081711] via-[#06120D] to-[#070A12]'
                       : 'border-white/10 bg-[#070A12]';
 
                     const selectedOptionText = q.selected && q.options ? q.options[q.selected] : null;
@@ -830,12 +788,6 @@ export default function AdminAttemptDetailModal({
                                 <span>INCORRECT (−1 Mark)</span>
                               </span>
                             )}
-                            {isCorrect && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-500/50 px-3 py-1 text-xs font-black text-emerald-300 shadow-sm shadow-emerald-500/20">
-                                <CheckCircle2 size={14} className="text-emerald-400" />
-                                <span>CORRECT (+4 Marks)</span>
-                              </span>
-                            )}
                             {isUnattempted && (
                               <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-500/20 border border-slate-500/40 px-3 py-1 text-xs font-bold text-slate-300">
                                 <MinusCircle size={14} className="text-slate-400" />
@@ -868,9 +820,7 @@ export default function AdminAttemptDetailModal({
                           {/* Left: Student Marked Response */}
                           <div
                             className={`rounded-2xl border p-3.5 flex items-center justify-between gap-2 ${
-                              isCorrect
-                                ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
-                                : isWrong
+                              isWrong
                                 ? 'border-rose-500/50 bg-rose-500/15 text-rose-200 ring-1 ring-rose-500/30'
                                 : 'border-white/10 bg-white/5 text-slate-400'
                             }`}
@@ -899,7 +849,6 @@ export default function AdminAttemptDetailModal({
                               </div>
                             </div>
                             <div className="shrink-0">
-                              {isCorrect && <CheckCircle2 size={22} className="text-emerald-400" />}
                               {isWrong && <XCircle size={22} className="text-rose-400" />}
                               {isUnattempted && <MinusCircle size={22} className="text-slate-500" />}
                             </div>
