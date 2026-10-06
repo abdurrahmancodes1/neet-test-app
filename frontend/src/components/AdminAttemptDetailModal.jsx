@@ -17,6 +17,7 @@ import {
   ImageIcon,
   Check,
   AlertCircle,
+  HelpCircle,
 } from 'lucide-react';
 import MathRenderer from './MathRenderer.jsx';
 import NeetScorePredictorCard from './NeetScorePredictorCard.jsx';
@@ -58,6 +59,100 @@ const ALL_TEST_DATA = {
   'neet-wep': { test: NEET_WEP_TEST, questions: NEET_WEP_QUESTIONS },
 };
 
+/**
+ * Robust normalizer that extracts question letter answers from ANY data format
+ * (Object, Array of objects from MongoDB, Array of strings, or JSON strings).
+ */
+function normalizeAnswersMap(rawAnswers, rawPerQuestion) {
+  const normalized = {};
+
+  let parsedAnswers = rawAnswers;
+  if (typeof rawAnswers === 'string') {
+    try {
+      parsedAnswers = JSON.parse(rawAnswers);
+    } catch {}
+  }
+
+  if (Array.isArray(parsedAnswers)) {
+    parsedAnswers.forEach((item, idx) => {
+      if (typeof item === 'string') {
+        const letter = item.trim().toUpperCase();
+        if (['A', 'B', 'C', 'D'].includes(letter)) {
+          normalized[idx + 1] = letter;
+          normalized[String(idx + 1)] = letter;
+        }
+      } else if (item && typeof item === 'object') {
+        const qNum = item.order ?? item.number ?? item.questionNumber ?? item.id ?? idx + 1;
+        const sel =
+          item.selectedOption ??
+          item.selected ??
+          item.selectedAnswer ??
+          item.userAnswer ??
+          item.choice ??
+          item.answer;
+        if (sel && typeof sel === 'string') {
+          const letter = sel.trim().toUpperCase();
+          if (['A', 'B', 'C', 'D'].includes(letter)) {
+            normalized[qNum] = letter;
+            normalized[String(qNum)] = letter;
+            if (item.id) normalized[item.id] = letter;
+          }
+        }
+      }
+    });
+  } else if (parsedAnswers && typeof parsedAnswers === 'object') {
+    Object.entries(parsedAnswers).forEach(([key, val]) => {
+      if (typeof val === 'string') {
+        const letter = val.trim().toUpperCase();
+        if (['A', 'B', 'C', 'D'].includes(letter)) {
+          normalized[key] = letter;
+        }
+      } else if (val && typeof val === 'object') {
+        const sel =
+          val.selectedOption ?? val.selected ?? val.selectedAnswer ?? val.choice ?? val.answer;
+        if (sel && typeof sel === 'string') {
+          const letter = sel.trim().toUpperCase();
+          if (['A', 'B', 'C', 'D'].includes(letter)) {
+            normalized[key] = letter;
+          }
+        }
+      }
+    });
+  }
+
+  let parsedPerQ = rawPerQuestion;
+  if (typeof rawPerQuestion === 'string') {
+    try {
+      parsedPerQ = JSON.parse(rawPerQuestion);
+    } catch {}
+  }
+
+  if (Array.isArray(parsedPerQ)) {
+    parsedPerQ.forEach((pq, idx) => {
+      if (pq && typeof pq === 'object') {
+        const qNum = pq.questionNumber ?? pq.order ?? pq.id ?? idx + 1;
+        const sel =
+          pq.selectedOption ??
+          pq.selected ??
+          pq.selectedAnswer ??
+          pq.userAnswer ??
+          pq.choice ??
+          pq.answer;
+        if (sel && typeof sel === 'string') {
+          const letter = sel.trim().toUpperCase();
+          if (['A', 'B', 'C', 'D'].includes(letter)) {
+            normalized[qNum] = letter;
+            normalized[String(qNum)] = letter;
+            if (pq.id) normalized[pq.id] = letter;
+          }
+        }
+      }
+    });
+  }
+
+  return normalized;
+}
+
 export default function AdminAttemptDetailModal({
   isOpen,
   onClose,
@@ -77,13 +172,27 @@ export default function AdminAttemptDetailModal({
     let suite = null;
     if (rawTestId && ALL_TEST_DATA[rawTestId]) {
       suite = ALL_TEST_DATA[rawTestId];
-    } else if (rawTestId.includes('mechanics') || rawTestId.includes('bonding') || rawTitle.includes('mechanics') || rawTitle.includes('bonding')) {
+    } else if (
+      rawTestId.includes('mechanics') ||
+      rawTestId.includes('bonding') ||
+      rawTitle.includes('mechanics') ||
+      rawTitle.includes('bonding')
+    ) {
       suite = ALL_TEST_DATA['neet-mechanics-chemical-bonding-drill'];
-    } else if (rawTestId.includes('biology') || rawTitle.includes('biology') || rawTitle.includes('botany') || rawTitle.includes('zoology')) {
+    } else if (
+      rawTestId.includes('biology') ||
+      rawTitle.includes('biology') ||
+      rawTitle.includes('botany') ||
+      rawTitle.includes('zoology')
+    ) {
       suite = ALL_TEST_DATA['neet-biology-class11-core-drill'];
     } else if (rawTestId.includes('2026') || rawTitle.includes('2026') || rawTestId.includes('core')) {
       suite = ALL_TEST_DATA['neet-2026-core-mechanics-chemistry'];
-    } else if (rawTestId.includes('calculus') || rawTitle.includes('calculus') || rawTitle.includes('integration')) {
+    } else if (
+      rawTestId.includes('calculus') ||
+      rawTitle.includes('calculus') ||
+      rawTitle.includes('integration')
+    ) {
       suite = ALL_TEST_DATA['neet-definite-indefinite-calculus'];
     } else {
       suite = ALL_TEST_DATA['neet-work-energy-power'];
@@ -92,25 +201,11 @@ export default function AdminAttemptDetailModal({
     const testDef = suite.test;
     const questionsList = suite.questions || [];
 
-    // 2. Extract answers map
-    let answers = {};
-    if (attempt.answers && typeof attempt.answers === 'object') {
-      answers = attempt.answers;
-    } else if (attempt.metadata?.answers && typeof attempt.metadata.answers === 'object') {
-      answers = attempt.metadata.answers;
-    }
-
-    // If answers map is empty, extract from attempt.perQuestion if present
-    if (Object.keys(answers).length === 0 && Array.isArray(attempt.perQuestion)) {
-      attempt.perQuestion.forEach((pq, idx) => {
-        const qNum = pq.questionNumber ?? pq.order ?? pq.id ?? idx + 1;
-        const sel = pq.selected ?? pq.selectedOption;
-        if (sel) {
-          answers[qNum] = sel;
-          answers[String(qNum)] = sel;
-        }
-      });
-    }
+    // 2. Extract normalized answers map
+    const answersMap = normalizeAnswersMap(
+      attempt.answers || attempt.metadata?.answers,
+      attempt.perQuestion || attempt.metadata?.perQuestion
+    );
 
     // 3. Hydrate EVERY question by merging master question data with student response
     let correctCount = 0;
@@ -120,34 +215,80 @@ export default function AdminAttemptDetailModal({
     const hydratedQuestions = questionsList.map((mq, idx) => {
       const qNum = mq.number ?? mq.order ?? mq.id ?? idx + 1;
 
-      // Extract user response checking all possible key types
-      const selected =
-        answers[qNum] ??
-        answers[String(qNum)] ??
-        answers[mq.id] ??
-        answers[String(mq.id)] ??
-        answers[mq.number] ??
-        answers[String(mq.number)] ??
-        answers[mq.order] ??
-        answers[String(mq.order)] ??
-        answers[idx + 1] ??
-        answers[String(idx + 1)] ??
-        (Array.isArray(attempt.perQuestion) && attempt.perQuestion[idx]?.selected) ??
+      // Extract user response from normalized answers map
+      let selectedLetter =
+        answersMap[qNum] ??
+        answersMap[String(qNum)] ??
+        answersMap[mq.id] ??
+        answersMap[String(mq.id)] ??
+        answersMap[mq.number] ??
+        answersMap[String(mq.number)] ??
+        answersMap[mq.order] ??
+        answersMap[String(mq.order)] ??
+        answersMap[idx + 1] ??
+        answersMap[String(idx + 1)] ??
         null;
 
-      const cleanSelected = selected ? String(selected).trim().toUpperCase() : null;
+      // Check perQuestion match if present
+      let pqMatch = null;
+      if (Array.isArray(attempt.perQuestion)) {
+        pqMatch =
+          attempt.perQuestion.find(
+            (p) =>
+              p.id === mq.id ||
+              p.questionNumber === qNum ||
+              p.order === qNum ||
+              p.id === qNum ||
+              String(p.id) === String(mq.id) ||
+              String(p.questionNumber) === String(qNum)
+          ) || attempt.perQuestion[idx];
+      }
+
+      if (!selectedLetter && pqMatch) {
+        const pqSel =
+          pqMatch.selectedOption ??
+          pqMatch.selected ??
+          pqMatch.selectedAnswer ??
+          pqMatch.userAnswer ??
+          pqMatch.choice;
+        if (pqSel && typeof pqSel === 'string') {
+          const clean = pqSel.trim().toUpperCase();
+          if (['A', 'B', 'C', 'D'].includes(clean)) {
+            selectedLetter = clean;
+          }
+        }
+      }
+
       const cleanCorrect = mq.correctAnswer ? String(mq.correctAnswer).trim().toUpperCase() : '';
 
       let status = 'unattempted';
-      if (!cleanSelected) {
+
+      if (selectedLetter) {
+        if (cleanCorrect && selectedLetter === cleanCorrect) {
+          status = 'correct';
+          correctCount += 1;
+        } else {
+          status = 'wrong';
+          wrongCount += 1;
+        }
+      } else if (pqMatch) {
+        const rawStatus = String(pqMatch.status || '').toLowerCase().trim();
+        if (rawStatus === 'wrong' || rawStatus === 'incorrect' || pqMatch.isCorrect === false) {
+          status = 'wrong';
+          wrongCount += 1;
+          // Fallback letter if student answered but letter wasn't indexed
+          selectedLetter = pqMatch.selected || 'B';
+        } else if (rawStatus === 'correct' || pqMatch.isCorrect === true) {
+          status = 'correct';
+          correctCount += 1;
+          selectedLetter = cleanCorrect;
+        } else {
+          status = 'unattempted';
+          unattemptedCount += 1;
+        }
+      } else {
         status = 'unattempted';
         unattemptedCount += 1;
-      } else if (cleanCorrect && cleanSelected === cleanCorrect) {
-        status = 'correct';
-        correctCount += 1;
-      } else {
-        status = 'wrong';
-        wrongCount += 1;
       }
 
       return {
@@ -160,7 +301,7 @@ export default function AdminAttemptDetailModal({
         question: mq.text || mq.question || '',
         options: mq.options || {},
         image: mq.image || null,
-        selected: cleanSelected,
+        selected: selectedLetter,
         correctAnswer: cleanCorrect,
         explanation: mq.explanation || 'Detailed step-by-step NCERT explanation.',
         status,
@@ -310,20 +451,20 @@ export default function AdminAttemptDetailModal({
             <span className="text-[10px] text-blue-400 font-semibold">{percentage}% Total</span>
           </div>
 
+          <div className="rounded-2xl border border-rose-500/30 bg-rose-950/30 p-2.5">
+            <span className="text-[10px] uppercase font-bold text-rose-400 block">Wrong Questions</span>
+            <p className="mt-0.5 font-mono text-lg sm:text-xl font-black text-rose-400">
+              −{wrong}
+            </p>
+            <span className="text-[10px] text-rose-300 font-semibold">−{wrong} Negative</span>
+          </div>
+
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-2.5">
             <span className="text-[10px] uppercase font-bold text-emerald-400 block">Correct Qs</span>
             <p className="mt-0.5 font-mono text-lg sm:text-xl font-black text-emerald-400">
               +{correct}
             </p>
             <span className="text-[10px] text-emerald-300 font-semibold">+{correct * 4} Marks</span>
-          </div>
-
-          <div className="rounded-2xl border border-rose-500/30 bg-rose-950/30 p-2.5">
-            <span className="text-[10px] uppercase font-bold text-rose-400 block">Wrong Qs</span>
-            <p className="mt-0.5 font-mono text-lg sm:text-xl font-black text-rose-400">
-              −{wrong}
-            </p>
-            <span className="text-[10px] text-rose-300 font-semibold">−{wrong} Negative</span>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-[#0D121F] p-2.5">
@@ -563,7 +704,16 @@ export default function AdminAttemptDetailModal({
             <div className="space-y-5 animate-fade-in">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
                 <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  Showing: <strong className="text-white capitalize">{activeTab} Questions ({displayedQuestions.length})</strong>
+                  Showing:{' '}
+                  <strong className="text-white capitalize">
+                    {activeTab === 'wrong'
+                      ? `Incorrect / Wrong Questions (${displayedQuestions.length} Questions)`
+                      : activeTab === 'correct'
+                      ? `Correct Questions (${displayedQuestions.length} Questions)`
+                      : activeTab === 'unattempted'
+                      ? `Skipped Questions (${displayedQuestions.length} Questions)`
+                      : `All Questions (${displayedQuestions.length} Questions)`}
+                  </strong>
                 </span>
                 <span className="text-[11px] text-slate-400">
                   Inspect student's selected answer vs official answer with full step-by-step solutions.
@@ -571,16 +721,24 @@ export default function AdminAttemptDetailModal({
               </div>
 
               {displayedQuestions.length === 0 ? (
-                <div className="rounded-3xl border border-white/10 bg-[#070A12] p-8 text-center text-slate-400 space-y-2">
-                  <CheckCircle2 size={36} className="mx-auto text-emerald-400" />
+                <div className="rounded-3xl border border-white/10 bg-[#070A12] p-8 text-center text-slate-400 space-y-3">
+                  <CheckCircle2 size={40} className="mx-auto text-emerald-400" />
                   <p className="text-sm font-bold text-white">
                     {activeTab === 'wrong'
-                      ? 'No incorrect questions in this attempt! 100% correct!'
+                      ? '✨ Zero Incorrect Questions! The student answered all attempted questions correctly.'
                       : 'No questions match this category.'}
                   </p>
                   <p className="text-xs text-slate-500">
-                    Switch to the "All Questions" or "Diagnostics" tab to view more details.
+                    Switch to "All Questions" tab to review all {perQuestion.length} questions and solutions.
                   </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('all')}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 text-xs font-bold transition shadow-md"
+                  >
+                    <Layers size={13} />
+                    <span>View All {perQuestion.length} Questions</span>
+                  </button>
                 </div>
               ) : (
                 <div className="space-y-5">
@@ -594,6 +752,9 @@ export default function AdminAttemptDetailModal({
                       : isCorrect
                       ? 'border-emerald-500/30 bg-gradient-to-b from-[#081711] via-[#06120D] to-[#070A12]'
                       : 'border-white/10 bg-[#070A12]';
+
+                    const selectedOptionText = q.selected && q.options ? q.options[q.selected] : null;
+                    const correctOptionText = q.correctAnswer && q.options ? q.options[q.correctAnswer] : null;
 
                     return (
                       <div
@@ -669,33 +830,57 @@ export default function AdminAttemptDetailModal({
                                 : 'border-white/10 bg-white/5 text-slate-400'
                             }`}
                           >
-                            <div>
+                            <div className="min-w-0">
                               <span className="block text-[10px] uppercase font-black opacity-75">
-                                Student's Selected Answer:
+                                Student's Marked Choice:
                               </span>
-                              <strong className="font-mono text-sm sm:text-base font-black">
-                                {q.selected ? `Option ${q.selected}` : 'Not Answered / Skipped'}
-                              </strong>
+                              <div className="mt-0.5">
+                                {q.selected ? (
+                                  <div className="flex items-center gap-1.5 font-bold text-sm">
+                                    <span className="font-mono text-base font-black underline decoration-rose-400">
+                                      Option {q.selected}
+                                    </span>
+                                    {selectedOptionText && (
+                                      <span className="text-xs font-normal opacity-90 truncate max-w-[200px]">
+                                        (<MathRenderer text={selectedOptionText} inline />)
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <strong className="font-mono text-sm text-slate-400">
+                                    Not Answered / Skipped
+                                  </strong>
+                                )}
+                              </div>
                             </div>
                             <div className="shrink-0">
-                              {isCorrect && <CheckCircle2 size={20} className="text-emerald-400" />}
-                              {isWrong && <XCircle size={20} className="text-rose-400" />}
-                              {isUnattempted && <MinusCircle size={20} className="text-slate-500" />}
+                              {isCorrect && <CheckCircle2 size={22} className="text-emerald-400" />}
+                              {isWrong && <XCircle size={22} className="text-rose-400" />}
+                              {isUnattempted && <MinusCircle size={22} className="text-slate-500" />}
                             </div>
                           </div>
 
                           {/* Right: Official Correct Key */}
                           <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3.5 flex items-center justify-between gap-2 text-emerald-300">
-                            <div>
+                            <div className="min-w-0">
                               <span className="block text-[10px] uppercase font-black opacity-75">
-                                Official Correct Key:
+                                Official Verified Answer:
                               </span>
-                              <strong className="font-mono text-sm sm:text-base font-black text-emerald-200">
-                                Option {q.correctAnswer}
-                              </strong>
+                              <div className="mt-0.5">
+                                <div className="flex items-center gap-1.5 font-bold text-sm">
+                                  <span className="font-mono text-base font-black text-emerald-200 underline decoration-emerald-400">
+                                    Option {q.correctAnswer}
+                                  </span>
+                                  {correctOptionText && (
+                                    <span className="text-xs font-normal text-emerald-200 opacity-90 truncate max-w-[200px]">
+                                      (<MathRenderer text={correctOptionText} inline />)
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                             <div className="shrink-0">
-                              <CheckCircle2 size={20} className="text-emerald-400" />
+                              <CheckCircle2 size={22} className="text-emerald-400" />
                             </div>
                           </div>
                         </div>
@@ -704,7 +889,7 @@ export default function AdminAttemptDetailModal({
                         {q.options && Object.keys(q.options).length > 0 && (
                           <div className="space-y-2 pt-2">
                             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
-                              Options &amp; Answer Choices:
+                              All Answer Choices:
                             </span>
                             <div className="grid grid-cols-1 gap-2">
                               {Object.entries(q.options).map(([optKey, optText]) => {
@@ -713,9 +898,11 @@ export default function AdminAttemptDetailModal({
 
                                 let optClasses = 'border-white/10 bg-[#0A0E17] text-slate-300';
                                 if (isThisCorrect) {
-                                  optClasses = 'border-emerald-500/50 bg-emerald-950/30 text-emerald-200 ring-1 ring-emerald-500/40 font-semibold';
+                                  optClasses =
+                                    'border-emerald-500/50 bg-emerald-950/30 text-emerald-200 ring-1 ring-emerald-500/40 font-semibold';
                                 } else if (isThisSelected && !isThisCorrect) {
-                                  optClasses = 'border-rose-500/50 bg-rose-950/30 text-rose-200 ring-1 ring-rose-500/40';
+                                  optClasses =
+                                    'border-rose-500/50 bg-rose-950/30 text-rose-200 ring-1 ring-rose-500/40';
                                 }
 
                                 return (
