@@ -357,9 +357,9 @@ export default function AdminAttemptDetailModal({
       };
     });
 
-    const finalCorrect = targetCorrect > 0 ? targetCorrect : correctCount;
-    const finalWrong = targetWrong > 0 ? targetWrong : wrongCount;
-    const finalUnattempted = Math.max(0, totalQuestions - finalCorrect - finalWrong);
+    const finalCorrect = hasExplicitAnswers ? correctCount : (targetCorrect > 0 ? targetCorrect : correctCount);
+    const finalWrong = hasExplicitAnswers ? wrongCount : (targetWrong > 0 ? targetWrong : wrongCount);
+    const finalUnattempted = hasExplicitAnswers ? unattemptedCount : Math.max(0, totalQuestions - finalCorrect - finalWrong);
 
     const rawScore = finalCorrect * 4 - finalWrong;
     const finalScore = attempt.score !== undefined ? attempt.score : Math.max(0, rawScore);

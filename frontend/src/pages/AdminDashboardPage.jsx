@@ -376,13 +376,22 @@ export default function AdminDashboardPage({
                                 >
                                   {/* Left: Test Title & Date */}
                                   <div className="space-y-1 min-w-[200px]">
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex flex-wrap items-center gap-2">
                                       <span className="font-mono text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded">
                                         #{att.attemptNumber || student.attempts.length - idx}
                                       </span>
                                       <h4 className="font-bold text-sm text-white truncate max-w-xs sm:max-w-md">
                                         {att.testTitle || 'NEET Standard CBT Mock'}
                                       </h4>
+                                      {att.isLiveSession || att.status === 'in_progress' ? (
+                                        <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-[10px] font-bold text-amber-300 flex items-center gap-1 animate-pulse">
+                                          <Zap size={10} className="text-amber-400" /> Live / In-Progress (Unsubmitted)
+                                        </span>
+                                      ) : (
+                                        <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                                          Submitted
+                                        </span>
+                                      )}
                                     </div>
                                     <div className="flex items-center gap-2 text-[11px] text-slate-400">
                                       <Calendar size={12} className="text-slate-500" />

@@ -1,5 +1,13 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
-import { loadSession, saveSession, clearSession, freshSession } from './utils/storage.js';
+import {
+  loadSession,
+  saveSession,
+  clearSession,
+  freshSession,
+  syncLiveSessionToBackend,
+  fetchLiveSessionFromBackend,
+  clearLiveSessionFromBackend,
+} from './utils/storage.js';
 import { getCurrentUser, logoutUser, saveUserAttempt, API_BASE } from './utils/auth.js';
 import { computeResult } from './utils/scoring.js';
 import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from './data/neetWorkEnergyTest.js';
@@ -61,7 +69,7 @@ export default function App() {
   const [session, setSession] = useState(() => loadSession(getSavedTestId()));
   const [reviewedAttempt, setReviewedAttempt] = useState(null);
 
-  // Live role check on mount / user change (syncs if role was changed in MongoDB Compass)
+  // Live role check on mount / user change (syncs if role was changed in MongoDB)
   useEffect(() => {
     if (currentUser?.email) {
       fetch(`${API_BASE}/auth/user-role/${encodeURIComponent(currentUser.email)}`, {
@@ -107,7 +115,7 @@ export default function App() {
       saveSession(next, testId);
       setSession(next);
 
-      // Save to user history
+      // Save to user history and backend
       if (currentUser?.email) {
         const computed = computeResult(next.answers || {}, activeTest.questions);
         const timeTakenMs = next.startTime ? Math.max(0, submittedAt - next.startTime) : durationMs;
@@ -138,15 +146,42 @@ export default function App() {
     }
   }, [session, testId, currentUser, activeTest, durationMs]);
 
+  // Persistent live session auto-sync during test taking
   const updateSession = useCallback(
     (updater) =>
       setSession((previous) => {
         const next = typeof updater === 'function' ? updater(previous) : updater;
         saveSession(next, testId);
+        if (next.state === 'IN_PROGRESS' && currentUser?.email) {
+          syncLiveSessionToBackend(next, testId, currentUser, activeTest.questions);
+        }
         return next;
       }),
-    [testId]
+    [testId, currentUser, activeTest.questions]
   );
+
+  // Tab close & background flush for live test session persistence
+  useEffect(() => {
+    if (session.state !== 'IN_PROGRESS' || !currentUser?.email) return;
+
+    const handleBeforeUnload = () => {
+      syncLiveSessionToBackend(session, testId, currentUser, activeTest.questions, true);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        syncLiveSessionToBackend(session, testId, currentUser, activeTest.questions, true);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [session, testId, currentUser, activeTest.questions]);
 
   const handleAuthSuccess = useCallback((user) => {
     setCurrentUser(user);
@@ -178,23 +213,36 @@ export default function App() {
     setScreen('chapters');
   }, []);
 
-  const handleSelectTest = useCallback((selectedId) => {
-    setTestId(selectedId);
-    setReviewedAttempt(null);
-    try {
-      window.localStorage.setItem(ACTIVE_TEST_KEY, selectedId);
-    } catch {}
+  const handleSelectTest = useCallback(
+    async (selectedId) => {
+      setTestId(selectedId);
+      setReviewedAttempt(null);
+      try {
+        window.localStorage.setItem(ACTIVE_TEST_KEY, selectedId);
+      } catch {}
 
-    const s = loadSession(selectedId);
-    setSession(s);
-    if (s.state === 'IN_PROGRESS') {
-      setScreen('test');
-    } else if (s.state === 'SUBMITTED') {
-      setScreen('result');
-    } else {
-      setScreen('instructions');
-    }
-  }, []);
+      let s = loadSession(selectedId);
+
+      // Check backend for active live session if user is logged in
+      if (currentUser?.email && s.state !== 'IN_PROGRESS') {
+        const remoteLive = await fetchLiveSessionFromBackend(selectedId, currentUser.email, currentUser.token);
+        if (remoteLive && remoteLive.state === 'IN_PROGRESS') {
+          s = remoteLive;
+          saveSession(s, selectedId);
+        }
+      }
+
+      setSession(s);
+      if (s.state === 'IN_PROGRESS') {
+        setScreen('test');
+      } else if (s.state === 'SUBMITTED') {
+        setScreen('result');
+      } else {
+        setScreen('instructions');
+      }
+    },
+    [currentUser]
+  );
 
   const startTest = useCallback(
     async (customDurationMinutes) => {
@@ -209,6 +257,12 @@ export default function App() {
       const next = freshSession(effectiveDurationMs, testId);
       next.durationMinutes = effectiveMinutes;
       saveSession(next, testId);
+
+      // Immediately register active live session with backend
+      if (currentUser?.email) {
+        syncLiveSessionToBackend(next, testId, currentUser, activeTest.questions, true);
+      }
+
       setSession(next);
       setScreen('test');
       try {
@@ -219,7 +273,7 @@ export default function App() {
         console.warn('Fullscreen request failed:', error);
       }
     },
-    [activeTest, testId]
+    [activeTest, testId, currentUser]
   );
 
   const submitTest = useCallback(
@@ -233,7 +287,7 @@ export default function App() {
       };
       updateSession(updatedSession);
 
-      // Record snapshot to user attempt history
+      // Record snapshot to user attempt history and backend
       if (currentUser?.email) {
         const computed = computeResult(updatedSession.answers || {}, activeTest.questions);
         const timeTakenMs = session.startTime ? Math.max(0, submittedAt - session.startTime) : 0;
@@ -268,10 +322,13 @@ export default function App() {
   const retake = useCallback(() => {
     setReviewedAttempt(null);
     clearSession(testId);
+    if (currentUser?.email) {
+      clearLiveSessionFromBackend(testId, currentUser.email, currentUser.token);
+    }
     const s = loadSession(testId);
     setSession(s);
     setScreen('instructions');
-  }, [testId]);
+  }, [testId, currentUser]);
 
   const handleReviewAttempt = useCallback((attempt) => {
     setReviewedAttempt(attempt);
@@ -306,6 +363,8 @@ export default function App() {
   }
 
   // Student Dashboard Page
+  if (screen === 'dashboard') {
+    return (
       <DashboardPage
         user={currentUser}
         onStartTest={(id) => handleSelectTest(id || NEET_CALCULUS_TEST.id)}
@@ -314,6 +373,8 @@ export default function App() {
         onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
         onLogout={handleLogout}
       />
+    );
+  }
 
   // Chapters / All Standard Tests Portal
   if (screen === 'chapters') {

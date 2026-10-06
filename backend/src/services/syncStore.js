@@ -2,11 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-let memoryStore = { users: [], results: [] };
+let memoryStore = { users: [], results: [], liveSessions: [] };
 
 function getStoreFilePath() {
   try {
-    // In serverless, use OS temp directory
+    // In serverless / dev, use OS temp directory
     const tempDir = os.tmpdir();
     return path.join(tempDir, 'neet_sync_store.json');
   } catch {
@@ -20,7 +20,12 @@ function loadStore() {
     try {
       if (fs.existsSync(filePath)) {
         const raw = fs.readFileSync(filePath, 'utf-8');
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+        return {
+          users: parsed.users || [],
+          results: parsed.results || [],
+          liveSessions: parsed.liveSessions || [],
+        };
       }
     } catch {
       // Fallback to memory
@@ -49,13 +54,13 @@ export class SyncStore {
 
   static saveUser(user) {
     const data = loadStore();
-    const existingIdx = (data.users || []).findIndex(
-      (u) => u.email.toLowerCase() === user.email.toLowerCase()
+    data.users = data.users || [];
+    const existingIdx = data.users.findIndex(
+      (u) => (u.email || '').toLowerCase() === (user.email || '').toLowerCase()
     );
     if (existingIdx >= 0) {
       data.users[existingIdx] = { ...data.users[existingIdx], ...user };
     } else {
-      data.users = data.users || [];
       data.users.push(user);
     }
     persistStore(data);
@@ -64,7 +69,7 @@ export class SyncStore {
 
   static findUserByEmail(email) {
     const users = this.getUsers();
-    return users.find((u) => u.email.toLowerCase() === (email || '').toLowerCase().trim());
+    return users.find((u) => (u.email || '').toLowerCase() === (email || '').toLowerCase().trim());
   }
 
   static getResults() {
@@ -83,8 +88,75 @@ export class SyncStore {
     } else {
       data.results.push(result);
     }
+
+    // When finalized result is saved, remove matching live session if any
+    if (result.studentEmail && result.testId) {
+      this.removeLiveSession(result.studentEmail, result.testId);
+    }
+
     persistStore(data);
     return result;
+  }
+
+  // Live Test Session Management
+  static getLiveSessions() {
+    const data = loadStore();
+    return data.liveSessions || [];
+  }
+
+  static saveLiveSession(session) {
+    const data = loadStore();
+    data.liveSessions = data.liveSessions || [];
+    const sessId = session.sessionId || `${session.studentEmail}_${session.testId}`;
+    const existingIdx = data.liveSessions.findIndex(
+      (ls) =>
+        ls.sessionId === sessId ||
+        ((ls.studentEmail || '').toLowerCase() === (session.studentEmail || '').toLowerCase() &&
+          ls.testId === session.testId)
+    );
+
+    const fullSession = {
+      ...session,
+      sessionId: sessId,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (existingIdx >= 0) {
+      data.liveSessions[existingIdx] = { ...data.liveSessions[existingIdx], ...fullSession };
+    } else {
+      data.liveSessions.push(fullSession);
+    }
+
+    persistStore(data);
+    return fullSession;
+  }
+
+  static findLiveSession(email, testId) {
+    if (!email || !testId) return null;
+    const sessions = this.getLiveSessions();
+    const cleanEmail = email.toLowerCase().trim();
+    return (
+      sessions.find(
+        (s) =>
+          (s.studentEmail || '').toLowerCase() === cleanEmail &&
+          s.testId === testId &&
+          s.status === 'in_progress'
+      ) || null
+    );
+  }
+
+  static removeLiveSession(email, testId) {
+    if (!email) return;
+    const data = loadStore();
+    const cleanEmail = email.toLowerCase().trim();
+    data.liveSessions = (data.liveSessions || []).filter(
+      (s) =>
+        !(
+          (s.studentEmail || '').toLowerCase() === cleanEmail &&
+          (!testId || s.testId === testId)
+        )
+    );
+    persistStore(data);
   }
 
   static getStats() {

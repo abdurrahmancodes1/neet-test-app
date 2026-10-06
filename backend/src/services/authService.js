@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
-import { User, Result } from '../models/index.js';
+import { User, Result, LiveSession } from '../models/index.js';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
 import { SyncStore } from './syncStore.js';
@@ -225,7 +225,7 @@ export class AuthService {
         recentSubmissions = results.slice(0, 15).map((r) => ({
           id: r._id.toString(),
           studentName: r.studentName || r.userId?.name || 'Anonymous Student',
-          email: r.userId?.email || null,
+          email: r.studentEmail || r.userId?.email || null,
           rollNumber: r.studentRollNumber || r.userId?.rollNumber || null,
           score: r.score,
           maxScore: r.maxScore || 240,
@@ -237,12 +237,12 @@ export class AuthService {
 
         const studentMap = new Map();
         results.forEach((r) => {
-          const key = r.userId?._id?.toString() || r.studentName || 'student';
+          const key = (r.studentEmail || r.userId?.email || r.studentName || 'student').toLowerCase();
           if (!studentMap.has(key) || studentMap.get(key).score < (r.score || 0)) {
             studentMap.set(key, {
               id: key,
               studentName: r.studentName || r.userId?.name || 'Anonymous Student',
-              email: r.userId?.email || null,
+              email: r.studentEmail || r.userId?.email || null,
               rollNumber: r.studentRollNumber || r.userId?.rollNumber || null,
               score: r.score,
               maxScore: r.maxScore || 240,
@@ -290,6 +290,7 @@ export class AuthService {
 
   /**
    * Get detailed Admin overview including active users, total users, and per-student progress
+   * (Supports both submitted results and live/unsubmitted sessions)
    */
   static async getAdminOverview() {
     const isMongoConnected = mongoose.connection.readyState === 1;
@@ -302,11 +303,12 @@ export class AuthService {
     if (isMongoConnected) {
       const allUsers = await User.find().select('name email rollNumber role createdAt status').sort({ createdAt: -1 }).lean();
       const allResults = await Result.find({ status: 'submitted' }).sort({ createdAt: -1 }).lean();
+      const liveSessions = await LiveSession.find({ status: 'in_progress' }).sort({ updatedAt: -1 }).lean();
 
       totalUsers = allUsers.length;
       totalAttempts = allResults.length;
 
-      // Map results to user
+      // Map results to user by userId and email
       const resultsByUser = new Map();
       allResults.forEach((r) => {
         const idKey = r.userId ? r.userId.toString().toLowerCase() : null;
@@ -322,6 +324,21 @@ export class AuthService {
         }
       });
 
+      // Map active live sessions by email and userId
+      const liveByUser = new Map();
+      liveSessions.forEach((ls) => {
+        const emailKey = ls.studentEmail ? ls.studentEmail.toLowerCase().trim() : null;
+        const idKey = ls.userId ? ls.userId.toString().toLowerCase() : null;
+        if (emailKey) {
+          if (!liveByUser.has(emailKey)) liveByUser.set(emailKey, []);
+          liveByUser.get(emailKey).push(ls);
+        }
+        if (idKey) {
+          if (!liveByUser.has(idKey)) liveByUser.set(idKey, []);
+          liveByUser.get(idKey).push(ls);
+        }
+      });
+
       students = allUsers.map((u) => {
         const idKey = u._id.toString().toLowerCase();
         const emailKey = (u.email || '').toLowerCase().trim();
@@ -331,16 +348,70 @@ export class AuthService {
           ...(resultsByUser.get(emailKey) || []),
         ];
 
-        // Deduplicate
+        // Deduplicate submitted results
         const userResults = combinedResults.filter(
           (v, i, a) => a.findIndex((t) => (t._id?.toString() || t.attemptId) === (v._id?.toString() || v.attemptId)) === i
         );
 
-        const attemptsCount = userResults.length;
-        const scores = userResults.map((r) => r.score ?? 0);
-        const accuracies = userResults.map((r) => r.accuracy ?? 0);
+        // Get unsubmitted live sessions for this student
+        const userLive = [
+          ...(liveByUser.get(emailKey) || []),
+          ...(liveByUser.get(idKey) || []),
+        ].filter(
+          (v, i, a) => a.findIndex((t) => t.sessionId === v.sessionId) === i
+        );
 
-        const latestResult = userResults[0] || null;
+        // Transform submitted attempts
+        const formattedSubmitted = userResults.map((r) => ({
+          id: r._id?.toString() || r.attemptId,
+          testId: r.testId,
+          testTitle: r.testTitle || r.metadata?.testTitle || 'NEET Practice Test',
+          score: r.score,
+          maxScore: r.maxScore || 240,
+          percentage: r.percentage,
+          accuracy: Math.round(r.accuracy || 0),
+          correct: r.correctCount ?? r.correct ?? 0,
+          wrong: r.wrongCount ?? r.wrong ?? 0,
+          unattempted: r.unattemptedCount ?? r.unattempted ?? 0,
+          timeTakenMs: r.timeTakenMs || r.metadata?.timeTakenMs || (r.timeSpentSeconds ? r.timeSpentSeconds * 1000 : 0),
+          answers: r.answers || r.metadata?.answers || {},
+          perQuestion: r.perQuestion || r.metadata?.perQuestion || [],
+          topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
+          weakestTopics: r.weakestTopics || [],
+          strongestTopics: r.strongestTopics || [],
+          submittedAt: r.submittedAt || r.createdAt,
+          status: 'submitted',
+        }));
+
+        // Transform live sessions (if test was closed before submitting)
+        const formattedLive = userLive.map((ls) => ({
+          id: ls.sessionId || `live_${ls._id}`,
+          testId: ls.testId,
+          testTitle: ls.testTitle || 'NEET Practice Test (In-Progress)',
+          score: ls.score || 0,
+          maxScore: ls.maxScore || 240,
+          percentage: ls.percentage || 0,
+          accuracy: Math.round(ls.accuracy || 0),
+          correct: ls.correct || 0,
+          wrong: ls.wrong || 0,
+          unattempted: ls.unattempted || (ls.totalQuestions ? Math.max(0, ls.totalQuestions - (ls.correct || 0) - (ls.wrong || 0)) : 0),
+          timeTakenMs: ls.timeTakenMs || (ls.startTime ? Date.now() - ls.startTime : 0),
+          answers: ls.answers || {},
+          perQuestion: ls.perQuestion || [],
+          topicPerformance: ls.topicPerformance || [],
+          weakestTopics: ls.weakestTopics || [],
+          strongestTopics: ls.strongestTopics || [],
+          submittedAt: ls.updatedAt || ls.lastActiveAt || new Date().toISOString(),
+          status: 'in_progress',
+          isLiveSession: true,
+        }));
+
+        const allUserAttempts = [...formattedLive, ...formattedSubmitted];
+        const attemptsCount = formattedSubmitted.length;
+        const scores = formattedSubmitted.map((r) => r.score ?? 0);
+        const accuracies = formattedSubmitted.map((r) => r.accuracy ?? 0);
+
+        const latestResult = formattedSubmitted[0] || null;
         const bestScore = scores.length > 0 ? Math.max(...scores) : null;
         const latestScore = latestResult ? latestResult.score : null;
         const avgAccuracy =
@@ -355,28 +426,12 @@ export class AuthService {
           role: u.role || 'student',
           status: u.status || 'active',
           registeredAt: u.createdAt,
-          lastActive: latestResult ? (latestResult.submittedAt || latestResult.createdAt) : u.createdAt,
-          totalAttempts: attemptsCount,
+          lastActive: allUserAttempts.length > 0 ? allUserAttempts[0].submittedAt : u.createdAt,
+          totalAttempts: attemptsCount + formattedLive.length,
           latestScore,
           bestScore,
           averageAccuracy: avgAccuracy,
-          attempts: userResults.map((r) => ({
-            id: r._id?.toString() || r.attemptId,
-            testId: r.testId,
-            testTitle: r.metadata?.testTitle || r.testTitle || 'NEET Practice Test',
-            score: r.score,
-            maxScore: r.maxScore || 240,
-            percentage: r.percentage,
-            accuracy: Math.round(r.accuracy || 0),
-            correct: r.correctCount ?? r.correct ?? 0,
-            wrong: r.wrongCount ?? r.wrong ?? 0,
-            unattempted: r.unattemptedCount ?? r.unattempted ?? 0,
-            timeTakenMs: r.metadata?.timeTakenMs || (r.timeSpentSeconds ? r.timeSpentSeconds * 1000 : 0),
-            answers: r.metadata?.answers || r.answers || {},
-            perQuestion: r.metadata?.perQuestion || [],
-            topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
-            submittedAt: r.submittedAt || r.createdAt,
-          })),
+          attempts: allUserAttempts,
         };
       });
 
@@ -389,48 +444,83 @@ export class AuthService {
     } else {
       const storeStats = SyncStore.getStats();
       const allStoreResults = SyncStore.getResults();
+      const allStoreLive = SyncStore.getLiveSessions();
       totalUsers = storeStats.totalUsers;
       totalAttempts = storeStats.totalAttempts;
       averageScore = storeStats.averageScore;
       activeUsers = storeStats.allCandidates.length;
 
       students = storeStats.allCandidates.map((c) => {
+        const cleanEmail = (c.email || '').toLowerCase();
         const userResults = allStoreResults.filter(
-          (r) => (r.studentEmail || '').toLowerCase() === (c.email || '').toLowerCase()
+          (r) => (r.studentEmail || '').toLowerCase() === cleanEmail
         );
+        const userLive = allStoreLive.filter(
+          (ls) => (ls.studentEmail || '').toLowerCase() === cleanEmail
+        );
+
         const scores = userResults.map((r) => r.score ?? 0);
         const accuracies = userResults.map((r) => r.accuracy ?? 0);
         const latest = userResults.length > 0 ? userResults[userResults.length - 1] : null;
 
+        const formattedSubmitted = userResults
+          .map((r) => ({
+            id: r.id || r.attemptId,
+            testId: r.testId,
+            testTitle: r.testTitle || 'NEET Practice Test',
+            score: r.score,
+            maxScore: r.maxScore || 240,
+            percentage: r.percentage,
+            accuracy: Math.round(r.accuracy || 0),
+            correct: r.correct ?? r.correctCount ?? 0,
+            wrong: r.wrong ?? r.wrongCount ?? 0,
+            unattempted: r.unattempted ?? r.unattemptedCount ?? 0,
+            timeTakenMs: r.timeTakenMs || (r.timeSpentSeconds ? r.timeSpentSeconds * 1000 : 0),
+            answers: r.answers || {},
+            perQuestion: r.perQuestion || [],
+            topicPerformance: r.topicPerformance || [],
+            weakestTopics: r.weakestTopics || [],
+            strongestTopics: r.strongestTopics || [],
+            submittedAt: r.timestamp || r.submittedAt,
+            status: 'submitted',
+          }))
+          .reverse();
+
+        const formattedLive = userLive.map((ls) => ({
+          id: ls.sessionId,
+          testId: ls.testId,
+          testTitle: ls.testTitle || 'NEET Practice Test (In-Progress)',
+          score: ls.score || 0,
+          maxScore: ls.maxScore || 240,
+          percentage: ls.percentage || 0,
+          accuracy: Math.round(ls.accuracy || 0),
+          correct: ls.correct || 0,
+          wrong: ls.wrong || 0,
+          unattempted: ls.unattempted || (ls.totalQuestions ? Math.max(0, ls.totalQuestions - (ls.correct || 0) - (ls.wrong || 0)) : 0),
+          timeTakenMs: ls.timeTakenMs || (ls.startTime ? Date.now() - ls.startTime : 0),
+          answers: ls.answers || {},
+          perQuestion: ls.perQuestion || [],
+          topicPerformance: ls.topicPerformance || [],
+          weakestTopics: ls.weakestTopics || [],
+          strongestTopics: ls.strongestTopics || [],
+          submittedAt: ls.updatedAt || new Date().toISOString(),
+          status: 'in_progress',
+          isLiveSession: true,
+        }));
+
+        const allUserAttempts = [...formattedLive, ...formattedSubmitted];
+
         return {
           ...c,
           status: 'active',
-          totalAttempts: userResults.length,
+          totalAttempts: allUserAttempts.length,
           latestScore: latest ? latest.score : null,
           bestScore: scores.length > 0 ? Math.max(...scores) : null,
           averageAccuracy:
             accuracies.length > 0
               ? Math.round(accuracies.reduce((a, b) => a + b, 0) / accuracies.length)
               : null,
-          attempts: userResults
-            .map((r) => ({
-              id: r.id || r.attemptId,
-              testId: r.testId,
-              testTitle: r.testTitle || 'NEET Practice Test',
-              score: r.score,
-              maxScore: r.maxScore || 240,
-              percentage: r.percentage,
-              accuracy: Math.round(r.accuracy || 0),
-              correct: r.correct ?? r.correctCount ?? 0,
-              wrong: r.wrong ?? r.wrongCount ?? 0,
-              unattempted: r.unattempted ?? r.unattemptedCount ?? 0,
-              timeTakenMs: r.timeTakenMs || (r.timeSpentSeconds ? r.timeSpentSeconds * 1000 : 0),
-              answers: r.answers || {},
-              perQuestion: r.perQuestion || [],
-              topicPerformance: r.topicPerformance || [],
-              submittedAt: r.timestamp || r.submittedAt,
-            }))
-            .reverse(),
+          attempts: allUserAttempts,
         };
       });
     }

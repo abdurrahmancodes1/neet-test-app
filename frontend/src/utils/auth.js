@@ -275,9 +275,10 @@ async function syncAttemptToBackend(email, attempt) {
         ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
       },
       credentials: 'include',
+      keepalive: true,
       body: JSON.stringify({
         ...attempt,
-        studentEmail: email || currentUser?.email,
+        studentEmail: (email || currentUser?.email || '').toLowerCase().trim(),
         studentName: currentUser?.name || attempt.studentName || 'Student',
       }),
     });

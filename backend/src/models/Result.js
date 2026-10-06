@@ -3,13 +3,12 @@ import mongoose from 'mongoose';
 const answerItemSchema = new mongoose.Schema(
   {
     questionId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Question',
-      required: true,
+      type: mongoose.Schema.Types.Mixed,
+      required: false,
     },
     order: {
       type: Number,
-      required: true,
+      required: false,
     },
     subject: {
       type: String,
@@ -28,8 +27,7 @@ const answerItemSchema = new mongoose.Schema(
       default: null,
     },
     options: {
-      type: Map,
-      of: String,
+      type: mongoose.Schema.Types.Mixed,
       default: {},
     },
     image: {
@@ -42,7 +40,7 @@ const answerItemSchema = new mongoose.Schema(
     },
     correctAnswer: {
       type: String,
-      default: null, // Populated securely upon grading
+      default: null,
     },
     explanation: {
       type: String,
@@ -118,6 +116,10 @@ const resultSchema = new mongoose.Schema(
       default: 'neet-work-energy-power',
       index: true,
     },
+    testTitle: {
+      type: String,
+      default: 'NEET Practice Test',
+    },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -133,6 +135,13 @@ const resultSchema = new mongoose.Schema(
       trim: true,
       default: 'Anonymous Student',
     },
+    studentEmail: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      default: null,
+      index: true,
+    },
     studentRollNumber: {
       type: String,
       trim: true,
@@ -141,15 +150,15 @@ const resultSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ['in_progress', 'submitted', 'abandoned', 'expired'],
-      default: 'in_progress',
+      default: 'submitted',
       index: true,
     },
     answers: {
-      type: [answerItemSchema],
-      default: [],
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
     },
     markedForReview: {
-      type: [Number],
+      type: [mongoose.Schema.Types.Mixed],
       default: [],
     },
     currentQuestionIndex: {
@@ -166,7 +175,7 @@ const resultSchema = new mongoose.Schema(
     },
     maxScore: {
       type: Number,
-      default: 0,
+      default: 240,
     },
     percentage: {
       type: Number,
@@ -204,6 +213,10 @@ const resultSchema = new mongoose.Schema(
       type: [topicStatSchema],
       default: [],
     },
+    perQuestion: {
+      type: [mongoose.Schema.Types.Mixed],
+      default: [],
+    },
     weakestTopics: {
       type: [String],
       default: [],
@@ -212,17 +225,25 @@ const resultSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    timeTakenMs: {
+      type: Number,
+      default: 0,
+    },
+    timeSpentSeconds: {
+      type: Number,
+      default: 0,
+    },
     startTime: {
       type: Date,
-      required: true,
+      default: Date.now,
     },
     endTime: {
       type: Date,
-      required: true,
+      default: Date.now,
     },
     submittedAt: {
       type: Date,
-      default: null,
+      default: Date.now,
     },
     autoSubmitted: {
       type: Boolean,
@@ -243,6 +264,7 @@ const resultSchema = new mongoose.Schema(
 resultSchema.index({ testId: 1, userId: 1, status: 1 });
 resultSchema.index({ testId: 1, score: -1 });
 resultSchema.index({ userId: 1, createdAt: -1 });
+resultSchema.index({ studentEmail: 1, createdAt: -1 });
 resultSchema.index({ attemptId: 1 }, { sparse: true });
 resultSchema.index({ createdAt: -1 });
 
