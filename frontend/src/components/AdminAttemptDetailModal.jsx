@@ -18,7 +18,23 @@ import {
 } from 'lucide-react';
 import MathRenderer from './MathRenderer.jsx';
 import NeetScorePredictorCard from './NeetScorePredictorCard.jsx';
-import { formatDuration } from '../utils/scoring.js';
+import { formatDuration, computeResult } from '../utils/scoring.js';
+import { NEET_BIOLOGY_TEST, NEET_BIOLOGY_QUESTIONS } from '../data/neetBiologyCoreTest.js';
+import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from '../data/neetMechanicsBondingTest.js';
+import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from '../data/neet2026CoreTopicsTest.js';
+import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from '../data/neetCalculusTest.js';
+import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from '../data/neetWorkEnergyTest.js';
+
+// Central registry of all test suites for instant question & diagnostic resolution
+const ALL_TEST_DATA = {
+  [NEET_BIOLOGY_TEST.id]: { test: NEET_BIOLOGY_TEST, questions: NEET_BIOLOGY_QUESTIONS },
+  'biology-core': { test: NEET_BIOLOGY_TEST, questions: NEET_BIOLOGY_QUESTIONS },
+  [NEET_MECHANICS_BONDING_TEST.id]: { test: NEET_MECHANICS_BONDING_TEST, questions: NEET_MECHANICS_BONDING_QUESTIONS },
+  'mechanics-bonding': { test: NEET_MECHANICS_BONDING_TEST, questions: NEET_MECHANICS_BONDING_QUESTIONS },
+  [NEET_2026_CORE_TEST.id]: { test: NEET_2026_CORE_TEST, questions: NEET_2026_CORE_QUESTIONS },
+  [NEET_CALCULUS_TEST.id]: { test: NEET_CALCULUS_TEST, questions: NEET_CALCULUS_QUESTIONS },
+  [NEET_WEP_TEST.id]: { test: NEET_WEP_TEST, questions: NEET_WEP_QUESTIONS },
+};
 
 export default function AdminAttemptDetailModal({
   isOpen,
@@ -29,33 +45,128 @@ export default function AdminAttemptDetailModal({
   const [filter, setFilter] = useState('all'); // 'all' | 'correct' | 'wrong' | 'unattempted'
   const [activeTab, setActiveTab] = useState('diagnostics'); // 'diagnostics' | 'questions'
 
-  if (!isOpen || !attempt) return null;
+  // Authoritative resolution of attempt diagnostics and question review
+  const resolved = useMemo(() => {
+    if (!attempt) return null;
 
-  const testTitle = attempt.testTitle || 'NEET CBT Examination';
-  const testId = attempt.testId || '';
-  const score = attempt.score ?? 0;
-  const maxScore = attempt.maxScore || 240;
-  const accuracy = attempt.accuracy ?? 0;
-  const percentage = attempt.percentage ?? 0;
-  const correct = attempt.correct ?? 0;
-  const wrong = attempt.wrong ?? 0;
-  const unattempted = attempt.unattempted ?? 0;
-  const totalQuestions = attempt.totalQuestions || (correct + wrong + unattempted) || 60;
-  const timeTaken = attempt.timeTakenMs ? formatDuration(attempt.timeTakenMs) : '—';
+    // 1. Resolve matching test suite
+    const targetTestId =
+      attempt.testId ||
+      (attempt.testTitle?.toLowerCase().includes('biology')
+        ? NEET_BIOLOGY_TEST.id
+        : attempt.testTitle?.toLowerCase().includes('mechanics') || attempt.testTitle?.toLowerCase().includes('bonding')
+        ? NEET_MECHANICS_BONDING_TEST.id
+        : attempt.testTitle?.toLowerCase().includes('calculus')
+        ? NEET_CALCULUS_TEST.id
+        : attempt.testTitle?.toLowerCase().includes('core')
+        ? NEET_2026_CORE_TEST.id
+        : NEET_WEP_TEST.id);
+
+    const suite = ALL_TEST_DATA[targetTestId] || ALL_TEST_DATA[NEET_WEP_TEST.id];
+    const testDef = suite.test;
+    const questionsList = suite.questions || [];
+
+    // 2. If attempt already has complete perQuestion array with non-empty items
+    if (attempt.perQuestion && Array.isArray(attempt.perQuestion) && attempt.perQuestion.length > 0) {
+      const perQ = attempt.perQuestion;
+      const topicPerf =
+        attempt.topicPerformance && attempt.topicPerformance.length > 0
+          ? attempt.topicPerformance
+          : (() => {
+              const topicMap = {};
+              perQ.forEach((pq) => {
+                const topicName = pq.topic || 'General';
+                if (!topicMap[topicName]) {
+                  topicMap[topicName] = { topic: topicName, total: 0, correct: 0, wrong: 0, unattempted: 0 };
+                }
+                topicMap[topicName].total += 1;
+                if (pq.status === 'correct') topicMap[topicName].correct += 1;
+                else if (pq.status === 'wrong') topicMap[topicName].wrong += 1;
+                else topicMap[topicName].unattempted += 1;
+              });
+              return Object.values(topicMap).map((t) => ({
+                ...t,
+                mastery: t.total > 0 ? Math.round((t.correct / t.total) * 1000) / 10 : 0,
+              }));
+            })();
+
+      const weakest = topicPerf.filter((t) => (t.mastery ?? 0) < 70);
+      const strongest = topicPerf.filter((t) => (t.mastery ?? 0) >= 70 && t.correct > 0);
+
+      return {
+        ...attempt,
+        testTitle: attempt.testTitle || testDef.title,
+        testId: targetTestId,
+        score: attempt.score ?? 0,
+        maxScore: attempt.maxScore || testDef.totalMarks || questionsList.length * 4,
+        accuracy: attempt.accuracy ?? 0,
+        percentage: attempt.percentage ?? 0,
+        correct: attempt.correct ?? perQ.filter((q) => q.status === 'correct').length,
+        wrong: attempt.wrong ?? perQ.filter((q) => q.status === 'wrong').length,
+        unattempted: attempt.unattempted ?? perQ.filter((q) => q.status === 'unattempted').length,
+        totalQuestions: perQ.length,
+        timeTaken: attempt.timeTakenMs ? formatDuration(attempt.timeTakenMs) : '—',
+        perQuestion: perQ,
+        topicPerformance: topicPerf,
+        weakestTopics: weakest,
+        strongestTopics: strongest,
+      };
+    }
+
+    // 3. Reconstruct full results using computeResult with attempt.answers
+    const answers = attempt.answers || {};
+    const computed = computeResult(answers, questionsList, testDef.marksCorrect || 4, testDef.marksWrong || -1);
+
+    return {
+      ...attempt,
+      testTitle: attempt.testTitle || testDef.title,
+      testId: targetTestId,
+      score: attempt.score !== undefined ? attempt.score : computed.score,
+      rawScore: attempt.rawScore !== undefined ? attempt.rawScore : computed.rawScore,
+      maxScore: attempt.maxScore || computed.maxScore,
+      percentage: attempt.percentage !== undefined ? attempt.percentage : computed.percentage,
+      accuracy: attempt.accuracy !== undefined ? attempt.accuracy : computed.accuracy,
+      correct: attempt.correct !== undefined ? attempt.correct : computed.correct,
+      wrong: attempt.wrong !== undefined ? attempt.wrong : computed.wrong,
+      unattempted: attempt.unattempted !== undefined ? attempt.unattempted : computed.unattempted,
+      totalQuestions: computed.totalQuestions,
+      timeTaken: attempt.timeTakenMs ? formatDuration(attempt.timeTakenMs) : '—',
+      perQuestion: computed.perQuestion,
+      topicPerformance: computed.topicPerformance,
+      weakestTopics: computed.weakestTopics,
+      strongestTopics: computed.strongestTopics,
+    };
+  }, [attempt]);
+
+  if (!isOpen || !attempt || !resolved) return null;
+
+  const {
+    testTitle,
+    testId,
+    score,
+    maxScore,
+    accuracy,
+    percentage,
+    correct,
+    wrong,
+    unattempted,
+    totalQuestions,
+    timeTaken,
+    perQuestion,
+    topicPerformance,
+    weakestTopics,
+    strongestTopics,
+  } = resolved;
+
   const candidateName = student?.name || attempt.studentName || 'Candidate';
   const candidateEmail = student?.email || attempt.studentEmail || '';
 
-  const perQuestion = attempt.perQuestion || [];
-  const topicPerformance = attempt.topicPerformance || [];
-  const weakestTopics = attempt.weakestTopics || topicPerformance.filter((t) => (t.mastery ?? 0) < 70);
-  const strongestTopics = attempt.strongestTopics || topicPerformance.filter((t) => (t.mastery ?? 0) >= 70);
-
-  const filteredQuestions = useMemo(() => {
-    if (filter === 'correct') return perQuestion.filter((q) => q.status === 'correct');
-    if (filter === 'wrong') return perQuestion.filter((q) => q.status === 'wrong');
-    if (filter === 'unattempted') return perQuestion.filter((q) => q.status === 'unattempted');
-    return perQuestion;
-  }, [perQuestion, filter]);
+  const filteredQuestions = perQuestion.filter((q) => {
+    if (filter === 'correct') return q.status === 'correct';
+    if (filter === 'wrong') return q.status === 'wrong';
+    if (filter === 'unattempted') return q.status === 'unattempted';
+    return true;
+  });
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 animate-fade-in">
@@ -68,14 +179,14 @@ export default function AdminAttemptDetailModal({
       {/* Modal Container */}
       <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col rounded-3xl border border-white/10 bg-[#0B0F19] shadow-2xl overflow-hidden text-slate-100 z-10 animate-rise-in">
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-[#0D121F] px-5 sm:px-7 py-4">
+        <div className="flex items-center justify-between border-b border-white/10 bg-[#0D121F] px-4 sm:px-7 py-3.5 sm:py-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold text-sm">
               <User size={18} />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="font-sans text-base sm:text-lg font-black text-white truncate">
+                <h2 className="font-sans text-sm sm:text-lg font-black text-white truncate">
                   {candidateName}'s Test Diagnostics
                 </h2>
                 <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[10px] font-bold text-blue-300">
@@ -98,12 +209,12 @@ export default function AdminAttemptDetailModal({
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-[#070A12] px-5 sm:px-7 py-2.5">
+        <div className="flex items-center justify-between border-b border-white/10 bg-[#070A12] px-4 sm:px-7 py-2.5 overflow-x-auto">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setActiveTab('diagnostics')}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+              className={`rounded-full px-3 sm:px-4 py-1.5 text-xs font-bold transition whitespace-nowrap ${
                 activeTab === 'diagnostics'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-white'
@@ -114,7 +225,7 @@ export default function AdminAttemptDetailModal({
             <button
               type="button"
               onClick={() => setActiveTab('questions')}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition ${
+              className={`rounded-full px-3 sm:px-4 py-1.5 text-xs font-bold transition whitespace-nowrap ${
                 activeTab === 'questions'
                   ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
                   : 'text-slate-400 hover:text-white'
@@ -124,16 +235,16 @@ export default function AdminAttemptDetailModal({
             </button>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-400">
+          <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-400 shrink-0">
             <Clock size={13} className="text-blue-400" />
             <span>Time Spent: <strong className="text-white font-mono">{timeTaken}</strong></span>
           </div>
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-7 space-y-6">
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 text-center">
             <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3">
               <span className="text-[10px] uppercase font-bold text-slate-400 block">Final Score</span>
               <p className="mt-1 font-mono text-xl sm:text-2xl font-black text-white">
@@ -211,13 +322,13 @@ export default function AdminAttemptDetailModal({
                           key={idx}
                           className="rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 flex items-center justify-between text-xs"
                         >
-                          <div>
-                            <span className="font-bold text-white block">{t.topic}</span>
+                          <div className="min-w-0 pr-2">
+                            <span className="font-bold text-white block truncate">{t.topic}</span>
                             <span className="text-[11px] text-rose-300">
                               {t.wrong} incorrect · {t.unattempted} skipped
                             </span>
                           </div>
-                          <span className="rounded-full bg-rose-500/20 border border-rose-500/40 px-2.5 py-0.5 font-mono text-xs font-black text-rose-300">
+                          <span className="rounded-full bg-rose-500/20 border border-rose-500/40 px-2.5 py-0.5 font-mono text-xs font-black text-rose-300 shrink-0">
                             {t.mastery ?? Math.round((t.correct / (t.total || 1)) * 100)}%
                           </span>
                         </div>
@@ -249,13 +360,13 @@ export default function AdminAttemptDetailModal({
                           key={idx}
                           className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 flex items-center justify-between text-xs"
                         >
-                          <div>
-                            <span className="font-bold text-white block">{t.topic}</span>
+                          <div className="min-w-0 pr-2">
+                            <span className="font-bold text-white block truncate">{t.topic}</span>
                             <span className="text-[11px] text-emerald-300">
                               {t.correct} of {t.total} correct
                             </span>
                           </div>
-                          <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 font-mono text-xs font-black text-emerald-300">
+                          <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 font-mono text-xs font-black text-emerald-300 shrink-0">
                             {t.mastery ?? Math.round((t.correct / (t.total || 1)) * 100)}%
                           </span>
                         </div>
@@ -312,11 +423,11 @@ export default function AdminAttemptDetailModal({
                 <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                   <Filter size={14} className="text-blue-400" /> Filter Questions:
                 </span>
-                <div className="flex items-center gap-1.5 text-xs">
+                <div className="flex items-center gap-1.5 text-xs overflow-x-auto pb-1">
                   <button
                     type="button"
                     onClick={() => setFilter('all')}
-                    className={`rounded-full px-3 py-1 font-bold transition ${
+                    className={`rounded-full px-3 py-1 font-bold transition whitespace-nowrap ${
                       filter === 'all'
                         ? 'bg-blue-600 text-white'
                         : 'bg-white/5 text-slate-400 hover:text-white'
@@ -327,7 +438,7 @@ export default function AdminAttemptDetailModal({
                   <button
                     type="button"
                     onClick={() => setFilter('correct')}
-                    className={`rounded-full px-3 py-1 font-bold transition ${
+                    className={`rounded-full px-3 py-1 font-bold transition whitespace-nowrap ${
                       filter === 'correct'
                         ? 'bg-emerald-600 text-white'
                         : 'bg-white/5 text-emerald-400 hover:text-white'
@@ -338,7 +449,7 @@ export default function AdminAttemptDetailModal({
                   <button
                     type="button"
                     onClick={() => setFilter('wrong')}
-                    className={`rounded-full px-3 py-1 font-bold transition ${
+                    className={`rounded-full px-3 py-1 font-bold transition whitespace-nowrap ${
                       filter === 'wrong'
                         ? 'bg-rose-600 text-white'
                         : 'bg-white/5 text-rose-400 hover:text-white'
@@ -349,7 +460,7 @@ export default function AdminAttemptDetailModal({
                   <button
                     type="button"
                     onClick={() => setFilter('unattempted')}
-                    className={`rounded-full px-3 py-1 font-bold transition ${
+                    className={`rounded-full px-3 py-1 font-bold transition whitespace-nowrap ${
                       filter === 'unattempted'
                         ? 'bg-slate-600 text-white'
                         : 'bg-white/5 text-slate-400 hover:text-white'
@@ -501,7 +612,7 @@ export default function AdminAttemptDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#0D121F] px-5 sm:px-7 py-3 text-xs text-slate-400">
+        <div className="flex items-center justify-between border-t border-white/10 bg-[#0D121F] px-4 sm:px-7 py-3 text-xs text-slate-400">
           <span>Administrator Diagnostic View</span>
           <button
             type="button"
