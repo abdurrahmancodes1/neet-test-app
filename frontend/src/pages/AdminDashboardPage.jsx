@@ -402,28 +402,29 @@ export default function AdminDashboardPage({
                                   </div>
 
                                   {/* Middle: Scores & Breakdown */}
-                                  <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs">
-                                    <div>
-                                      <span className="text-[10px] uppercase font-semibold text-slate-500 block">Score</span>
+                                  <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-xs">
+                                    <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-center">
+                                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Score</span>
                                       <span className="font-mono font-bold text-white">
                                         <strong className="text-sm font-black text-blue-400">{att.score}</strong> / {att.maxScore || 240}
                                       </span>
                                     </div>
-                                    <div>
-                                      <span className="text-[10px] uppercase font-semibold text-slate-500 block">Accuracy</span>
-                                      <span className="font-mono font-bold text-emerald-400">
+                                    <div className="rounded-xl bg-emerald-950/20 border border-emerald-500/30 px-3 py-1.5 text-center">
+                                      <span className="text-[9px] uppercase font-bold text-emerald-400 block">Accuracy</span>
+                                      <span className="font-mono font-black text-emerald-400">
                                         {(att.accuracy ?? 0).toFixed(1)}%
                                       </span>
                                     </div>
-                                    <div>
-                                      <span className="text-[10px] uppercase font-semibold text-slate-500 block">Breakdown</span>
-                                      <div className="font-mono text-[11px]">
-                                        <span className="text-emerald-400 font-bold">+{att.correct}</span>
-                                        <span className="text-slate-600"> / </span>
-                                        <span className="text-rose-400 font-bold">-{att.wrong}</span>
-                                        <span className="text-slate-600"> / </span>
-                                        <span className="text-slate-400">0({att.unattempted})</span>
-                                      </div>
+                                    <div className="flex items-center gap-1.5 font-mono text-xs">
+                                      <span className="rounded-lg bg-emerald-500/20 border border-emerald-500/30 px-2 py-1 text-emerald-300 font-bold" title="Correct Questions">
+                                        +{att.correct ?? 0} Correct
+                                      </span>
+                                      <span className="rounded-lg bg-rose-500/20 border border-rose-500/30 px-2 py-1 text-rose-300 font-bold" title="Incorrect Questions">
+                                        −{att.wrong ?? 0} Wrong
+                                      </span>
+                                      <span className="rounded-lg bg-slate-500/20 border border-slate-500/30 px-2 py-1 text-slate-300" title="Skipped Questions">
+                                        {att.unattempted ?? 0} Skipped
+                                      </span>
                                     </div>
                                   </div>
 
@@ -432,10 +433,10 @@ export default function AdminDashboardPage({
                                     <button
                                       type="button"
                                       onClick={() => handleInspectAttempt(att, student)}
-                                      className="rounded-full border border-blue-500/40 bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white px-4 py-2 text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95"
+                                      className="rounded-full border border-blue-500/40 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-2 text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-blue-600/30 active:scale-95"
                                     >
                                       <Eye size={13} />
-                                      <span>Inspect Diagnostics &amp; Solutions</span>
+                                      <span>Inspect Questions &amp; Solutions</span>
                                     </button>
                                   </div>
                                 </div>

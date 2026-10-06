@@ -20,14 +20,27 @@ export function computeResult(
   let unattempted = 0;
 
   const perQuestion = questionList.map((q, idx) => {
-    const qKey = q.number ?? q.id ?? idx + 1;
-    const selected = answers[qKey] ?? answers[q.id] ?? answers[String(qKey)] ?? null;
+    const qNum = q.number ?? q.order ?? q.id ?? idx + 1;
+    const selected =
+      answers[q.id] ??
+      answers[String(q.id)] ??
+      answers[q.number] ??
+      answers[String(q.number)] ??
+      answers[q.order] ??
+      answers[String(q.order)] ??
+      answers[idx + 1] ??
+      answers[String(idx + 1)] ??
+      answers[q._id] ??
+      null;
+
+    const cleanSelected = selected ? String(selected).trim().toUpperCase() : null;
+    const cleanCorrect = q.correctAnswer ? String(q.correctAnswer).trim().toUpperCase() : '';
 
     let status = 'unattempted';
-    if (!selected) {
+    if (!cleanSelected) {
       unattempted += 1;
       status = 'unattempted';
-    } else if (q.correctAnswer && selected.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase()) {
+    } else if (cleanCorrect && cleanSelected === cleanCorrect) {
       correct += 1;
       status = 'correct';
     } else {
@@ -36,16 +49,17 @@ export function computeResult(
     }
 
     return {
-      id: q.id ?? qKey,
-      questionNumber: q.number ?? qKey,
-      topic: q.topic || 'Work, Energy and Power',
+      id: q.id ?? qNum,
+      questionNumber: qNum,
+      order: q.order ?? qNum,
+      topic: q.topic || 'General',
       subject: q.subject || 'Physics',
       difficulty: q.difficulty || 'Medium',
-      question: q.text ?? q.question,
+      question: q.text ?? q.question ?? '',
       options: q.options || {},
       image: q.image || null,
-      selected: selected || null,
-      correctAnswer: q.correctAnswer || null,
+      selected: cleanSelected,
+      correctAnswer: cleanCorrect,
       explanation: q.explanation || null,
       status,
     };

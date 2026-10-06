@@ -23,7 +23,7 @@ export class ResultController {
       studentEmail: attempt.studentEmail || req.user?.email || attempt.email || null,
       studentRollNumber: attempt.studentRollNumber || req.user?.rollNumber || null,
       testId: attempt.testId || 'neet-work-energy-power',
-      testTitle: attempt.testTitle || 'NEET 2027: Work, Energy and Power',
+      testTitle: attempt.testTitle || 'NEET Practice Test',
       score: attempt.score ?? 0,
       maxScore: attempt.maxScore ?? 240,
       accuracy: attempt.accuracy ?? 0,
@@ -33,8 +33,10 @@ export class ResultController {
       unattempted: attempt.unattempted ?? attempt.unattemptedCount ?? 0,
       totalQuestions: attempt.totalQuestions ?? 60,
       topicPerformance: attempt.topicPerformance || [],
+      perQuestion: attempt.perQuestion || [],
       answers: attempt.answers || {},
       timeSpentSeconds: attempt.timeSpentSeconds || 0,
+      timeTakenMs: attempt.timeTakenMs || (attempt.timeSpentSeconds ? attempt.timeSpentSeconds * 1000 : 0),
       timestamp: attempt.timestamp || new Date().toISOString(),
     };
 
@@ -72,6 +74,13 @@ export class ResultController {
             startTime: new Date(Date.now() - (cleanAttempt.timeSpentSeconds || 0) * 1000),
             endTime: new Date(),
             submittedAt: new Date(cleanAttempt.timestamp),
+            metadata: {
+              testTitle: cleanAttempt.testTitle,
+              answers: cleanAttempt.answers,
+              perQuestion: cleanAttempt.perQuestion,
+              topicPerformance: cleanAttempt.topicPerformance,
+              timeTakenMs: cleanAttempt.timeTakenMs,
+            },
           },
           { upsert: true, new: true }
         );

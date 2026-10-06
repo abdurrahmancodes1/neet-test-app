@@ -363,6 +363,7 @@ export class AuthService {
           attempts: userResults.map((r) => ({
             id: r._id?.toString() || r.attemptId,
             testId: r.testId,
+            testTitle: r.metadata?.testTitle || r.testTitle || 'NEET Practice Test',
             score: r.score,
             maxScore: r.maxScore || 240,
             percentage: r.percentage,
@@ -370,6 +371,10 @@ export class AuthService {
             correct: r.correctCount ?? r.correct ?? 0,
             wrong: r.wrongCount ?? r.wrong ?? 0,
             unattempted: r.unattemptedCount ?? r.unattempted ?? 0,
+            timeTakenMs: r.metadata?.timeTakenMs || (r.timeSpentSeconds ? r.timeSpentSeconds * 1000 : 0),
+            answers: r.metadata?.answers || r.answers || {},
+            perQuestion: r.metadata?.perQuestion || [],
+            topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
             submittedAt: r.submittedAt || r.createdAt,
           })),
         };
@@ -383,19 +388,51 @@ export class AuthService {
       }
     } else {
       const storeStats = SyncStore.getStats();
+      const allStoreResults = SyncStore.getResults();
       totalUsers = storeStats.totalUsers;
       totalAttempts = storeStats.totalAttempts;
       averageScore = storeStats.averageScore;
       activeUsers = storeStats.allCandidates.length;
-      students = storeStats.allCandidates.map((c) => ({
-        ...c,
-        status: 'active',
-        totalAttempts: 0,
-        latestScore: null,
-        bestScore: null,
-        averageAccuracy: null,
-        attempts: [],
-      }));
+
+      students = storeStats.allCandidates.map((c) => {
+        const userResults = allStoreResults.filter(
+          (r) => (r.studentEmail || '').toLowerCase() === (c.email || '').toLowerCase()
+        );
+        const scores = userResults.map((r) => r.score ?? 0);
+        const accuracies = userResults.map((r) => r.accuracy ?? 0);
+        const latest = userResults.length > 0 ? userResults[userResults.length - 1] : null;
+
+        return {
+          ...c,
+          status: 'active',
+          totalAttempts: userResults.length,
+          latestScore: latest ? latest.score : null,
+          bestScore: scores.length > 0 ? Math.max(...scores) : null,
+          averageAccuracy:
+            accuracies.length > 0
+              ? Math.round(accuracies.reduce((a, b) => a + b, 0) / accuracies.length)
+              : null,
+          attempts: userResults
+            .map((r) => ({
+              id: r.id || r.attemptId,
+              testId: r.testId,
+              testTitle: r.testTitle || 'NEET Practice Test',
+              score: r.score,
+              maxScore: r.maxScore || 240,
+              percentage: r.percentage,
+              accuracy: Math.round(r.accuracy || 0),
+              correct: r.correct ?? r.correctCount ?? 0,
+              wrong: r.wrong ?? r.wrongCount ?? 0,
+              unattempted: r.unattempted ?? r.unattemptedCount ?? 0,
+              timeTakenMs: r.timeTakenMs || (r.timeSpentSeconds ? r.timeSpentSeconds * 1000 : 0),
+              answers: r.answers || {},
+              perQuestion: r.perQuestion || [],
+              topicPerformance: r.topicPerformance || [],
+              submittedAt: r.timestamp || r.submittedAt,
+            }))
+            .reverse(),
+        };
+      });
     }
 
     return {

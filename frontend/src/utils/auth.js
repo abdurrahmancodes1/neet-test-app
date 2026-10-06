@@ -420,13 +420,31 @@ export async function getAdminOverview() {
     // Merge remote students with local attempts if available
     const mergedStudents = remoteData.students.map((rs) => {
       const local = studentsList.find((s) => s.email.toLowerCase() === (rs.email || '').toLowerCase());
-      const atts = (rs.attempts && rs.attempts.length > 0) ? rs.attempts : (local?.attempts || []);
+      const remoteAtts = rs.attempts || [];
+      const localAtts = local?.attempts || [];
+
+      // Merge attempts preserving answers, perQuestion, and diagnostics
+      const mergedAtts = remoteAtts.map((ra) => {
+        const matchedLocal = localAtts.find((la) => la.id === ra.id || (la.testId === ra.testId && Math.abs(new Date(la.timestamp || la.submittedAt).getTime() - new Date(ra.submittedAt || ra.timestamp).getTime()) < 60000));
+        return {
+          ...matchedLocal,
+          ...ra,
+          answers: (ra.answers && Object.keys(ra.answers).length > 0) ? ra.answers : (matchedLocal?.answers || {}),
+          perQuestion: (ra.perQuestion && ra.perQuestion.length > 0) ? ra.perQuestion : (matchedLocal?.perQuestion || []),
+          topicPerformance: (ra.topicPerformance && ra.topicPerformance.length > 0) ? ra.topicPerformance : (matchedLocal?.topicPerformance || []),
+          timeTakenMs: ra.timeTakenMs || matchedLocal?.timeTakenMs || 0,
+          testTitle: ra.testTitle || matchedLocal?.testTitle || 'NEET Practice Test',
+        };
+      });
+
+      const finalAtts = mergedAtts.length > 0 ? mergedAtts : localAtts;
+
       return {
         ...rs,
-        attempts: atts,
-        totalAttempts: atts.length || rs.totalAttempts || 0,
-        latestScore: atts.length > 0 ? atts[0].score : (rs.latestScore ?? null),
-        bestScore: atts.length > 0 ? Math.max(...atts.map((a) => a.score ?? 0)) : (rs.bestScore ?? null),
+        attempts: finalAtts,
+        totalAttempts: finalAtts.length,
+        latestScore: finalAtts.length > 0 ? finalAtts[0].score : (rs.latestScore ?? null),
+        bestScore: finalAtts.length > 0 ? Math.max(...finalAtts.map((a) => a.score ?? 0)) : (rs.bestScore ?? null),
       };
     });
 
