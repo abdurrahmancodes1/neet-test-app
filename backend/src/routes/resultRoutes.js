@@ -12,6 +12,7 @@ router.delete('/live-session/:testId', optionalAuth, ResultController.clearLiveS
 // Final Attempt Sync & Results
 router.post('/sync', optionalAuth, ResultController.syncResult);
 router.get('/all', ResultController.getAllResults);
+router.get('/student/:email', optionalAuth, ResultController.getStudentAttempts);
 router.get('/:resultId', optionalAuth, ResultController.getResult);
 
 export default router;

@@ -240,7 +240,36 @@ export function getUserAttempts(email) {
 }
 
 /**
- * Save user test attempt locally and sync to Backend MongoDB
+ * Fetch all test attempts directly from server for a student
+ */
+export async function fetchServerAttempts(email) {
+  const cleanEmail = (email || '').toLowerCase().trim();
+  if (!cleanEmail) return [];
+  try {
+    const currentUser = getCurrentUser();
+    const res = await fetch(`${API_BASE}/results/student/${encodeURIComponent(cleanEmail)}`, {
+      headers: {
+        ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
+      },
+      credentials: 'include',
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.data && Array.isArray(data.data)) {
+        try {
+          window.localStorage.setItem(getAttemptsKey(cleanEmail), JSON.stringify(data.data));
+        } catch {}
+        return data.data;
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to fetch attempts from server:', err.message);
+  }
+  return getUserAttempts(cleanEmail);
+}
+
+/**
+ * Save user test attempt to server and sync
  */
 export function saveUserAttempt(email, attemptData) {
   try {
@@ -253,9 +282,11 @@ export function saveUserAttempt(email, attemptData) {
       ...attemptData,
     };
     attempts.push(newAttempt);
-    window.localStorage.setItem(getAttemptsKey(email), JSON.stringify(attempts));
+    try {
+      window.localStorage.setItem(getAttemptsKey(email), JSON.stringify(attempts));
+    } catch {}
 
-    // Asynchronously sync to Backend API
+    // Immediately post to Backend API server
     syncAttemptToBackend(email, newAttempt);
 
     return newAttempt;

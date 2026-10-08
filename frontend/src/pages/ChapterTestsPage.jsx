@@ -18,9 +18,11 @@ import {
 import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
+import { NEET_ROUND_1_TEST } from '../data/neetMegaRound1MechanicsTest.js';
+import { NEET_ROUND_2_TEST } from '../data/neetMegaRound2BondingMorphologyTest.js';
+import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
-import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
 
 export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard }) {
   const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'class10' | 'class9' | 'class8'
@@ -169,48 +171,48 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
               </div>
             </div>
 
-            {/* Test Card 0: NEET Grand Master Drill (240 Questions - Fixed 4.0 Hours) */}
-            <article className="overflow-hidden rounded-3xl border border-amber-500/60 bg-gradient-to-b from-[#241705] via-[#160E04] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-amber-500/40">
-              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-amber-600/20 blur-3xl" />
+            {/* Test Card 0: NEET Round 1 - Mechanics Drill (120 Questions - 2.0 Hours) */}
+            <article className="overflow-hidden rounded-3xl border border-blue-500/60 bg-gradient-to-b from-[#0A192F] via-[#071324] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-blue-500/30">
+              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-blue-600/20 blur-3xl" />
 
               <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
                 <div className="max-w-2xl">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-0.5 text-xs font-bold text-amber-300">
-                      🏆 240 QUESTIONS GRAND MASTER DRILL
+                    <span className="rounded-full bg-blue-500/20 border border-blue-500/40 px-3 py-0.5 text-xs font-bold text-blue-300">
+                      ⚡ ROUND 1 · PHYSICS MECHANICS
                     </span>
                     <span className="rounded-full bg-blue-600/20 border border-blue-500/30 px-3 py-0.5 text-xs font-bold text-blue-300">
-                      Physics · Chemistry · Biology
+                      120 Questions · 2 Hours Fixed
                     </span>
                     <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-0.5 text-xs font-bold text-emerald-300">
-                      Fixed 4.0 Hours
+                      480 Marks
                     </span>
                   </div>
 
                   <h3 className="mt-3 font-sans text-2xl sm:text-3xl font-black text-white">
-                    {NEET_GRAND_MEGA_TEST.title}
+                    {NEET_ROUND_1_TEST.title}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                    {NEET_GRAND_MEGA_TEST.description}
+                    {NEET_ROUND_1_TEST.description}
                   </p>
 
                   <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs leading-relaxed text-slate-300">
                     <span className="font-bold text-white">Syllabus Covered: </span>
-                    {NEET_GRAND_MEGA_TEST.syllabus}
+                    {NEET_ROUND_1_TEST.syllabus}
                   </div>
 
                   <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-300">
                     <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
                       <Clock size={14} className="text-amber-400" />
-                      <strong className="text-white">240 Minutes</strong> (Fixed 4 Hours Continuous CBT)
+                      <strong className="text-white">120 Minutes</strong> (Fixed 2 Hours Continuous CBT)
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
                       <BookOpen size={14} className="text-blue-400" />
-                      <strong className="text-white">240 Questions</strong> (135 Phys + 45 Chem + 60 Bio)
+                      <strong className="text-white">120 Questions</strong> (45 WEP + 45 COM + 30 Rotational)
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
                       <Award size={14} className="text-emerald-400" />
-                      <strong className="text-white">960 Marks</strong> (+4 / −1 Marking Scheme)
+                      <strong className="text-white">480 Marks</strong> (+4 / −1 Marking Scheme)
                     </span>
                   </div>
                 </div>
@@ -218,10 +220,68 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                 <div className="shrink-0">
                   <button
                     type="button"
-                    onClick={() => onSelect(NEET_GRAND_MEGA_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-orange-600/30 transition active:scale-95 lg:w-auto"
+                    onClick={() => onSelect(NEET_ROUND_1_TEST.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition active:scale-95 lg:w-auto"
                   >
-                    Start 240-Min Examination <ArrowRight size={16} />
+                    Start Round 1 (120 Mins) <ArrowRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            {/* Test Card 0B: NEET Round 2 - Chemistry Bonding & Botany Morphology (120 Questions - 2.0 Hours) */}
+            <article className="overflow-hidden rounded-3xl border border-emerald-500/60 bg-gradient-to-b from-[#0A261D] via-[#071C15] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-emerald-500/30">
+              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-emerald-600/20 blur-3xl" />
+
+              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
+                <div className="max-w-2xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-3 py-0.5 text-xs font-bold text-emerald-300">
+                      🌿 ROUND 2 · CHEMISTRY, BOTANY &amp; DYNAMICS
+                    </span>
+                    <span className="rounded-full bg-teal-600/20 border border-teal-500/30 px-3 py-0.5 text-xs font-bold text-teal-300">
+                      120 Questions · 2 Hours Fixed
+                    </span>
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-0.5 text-xs font-bold text-emerald-300">
+                      480 Marks
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3 font-sans text-2xl sm:text-3xl font-black text-white">
+                    {NEET_ROUND_2_TEST.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                    {NEET_ROUND_2_TEST.description}
+                  </p>
+
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs leading-relaxed text-slate-300">
+                    <span className="font-bold text-white">Syllabus Covered: </span>
+                    {NEET_ROUND_2_TEST.syllabus}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Clock size={14} className="text-amber-400" />
+                      <strong className="text-white">120 Minutes</strong> (Fixed 2 Hours Continuous CBT)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <BookOpen size={14} className="text-blue-400" />
+                      <strong className="text-white">120 Questions</strong> (45 Chem + 60 Bio + 15 Phys)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Award size={14} className="text-emerald-400" />
+                      <strong className="text-white">480 Marks</strong> (+4 / −1 Marking Scheme)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(NEET_ROUND_2_TEST.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-emerald-600/30 transition active:scale-95 lg:w-auto"
+                  >
+                    Start Round 2 (120 Mins) <ArrowRight size={16} />
                   </button>
                 </div>
               </div>

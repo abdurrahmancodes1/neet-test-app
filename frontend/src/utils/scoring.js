@@ -150,18 +150,26 @@ export function getNeetPrediction(testId, score, maxScore, accuracy = 0, correct
   const rawTestId = String(testId).toLowerCase().trim();
 
   // Allow for the 2 newly added comprehensive tests plus core chapter suites
+  const isRound1 = rawTestId.includes('round-1') || rawTestId.includes('round_1');
+  const isRound2 = rawTestId.includes('round-2') || rawTestId.includes('round_2');
   const isGrandMega =
-    rawTestId.includes('grand') ||
-    rawTestId.includes('mega') ||
-    (rawTestId.includes('mechanics') && rawTestId.includes('morphology'));
+    !isRound1 &&
+    !isRound2 &&
+    (rawTestId.includes('grand') ||
+      rawTestId.includes('mega') ||
+      (rawTestId.includes('mechanics') && rawTestId.includes('morphology')));
 
   const isBiology =
+    !isRound1 &&
+    !isRound2 &&
     !isGrandMega &&
     (rawTestId.includes('biology') ||
       rawTestId.includes('botany') ||
       rawTestId.includes('zoology'));
 
   const isMechanicsBonding =
+    !isRound1 &&
+    !isRound2 &&
     !isGrandMega &&
     (rawTestId.includes('mechanics') ||
       rawTestId.includes('bonding') ||
@@ -170,7 +178,7 @@ export function getNeetPrediction(testId, score, maxScore, accuracy = 0, correct
       rawTestId.includes('calculus') ||
       rawTestId.includes('work-energy'));
 
-  if (!isGrandMega && !isBiology && !isMechanicsBonding) {
+  if (!isRound1 && !isRound2 && !isGrandMega && !isBiology && !isMechanicsBonding) {
     return null;
   }
 
@@ -189,7 +197,17 @@ export function getNeetPrediction(testId, score, maxScore, accuracy = 0, correct
   let otherSectionName = 'Biology (Botany & Zoology)';
   let difficultyLevel = 'High (JEE / Hard NEET Level)';
 
-  if (isGrandMega) {
+  if (isRound1) {
+    testType = 'physics_mechanics';
+    testedSectionName = 'Physics Mechanics (WEP, COM & Rotational)';
+    otherSectionName = 'Chemistry & Biology (Botany & Zoology)';
+    difficultyLevel = 'Advanced (JEE & Hard NEET Mechanics)';
+  } else if (isRound2) {
+    testType = 'bonding_morphology';
+    testedSectionName = 'Chemistry Bonding, Botany Morphology & Dynamics';
+    otherSectionName = 'Physics Core Mechanics (WEP & COM)';
+    difficultyLevel = 'High-Yield Core Standard';
+  } else if (isGrandMega) {
     testType = 'full_syllabus';
     testedSectionName = 'Physics, Chemistry & Biology (All 240 Qs)';
     otherSectionName = 'Full Comprehensive Curriculum';
@@ -207,7 +225,7 @@ export function getNeetPrediction(testId, score, maxScore, accuracy = 0, correct
   }
 
   // 2. Compute Tested Section Score (Scaled to 360) with Question Difficulty Bonus
-  const difficultyBonus = isGrandMega ? 0 : !isBiology ? Math.min(18, (acc / 100) * 14) : Math.min(8, (acc / 100) * 6);
+  const difficultyBonus = (isGrandMega || isRound2) ? 0 : !isBiology ? Math.min(18, (acc / 100) * 14) : Math.min(8, (acc / 100) * 6);
   let scaledSectionScore = isGrandMega ? Math.round(fraction * 360) : Math.round(fraction * 360 + difficultyBonus);
   scaledSectionScore = Math.min(360, Math.max(0, scaledSectionScore));
 

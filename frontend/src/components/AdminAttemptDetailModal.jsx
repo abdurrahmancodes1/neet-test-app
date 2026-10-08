@@ -22,15 +22,33 @@ import {
 import MathRenderer from './MathRenderer.jsx';
 import NeetScorePredictorCard from './NeetScorePredictorCard.jsx';
 import { formatDuration } from '../utils/scoring.js';
+import { NEET_ROUND_1_TEST, NEET_ROUND_1_QUESTIONS } from '../data/neetMegaRound1MechanicsTest.js';
+import { NEET_ROUND_2_TEST, NEET_ROUND_2_QUESTIONS } from '../data/neetMegaRound2BondingMorphologyTest.js';
+import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from '../data/neetGrandMegaDrillTest.js';
 import { NEET_BIOLOGY_TEST, NEET_BIOLOGY_QUESTIONS } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from '../data/neetMechanicsBondingTest.js';
-import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from '../data/neetGrandMegaDrillTest.js';
 import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from '../data/neetCalculusTest.js';
 import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from '../data/neetWorkEnergyTest.js';
 
 // Central registry of all test suites with all possible alias keys
 const ALL_TEST_DATA = {
+  // Round 1: Mechanics Master Drill (120 Qs)
+  [NEET_ROUND_1_TEST.id]: { test: NEET_ROUND_1_TEST, questions: NEET_ROUND_1_QUESTIONS },
+  'neet-2027-mega-round-1-mechanics': { test: NEET_ROUND_1_TEST, questions: NEET_ROUND_1_QUESTIONS },
+  'mega-round-1-mechanics': { test: NEET_ROUND_1_TEST, questions: NEET_ROUND_1_QUESTIONS },
+  'round-1-mechanics': { test: NEET_ROUND_1_TEST, questions: NEET_ROUND_1_QUESTIONS },
+  'round-1': { test: NEET_ROUND_1_TEST, questions: NEET_ROUND_1_QUESTIONS },
+  'round1': { test: NEET_ROUND_1_TEST, questions: NEET_ROUND_1_QUESTIONS },
+
+  // Round 2: Bonding, Morphology & Dynamics (120 Qs)
+  [NEET_ROUND_2_TEST.id]: { test: NEET_ROUND_2_TEST, questions: NEET_ROUND_2_QUESTIONS },
+  'neet-2027-mega-round-2-bonding-morphology': { test: NEET_ROUND_2_TEST, questions: NEET_ROUND_2_QUESTIONS },
+  'mega-round-2-bonding-morphology': { test: NEET_ROUND_2_TEST, questions: NEET_ROUND_2_QUESTIONS },
+  'round-2-bonding-morphology': { test: NEET_ROUND_2_TEST, questions: NEET_ROUND_2_QUESTIONS },
+  'round-2': { test: NEET_ROUND_2_TEST, questions: NEET_ROUND_2_QUESTIONS },
+  'round2': { test: NEET_ROUND_2_TEST, questions: NEET_ROUND_2_QUESTIONS },
+
   // Grand Mega Drill (Mechanics, Chemical Bonding & Morphology - 240 Qs)
   [NEET_GRAND_MEGA_TEST.id]: { test: NEET_GRAND_MEGA_TEST, questions: NEET_GRAND_MEGA_QUESTIONS },
   'neet-grand-mechanics-bonding-morphology-drill': { test: NEET_GRAND_MEGA_TEST, questions: NEET_GRAND_MEGA_QUESTIONS },
@@ -226,6 +244,12 @@ export default function AdminAttemptDetailModal({
     let suite = null;
     if (rawTestId && ALL_TEST_DATA[rawTestId]) {
       suite = ALL_TEST_DATA[rawTestId];
+    } else if (rawTestId.includes('round-1') || rawTestId.includes('round_1') || rawTitle.includes('round 1')) {
+      suite = ALL_TEST_DATA['neet-2027-mega-round-1-mechanics'];
+    } else if (rawTestId.includes('round-2') || rawTestId.includes('round_2') || rawTitle.includes('round 2') || (rawTitle.includes('bonding') && rawTitle.includes('morphology'))) {
+      suite = ALL_TEST_DATA['neet-2027-mega-round-2-bonding-morphology'];
+    } else if (rawTestId.includes('grand') || rawTitle.includes('grand') || attempt.totalQuestions === 240) {
+      suite = ALL_TEST_DATA['neet-grand-mechanics-bonding-morphology-drill'];
     } else if (
       rawTestId.includes('mechanics') ||
       rawTestId.includes('bonding') ||
@@ -454,31 +478,31 @@ export default function AdminAttemptDetailModal({
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-5 animate-fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-1 sm:p-4 md:p-6 animate-fade-in overflow-hidden">
       {/* Dark Backdrop */}
       <div
-        className="absolute inset-0 bg-black/85 backdrop-blur-md"
+        className="absolute inset-0 bg-black/90 backdrop-blur-md"
         onClick={onClose}
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-5xl max-h-[94vh] flex flex-col rounded-3xl border border-white/10 bg-[#0B0F19] shadow-2xl overflow-hidden text-slate-100 z-10 animate-rise-in">
+      <div className="relative w-full max-w-5xl h-[96vh] sm:h-auto sm:max-h-[92vh] flex flex-col rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0B0F19] shadow-2xl overflow-hidden text-slate-100 z-10 animate-rise-in">
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-[#0D121F] px-4 sm:px-7 py-3.5 sm:py-4 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold text-sm">
-              <User size={18} />
+        <div className="flex items-center justify-between border-b border-white/10 bg-[#0D121F] px-3 sm:px-6 py-2.5 sm:py-3.5 shrink-0 gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold text-xs sm:text-sm">
+              <User size={16} className="sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h2 className="font-sans text-sm sm:text-lg font-black text-white truncate">
-                  {candidateName}'s Test Diagnostics &amp; Solutions
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h2 className="font-sans text-xs sm:text-base font-black text-white truncate max-w-[180px] sm:max-w-md">
+                  {candidateName}'s Test Diagnostics
                 </h2>
-                <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[10px] font-bold text-blue-300">
+                <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-blue-300 shrink-0">
                   Attempt #{attempt.attemptNumber || 1}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 truncate">
+              <p className="text-[11px] sm:text-xs text-slate-400 truncate max-w-[220px] sm:max-w-lg">
                 {candidateEmail} · <strong className="text-slate-200">{testTitle}</strong>
               </p>
             </div>
@@ -488,63 +512,63 @@ export default function AdminAttemptDetailModal({
             type="button"
             onClick={onClose}
             title="Close Modal"
-            className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-white hover:bg-white/10 transition"
+            className="rounded-full border border-white/10 bg-white/5 p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-white/10 transition shrink-0"
           >
-            <X size={18} />
+            <X size={16} className="sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Quick Diagnostic Metrics Bar */}
-        <div className="border-b border-white/10 bg-[#080C16] px-4 sm:px-7 py-3 grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3 text-center shrink-0">
-          <div className="rounded-2xl border border-white/10 bg-[#0D121F] p-2.5">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Final Score</span>
-            <p className="mt-0.5 font-mono text-lg sm:text-xl font-black text-white">
-              {score} <span className="text-xs font-normal text-slate-500">/ {maxScore}</span>
+        <div className="border-b border-white/10 bg-[#080C16] px-3 sm:px-6 py-2 sm:py-3 grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-3 text-center shrink-0">
+          <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-[#0D121F] p-2 sm:p-2.5">
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block">Final Score</span>
+            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-white">
+              {score} <span className="text-[10px] sm:text-xs font-normal text-slate-500">/ {maxScore}</span>
             </p>
-            <span className="text-[10px] text-blue-400 font-semibold">{percentage}% Total</span>
+            <span className="text-[9px] sm:text-[10px] text-blue-400 font-semibold">{percentage}% Total</span>
           </div>
 
-          <div className="rounded-2xl border border-rose-500/30 bg-rose-950/30 p-2.5">
-            <span className="text-[10px] uppercase font-bold text-rose-400 block">Wrong Questions</span>
-            <p className="mt-0.5 font-mono text-lg sm:text-xl font-black text-rose-400">
+          <div className="rounded-xl sm:rounded-2xl border border-rose-500/30 bg-rose-950/30 p-2 sm:p-2.5">
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-rose-400 block">Wrong Qs</span>
+            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-rose-400">
               −{wrong}
             </p>
-            <span className="text-[10px] text-rose-300 font-semibold">−{wrong} Negative</span>
+            <span className="text-[9px] sm:text-[10px] text-rose-300 font-semibold">−{wrong} Negative</span>
           </div>
 
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-2.5">
-            <span className="text-[10px] uppercase font-bold text-emerald-400 block">Correct Qs</span>
-            <p className="mt-0.5 font-mono text-lg sm:text-xl font-black text-emerald-400">
+          <div className="rounded-xl sm:rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-2 sm:p-2.5">
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-400 block">Correct Qs</span>
+            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-emerald-400">
               +{correct}
             </p>
-            <span className="text-[10px] text-emerald-300 font-semibold">+{correct * 4} Marks</span>
+            <span className="text-[9px] sm:text-[10px] text-emerald-300 font-semibold">+{correct * 4} Marks</span>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-[#0D121F] p-2.5">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Skipped Qs</span>
-            <p className="mt-0.5 font-mono text-lg sm:text-xl font-black text-slate-300">
+          <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-[#0D121F] p-2 sm:p-2.5">
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block">Skipped Qs</span>
+            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-slate-300">
               {unattempted}
             </p>
-            <span className="text-[10px] text-slate-400 font-semibold">0 Marks</span>
+            <span className="text-[9px] sm:text-[10px] text-slate-400 font-semibold">0 Marks</span>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 rounded-2xl border border-white/10 bg-[#0D121F] p-2.5">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Accuracy</span>
-            <p className="mt-0.5 font-mono text-lg sm:text-xl font-black text-amber-400">
+          <div className="col-span-2 sm:col-span-1 rounded-xl sm:rounded-2xl border border-white/10 bg-[#0D121F] p-2 sm:p-2.5">
+            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block">Accuracy</span>
+            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-amber-400">
               {accuracy}%
             </p>
-            <span className="text-[10px] text-slate-400 font-mono">{timeTaken} Duration</span>
+            <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono">{timeTaken}</span>
           </div>
         </div>
 
         {/* Focused Fast Tabs (Wrong Questions | Skipped Questions | Topic Diagnostics) */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-[#070A12] px-4 sm:px-7 py-2.5 overflow-x-auto gap-2 shrink-0">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between border-b border-white/10 bg-[#070A12] px-3 sm:px-6 py-2 overflow-x-auto scrollbar-none gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* 1. Wrong Questions Tab (Primary Target) */}
             <button
               type="button"
               onClick={() => setActiveTab('wrong')}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+              className={`rounded-full px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'wrong'
                   ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-1 ring-rose-400'
                   : 'bg-rose-500/10 text-rose-300 border border-rose-500/20 hover:bg-rose-500/20'
@@ -558,7 +582,7 @@ export default function AdminAttemptDetailModal({
             <button
               type="button"
               onClick={() => setActiveTab('unattempted')}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+              className={`rounded-full px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'unattempted'
                   ? 'bg-slate-600 text-white shadow-md ring-1 ring-slate-400'
                   : 'text-slate-400 hover:text-white bg-white/5 border border-white/10'
@@ -572,14 +596,14 @@ export default function AdminAttemptDetailModal({
             <button
               type="button"
               onClick={() => setActiveTab('diagnostics')}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+              className={`rounded-full px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'diagnostics'
                   ? 'bg-violet-600 text-white shadow-md shadow-violet-600/30'
                   : 'text-violet-300 hover:text-white bg-violet-500/10 border border-violet-500/20'
               }`}
             >
               <Sparkles size={13} />
-              <span>Topic Diagnostics &amp; Score Predictor</span>
+              <span>Diagnostics &amp; Predictor</span>
             </button>
           </div>
 

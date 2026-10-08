@@ -14,8 +14,10 @@ import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from './data/neetWorkEnergyTest.js'
 import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from './data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from './data/neet2026CoreTopicsTest.js';
 import { NEET_BIOLOGY_TEST, NEET_BIOLOGY_QUESTIONS } from './data/neetBiologyCoreTest.js';
-import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from './data/neetMechanicsBondingTest.js';
+import { NEET_ROUND_1_TEST, NEET_ROUND_1_QUESTIONS } from './data/neetMegaRound1MechanicsTest.js';
+import { NEET_ROUND_2_TEST, NEET_ROUND_2_QUESTIONS } from './data/neetMegaRound2BondingMorphologyTest.js';
 import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from './data/neetGrandMegaDrillTest.js';
+import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from './data/neetMechanicsBondingTest.js';
 import AuthPage from './pages/AuthPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
@@ -27,6 +29,14 @@ import ResultPage from './pages/ResultPage.jsx';
 const ACTIVE_TEST_KEY = 'neet_active_test_id';
 
 const ALL_TESTS = {
+  [NEET_ROUND_1_TEST.id]: {
+    ...NEET_ROUND_1_TEST,
+    questions: NEET_ROUND_1_QUESTIONS,
+  },
+  [NEET_ROUND_2_TEST.id]: {
+    ...NEET_ROUND_2_TEST,
+    questions: NEET_ROUND_2_QUESTIONS,
+  },
   [NEET_GRAND_MEGA_TEST.id]: {
     ...NEET_GRAND_MEGA_TEST,
     questions: NEET_GRAND_MEGA_QUESTIONS,

@@ -33,17 +33,18 @@ import {
   Atom,
   Dna,
 } from 'lucide-react';
-import { getUserAnalytics, getGlobalPlatformStats } from '../utils/auth.js';
+import { getUserAnalytics, getGlobalPlatformStats, fetchServerAttempts } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
 import { AttemptComparisonChart, AttemptAccuracyChart } from '../components/AttemptComparisonChart.jsx';
 import AttemptComparisonModal from '../components/AttemptComparisonModal.jsx';
 import GlobalLeaderboardModal from '../components/GlobalLeaderboardModal.jsx';
 import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
-import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
+import { NEET_ROUND_1_TEST } from '../data/neetMegaRound1MechanicsTest.js';
+import { NEET_ROUND_2_TEST } from '../data/neetMegaRound2BondingMorphologyTest.js';
+import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
-import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
 import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
 
 export default function DashboardPage({
@@ -58,10 +59,11 @@ export default function DashboardPage({
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
   const [globalStats, setGlobalStats] = useState(null);
   const [selectedStandard, setSelectedStandard] = useState('neet'); // 'neet' | 'class10' | 'class9' | 'class8'
+  const [refreshCounter, setRefreshCounter] = useState(0);
   const testsSectionRef = useRef(null);
 
   const standards = [
-    { id: 'neet', label: 'NEET 2027', badge: '5 Active Tests', active: true, icon: Zap },
+    { id: 'neet', label: 'NEET 2027', badge: '6 Active Tests', active: true, icon: Zap },
     { id: 'class10', label: 'Class 10', badge: 'Upcoming in future', active: false, icon: GraduationCap },
     { id: 'class9', label: 'Class 9', badge: 'Upcoming in future', active: false, icon: Layers },
     { id: 'class8', label: 'Class 8', badge: 'Upcoming in future', active: false, icon: BookOpen },
@@ -72,6 +74,17 @@ export default function DashboardPage({
       testsSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
+
+  // Sync latest user attempts directly from server on mount
+  useEffect(() => {
+    if (user?.email) {
+      fetchServerAttempts(user.email).then((attempts) => {
+        if (attempts && attempts.length > 0) {
+          setRefreshCounter((prev) => prev + 1);
+        }
+      });
+    }
+  }, [user?.email]);
 
   const analytics = getUserAnalytics(user?.email);
 
@@ -99,7 +112,7 @@ export default function DashboardPage({
     return () => {
       mounted = false;
     };
-  }, [totalAttempts]);
+  }, [totalAttempts, refreshCounter]);
 
   // Calculate delta between latest and previous attempt
   const scoreDelta =
@@ -410,78 +423,126 @@ export default function DashboardPage({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* 0. GRAND MASTER DRILL: MECHANICS, BONDING & MORPHOLOGY (240 Qs - FIXED 4.0 HRS) */}
-                <div className="rounded-3xl border border-amber-500/60 bg-gradient-to-b from-[#241705] via-[#160E04] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative flex flex-col justify-between hover:border-amber-500/90 transition group ring-1 ring-amber-500/40 md:col-span-2">
-                  <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 bg-amber-600/15 rounded-full blur-3xl" />
+                {/* 1. ROUND 1: MECHANICS DRILL (120 Qs - FIXED 2.0 HRS) */}
+                <div className="rounded-3xl border border-blue-500/60 bg-gradient-to-b from-[#0A192F] via-[#071324] to-[#0B0F19] p-6 sm:p-7 shadow-2xl relative flex flex-col justify-between hover:border-blue-500/90 transition group ring-1 ring-blue-500/30">
+                  <div className="pointer-events-none absolute top-0 right-0 w-48 h-48 bg-blue-600/15 rounded-full blur-3xl" />
 
                   <div className="space-y-4 relative z-10">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3.5 py-1 text-xs font-black text-amber-300 flex items-center gap-1.5 shadow-xs">
-                        <Trophy size={14} className="text-amber-400" /> ALL-IN-ONE GRAND DRILL · FULL 5-PDF REPOSITORY
+                      <span className="rounded-full bg-blue-500/20 border border-blue-500/40 px-3 py-1 text-xs font-black text-blue-300 flex items-center gap-1.5">
+                        <Zap size={14} className="text-blue-400" /> ROUND 1 · PHYSICS MECHANICS
                       </span>
-                      <span className="rounded-full bg-amber-500/30 border border-amber-400/50 px-3 py-1 text-xs font-extrabold text-amber-100 uppercase tracking-wider">
-                        🏆 240 Questions · Fixed 4 Hours
+                      <span className="rounded-full bg-blue-500/30 border border-blue-400/50 px-2.5 py-0.5 text-xs font-extrabold text-blue-100 uppercase tracking-wider">
+                        ⚡ 120 Qs · 2 Hours
                       </span>
                     </div>
 
                     <div>
-                      <h3 className="font-sans text-2xl sm:text-3xl font-black text-white group-hover:text-amber-200 transition tracking-tight">
-                        {NEET_GRAND_MEGA_TEST.title}
+                      <h3 className="font-sans text-xl sm:text-2xl font-black text-white group-hover:text-blue-200 transition tracking-tight">
+                        {NEET_ROUND_1_TEST.title}
                       </h3>
-                      <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-                        {NEET_GRAND_MEGA_TEST.description}
+                      <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                        {NEET_ROUND_1_TEST.description}
                       </p>
                     </div>
 
-                    {/* Highlights & Chips */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
-                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Total Questions</span>
-                        <strong className="font-mono text-base text-white font-black">240 Qs</strong>
-                        <span className="text-[10px] text-amber-400/90 block font-semibold">135 Phys + 45 Chem + 60 Bio</span>
+                    {/* Chips */}
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Questions</span>
+                        <strong className="font-mono text-sm text-white font-black">120 Qs</strong>
+                        <span className="text-[9px] text-slate-500 block">45 WEP + 45 COM + 30 Rot</span>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
-                        <strong className="font-mono text-base text-amber-400 font-black">240 Mins</strong>
-                        <span className="text-[10px] text-amber-500/80 block font-bold">Fixed 4.0 Hours (No Extension)</span>
+                        <strong className="font-mono text-sm text-amber-400 font-black">120 Mins</strong>
+                        <span className="text-[9px] text-amber-400/80 block font-bold">2.0 Hours Fixed</span>
                       </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
-                        <strong className="font-mono text-base text-emerald-400 font-black">960 Marks</strong>
-                        <span className="text-[10px] text-emerald-500/80 block">+4 / -1 Marking</span>
-                      </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
-                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Full Syllabus</span>
-                        <strong className="font-mono text-base text-blue-400 font-black">5 Complete Units</strong>
-                        <span className="text-[10px] text-blue-500/80 block">All 5 Source PDFs</span>
+                        <strong className="font-mono text-sm text-emerald-400 font-black">480 Marks</strong>
+                        <span className="text-[9px] text-emerald-400/80 block">+4 / -1 Scheme</span>
                       </div>
                     </div>
 
-                    {/* Syllabus summary */}
-                    <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs text-slate-300 space-y-2">
-                      <div className="flex items-start gap-2">
-                        <span className="font-bold text-amber-400 text-xs shrink-0">⚡ Physics (135 Qs):</span>
-                        <span className="text-xs text-slate-300">Work, Energy &amp; Power (45 Qs) + Centre of Mass &amp; Collisions (45 Qs) + Rotational Motion &amp; Rigid Bodies (45 Qs).</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="font-bold text-teal-400 text-xs shrink-0">🧪 Chemistry (45 Qs):</span>
-                        <span className="text-xs text-slate-300">Complete Chemical Bonding &amp; Molecular Structure (VSEPR, Hybridization, MOT, Dipole, Shapes).</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="font-bold text-emerald-400 text-xs shrink-0">🌿 Botany (60 Qs):</span>
-                        <span className="text-xs text-slate-300">Complete Morphology of Flowering Plants (Roots, Stems, Leaves, Inflorescences, Flowers, Fruits, Seeds, Family Characteristics).</span>
-                      </div>
+                    <div className="rounded-xl border border-white/10 bg-[#070A12] p-3 text-xs text-slate-300">
+                      <span className="font-bold text-blue-400 text-xs block mb-1">⚡ Topics Included:</span>
+                      <span className="text-[11px] text-slate-300 leading-relaxed">
+                        Work Done, Work-Energy Theorem, Conservative Forces, Discrete/Continuous Centre of Mass, 2D Inelastic Collisions, Moment of Inertia, and Torque Dynamics.
+                      </span>
                     </div>
                   </div>
 
-                  <div className="pt-6 relative z-10">
+                  <div className="pt-5 relative z-10">
                     <button
                       type="button"
-                      onClick={() => onStartTest(NEET_GRAND_MEGA_TEST.id)}
-                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 py-4 text-sm sm:text-base font-black text-white shadow-xl shadow-orange-600/30 transition active:scale-98"
+                      onClick={() => onStartTest(NEET_ROUND_1_TEST.id)}
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 py-3.5 text-xs sm:text-sm font-black text-white shadow-xl shadow-blue-600/30 transition active:scale-98"
                     >
-                      <span>Launch 240-Question Grand Master Examination (4.0 Hours Fixed)</span>
-                      <ArrowRight size={18} />
+                      <span>Start Round 1: Mechanics Drill (2.0 Hours)</span>
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. ROUND 2: BONDING, MORPHOLOGY & ROTATIONAL DYNAMICS (120 Qs - FIXED 2.0 HRS) */}
+                <div className="rounded-3xl border border-emerald-500/60 bg-gradient-to-b from-[#0A261D] via-[#071C15] to-[#0B0F19] p-6 sm:p-7 shadow-2xl relative flex flex-col justify-between hover:border-emerald-500/90 transition group ring-1 ring-emerald-500/30">
+                  <div className="pointer-events-none absolute top-0 right-0 w-48 h-48 bg-emerald-600/15 rounded-full blur-3xl" />
+
+                  <div className="space-y-4 relative z-10">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-3 py-1 text-xs font-black text-emerald-300 flex items-center gap-1.5">
+                        <Award size={14} className="text-emerald-400" /> ROUND 2 · CHEMISTRY, BOTANY &amp; DYNAMICS
+                      </span>
+                      <span className="rounded-full bg-emerald-500/30 border border-emerald-400/50 px-2.5 py-0.5 text-xs font-extrabold text-emerald-100 uppercase tracking-wider">
+                        🌿 120 Qs · 2 Hours
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="font-sans text-xl sm:text-2xl font-black text-white group-hover:text-emerald-200 transition tracking-tight">
+                        {NEET_ROUND_2_TEST.title}
+                      </h3>
+                      <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                        {NEET_ROUND_2_TEST.description}
+                      </p>
+                    </div>
+
+                    {/* Chips */}
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Questions</span>
+                        <strong className="font-mono text-sm text-white font-black">120 Qs</strong>
+                        <span className="text-[9px] text-slate-500 block">45 Chem + 60 Bio + 15 Phys</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
+                        <strong className="font-mono text-sm text-amber-400 font-black">120 Mins</strong>
+                        <span className="text-[9px] text-amber-400/80 block font-bold">2.0 Hours Fixed</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
+                        <strong className="font-mono text-sm text-emerald-400 font-black">480 Marks</strong>
+                        <span className="text-[9px] text-emerald-400/80 block">+4 / -1 Scheme</span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-[#070A12] p-3 text-xs text-slate-300">
+                      <span className="font-bold text-emerald-400 text-xs block mb-1">🧪 Topics Included:</span>
+                      <span className="text-[11px] text-slate-300 leading-relaxed">
+                        Chemical Bonding (VSEPR, Hybridization, MOT, Dipoles), Plant Morphology &amp; Floral Formulas, and Advanced Rigid Body Angular Dynamics.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-5 relative z-10">
+                    <button
+                      type="button"
+                      onClick={() => onStartTest(NEET_ROUND_2_TEST.id)}
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 py-3.5 text-xs sm:text-sm font-black text-white shadow-xl shadow-emerald-600/30 transition active:scale-98"
+                    >
+                      <span>Start Round 2: Bonding &amp; Botany Drill (2.0 Hours)</span>
+                      <ArrowRight size={16} />
                     </button>
                   </div>
                 </div>

@@ -339,6 +339,85 @@ export class ResultController {
       }
     }
 
-    return ApiResponse.success(res, 'Result retrieved successfully', result);
+  /**
+   * GET /api/results/student/:email - Get all attempts for a specific student from server
+   */
+  static getStudentAttempts = asyncHandler(async (req, res) => {
+    const { email } = req.params;
+    const cleanEmail = (email || req.user?.email || '').toLowerCase().trim();
+    if (!cleanEmail) {
+      return ApiResponse.success(res, 'No email specified', []);
+    }
+
+    let results = [];
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const userDoc = await User.findOne({ email: cleanEmail });
+        const query = userDoc
+          ? { $or: [{ userId: userDoc._id }, { studentEmail: cleanEmail }] }
+          : { studentEmail: cleanEmail };
+
+        const dbResults = await Result.find(query).sort({ createdAt: -1 }).lean();
+        results = dbResults.map((r) => ({
+          id: r._id.toString(),
+          attemptId: r.attemptId,
+          studentName: r.studentName || userDoc?.name || 'Student',
+          studentEmail: cleanEmail,
+          testId: r.testId,
+          testTitle: r.testTitle || r.metadata?.testTitle || 'NEET Practice Test',
+          score: r.score,
+          rawScore: r.rawScore ?? r.score,
+          maxScore: r.maxScore || 240,
+          accuracy: Math.round(r.accuracy || 0),
+          percentage: r.percentage || 0,
+          correct: r.correctCount || 0,
+          wrong: r.wrongCount || 0,
+          unattempted: r.unattemptedCount || 0,
+          totalQuestions: r.totalQuestions || 60,
+          timeTakenMs: r.timeTakenMs || r.metadata?.timeTakenMs || 0,
+          answers: r.answers || r.metadata?.answers || {},
+          perQuestion: r.perQuestion || r.metadata?.perQuestion || [],
+          topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
+          weakestTopics: r.weakestTopics || r.metadata?.weakestTopics || [],
+          strongestTopics: r.strongestTopics || r.metadata?.strongestTopics || [],
+          submittedAt: r.submittedAt || r.createdAt,
+          timestamp: r.submittedAt || r.createdAt,
+        }));
+      } catch (err) {
+        console.error('Failed to get student attempts from MongoDB:', err);
+      }
+    }
+
+    if (results.length === 0) {
+      results = SyncStore.getResults()
+        .filter((r) => (r.studentEmail || '').toLowerCase() === cleanEmail)
+        .map((r) => ({
+          id: r.id,
+          attemptId: r.attemptId,
+          studentName: r.studentName || 'Student',
+          studentEmail: cleanEmail,
+          testId: r.testId,
+          testTitle: r.testTitle || 'NEET Practice Test',
+          score: r.score,
+          rawScore: r.rawScore ?? r.score,
+          maxScore: r.maxScore || 240,
+          accuracy: Math.round(r.accuracy || 0),
+          percentage: r.percentage || 0,
+          correct: r.correct || r.correctCount || 0,
+          wrong: r.wrong || r.wrongCount || 0,
+          unattempted: r.unattempted || r.unattemptedCount || 0,
+          totalQuestions: r.totalQuestions || 60,
+          timeTakenMs: r.timeTakenMs || 0,
+          answers: r.answers || {},
+          perQuestion: r.perQuestion || [],
+          topicPerformance: r.topicPerformance || [],
+          weakestTopics: r.weakestTopics || [],
+          strongestTopics: r.strongestTopics || [],
+          submittedAt: r.timestamp || r.submittedAt,
+          timestamp: r.timestamp || r.submittedAt,
+        }));
+    }
+
+    return ApiResponse.success(res, 'Student attempts retrieved', results);
   });
 }
