@@ -70,6 +70,33 @@ export default function AdminDashboardPage({
     return true;
   });
 
+  const formatDateSafe = (ts) => {
+    if (!ts) return 'Recent';
+    try {
+      const d = new Date(ts);
+      return isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString();
+    } catch {
+      return 'Recent';
+    }
+  };
+
+  const formatDateTimeSafe = (ts) => {
+    if (!ts) return 'Recent';
+    try {
+      const d = new Date(ts);
+      return isNaN(d.getTime())
+        ? 'Recent'
+        : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return 'Recent';
+    }
+  };
+
+  const formatAcc = (val) => {
+    const num = Number(val);
+    return isNaN(num) ? '0' : num.toFixed(1);
+  };
+
   const handleInspectAttempt = (att, student) => {
     setSelectedAttempt(att);
     setSelectedStudent(student);
@@ -396,10 +423,7 @@ export default function AdminDashboardPage({
                                     <div className="flex items-center gap-2 text-[11px] text-slate-400">
                                       <Calendar size={12} className="text-slate-500" />
                                       <span>
-                                        {new Date(att.timestamp || att.submittedAt || Date.now()).toLocaleDateString(
-                                          undefined,
-                                          { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }
-                                        )}
+                                        {formatDateTimeSafe(att.timestamp || att.submittedAt)}
                                       </span>
                                       {att.timeTakenMs && (
                                         <>
@@ -415,13 +439,13 @@ export default function AdminDashboardPage({
                                     <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-center">
                                       <span className="text-[9px] uppercase font-bold text-slate-400 block">Score</span>
                                       <span className="font-mono font-bold text-white">
-                                        <strong className="text-sm font-black text-blue-400">{att.score}</strong> / {att.maxScore || 240}
+                                        <strong className="text-sm font-black text-blue-400">{att.score ?? 0}</strong> / {att.maxScore || 240}
                                       </span>
                                     </div>
                                     <div className="rounded-xl bg-emerald-950/20 border border-emerald-500/30 px-3 py-1.5 text-center">
                                       <span className="text-[9px] uppercase font-bold text-emerald-400 block">Accuracy</span>
                                       <span className="font-mono font-black text-emerald-400">
-                                        {(att.accuracy ?? 0).toFixed(1)}%
+                                        {formatAcc(att.accuracy)}%
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-1.5 font-mono text-xs">

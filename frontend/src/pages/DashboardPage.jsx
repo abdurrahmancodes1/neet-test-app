@@ -122,6 +122,32 @@ export default function DashboardPage({
       ? latestAttempt.accuracy - previousAttempt.accuracy
       : null;
 
+  const formatAttemptDate = (ts) => {
+    if (!ts) return 'Recent';
+    try {
+      const d = new Date(ts);
+      return isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return 'Recent';
+    }
+  };
+
+  const formatAttemptDateTime = (ts) => {
+    if (!ts) return 'Recent';
+    try {
+      const d = new Date(ts);
+      return isNaN(d.getTime()) ? 'Recent' : d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    } catch {
+      return 'Recent';
+    }
+  };
+
+  const formatAcc = (val) => {
+    const num = Number(val);
+    return isNaN(num) ? '0' : num.toFixed(1);
+  };
+
+
   return (
     <main className="min-h-screen bg-[#05070B] text-slate-100 px-4 py-4 sm:py-8 relative overflow-hidden selection:bg-blue-600 selection:text-white">
       {/* Background Ambient Radial Glow */}
@@ -1062,13 +1088,10 @@ export default function DashboardPage({
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
                 <div className="flex items-center gap-2.5">
                   <span className="rounded-full bg-blue-600/20 border border-blue-500/30 px-3 py-1 font-mono text-xs font-bold text-blue-300">
-                    Latest Attempt #{latestAttempt.attemptNumber || totalAttempts}
+                    Latest Attempt #{latestAttempt?.attemptNumber || totalAttempts}
                   </span>
                   <span className="text-xs text-slate-400">
-                    {new Date(latestAttempt.timestamp).toLocaleString(undefined, {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    })}
+                    {formatAttemptDateTime(latestAttempt?.timestamp)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1097,19 +1120,19 @@ export default function DashboardPage({
                 {/* Score Big Display */}
                 <div className="space-y-1.5">
                   <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">
-                    {latestAttempt.testTitle || 'Exam Result'}
+                    {latestAttempt?.testTitle || 'Exam Result'}
                   </span>
                   <h2 className="font-serif text-3xl sm:text-4xl font-black text-white">
-                    {latestAttempt.score}{' '}
+                    {latestAttempt?.score ?? 0}{' '}
                     <span className="text-lg text-slate-500 sm:text-xl font-normal">
-                      / {latestAttempt.maxScore || 240}
+                      / {latestAttempt?.maxScore || 240}
                     </span>
                   </h2>
                   <p className="text-sm font-semibold text-slate-300">
-                    {latestAttempt.percentage}% Final Score · {latestAttempt.accuracy?.toFixed(1)}% Accuracy
+                    {latestAttempt?.percentage ?? 0}% Final Score · {formatAcc(latestAttempt?.accuracy)}% Accuracy
                   </p>
                   <p className="text-xs text-slate-500">
-                    {latestAttempt.testTitle || 'NEET 2027 Assessment'}
+                    {latestAttempt?.testTitle || 'NEET 2027 Assessment'}
                   </p>
                 </div>
 
@@ -1262,19 +1285,15 @@ export default function DashboardPage({
                             {att.testTitle || 'NEET Standard Mock'}
                           </td>
                           <td className="px-3.5 py-3.5 text-slate-400">
-                            {new Date(att.timestamp).toLocaleDateString(undefined, {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })}
+                            {formatAttemptDate(att.timestamp)}
                           </td>
                           <td className="px-3.5 py-3.5 font-bold text-white">
-                            <span className="text-sm font-black">{att.score}</span>
+                            <span className="text-sm font-black">{att.score ?? 0}</span>
                             <span className="text-[11px] text-slate-500"> / {maxScore}</span>
-                            <span className="ml-1.5 text-[11px] text-blue-400">({att.percentage}%)</span>
+                            <span className="ml-1.5 text-[11px] text-blue-400">({att.percentage ?? 0}%)</span>
                           </td>
                           <td className="px-3.5 py-3.5 font-semibold text-emerald-400">
-                            {att.accuracy ? `${att.accuracy.toFixed(1)}%` : '0%'}
+                            {formatAcc(att.accuracy)}%
                           </td>
                           <td className="px-3.5 py-3.5">
                             <div className="flex items-center gap-1.5 font-mono text-[11px]">

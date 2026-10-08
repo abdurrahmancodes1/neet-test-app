@@ -16,6 +16,31 @@ export default function AttemptComparisonModal({
   const attemptA = attempts.find((a) => a.id === attemptAId) || attempts[0];
   const attemptB = attempts.find((a) => a.id === attemptBId) || attempts[1];
 
+  const formatDateSafe = (ts) => {
+    if (!ts) return 'Recent';
+    try {
+      const d = new Date(ts);
+      return isNaN(d.getTime()) ? 'Recent' : d.toLocaleDateString();
+    } catch {
+      return 'Recent';
+    }
+  };
+
+  const formatDateTimeSafe = (ts) => {
+    if (!ts) return 'Recent';
+    try {
+      const d = new Date(ts);
+      return isNaN(d.getTime()) ? 'Recent' : d.toLocaleString();
+    } catch {
+      return 'Recent';
+    }
+  };
+
+  const formatAcc = (val) => {
+    const num = Number(val);
+    return isNaN(num) ? '0' : num.toFixed(1);
+  };
+
   const scoreDiff = (attemptA.score || 0) - (attemptB.score || 0);
   const accDiff = (attemptA.accuracy || 0) - (attemptB.accuracy || 0);
   const correctDiff = (attemptA.correct || 0) - (attemptB.correct || 0);
@@ -68,7 +93,7 @@ export default function AttemptComparisonModal({
             >
               {attempts.map((att) => (
                 <option key={att.id} value={att.id} className="bg-[#0B0F19] text-white">
-                  Attempt #{att.attemptNumber || 1} — {new Date(att.timestamp).toLocaleDateString()} ({att.score}/240)
+                  Attempt #{att.attemptNumber || 1} — {formatDateSafe(att.timestamp)} ({att.score ?? 0}/{att.maxScore || 240})
                 </option>
               ))}
             </select>
@@ -85,7 +110,7 @@ export default function AttemptComparisonModal({
             >
               {attempts.map((att) => (
                 <option key={att.id} value={att.id} className="bg-[#0B0F19] text-white">
-                  Attempt #{att.attemptNumber || 1} — {new Date(att.timestamp).toLocaleDateString()} ({att.score}/240)
+                  Attempt #{att.attemptNumber || 1} — {formatDateSafe(att.timestamp)} ({att.score ?? 0}/{att.maxScore || 240})
                 </option>
               ))}
             </select>
@@ -118,9 +143,9 @@ export default function AttemptComparisonModal({
               <p className="text-[11px] font-medium text-slate-400">Accuracy Change</p>
               <div className="mt-1 flex items-center justify-center gap-1 font-mono text-lg font-bold">
                 {accDiff > 0 ? (
-                  <span className="text-emerald-400">+{accDiff.toFixed(1)}%</span>
+                  <span className="text-emerald-400">+{formatAcc(accDiff)}%</span>
                 ) : accDiff < 0 ? (
-                  <span className="text-rose-400">{accDiff.toFixed(1)}%</span>
+                  <span className="text-rose-400">{formatAcc(accDiff)}%</span>
                 ) : (
                   <span className="text-slate-400">0%</span>
                 )}
@@ -165,14 +190,14 @@ export default function AttemptComparisonModal({
                   Attempt #{attemptA.attemptNumber || 1}
                 </span>
                 <p className="mt-1 text-xs text-slate-400">
-                  {new Date(attemptA.timestamp).toLocaleString()}
+                  {formatDateTimeSafe(attemptA.timestamp)}
                 </p>
               </div>
               <div className="text-right">
                 <p className="font-serif text-2xl font-black text-white">
-                  {attemptA.score} <span className="text-xs text-slate-500">/ 240</span>
+                  {attemptA.score ?? 0} <span className="text-xs text-slate-500">/ {attemptA.maxScore || 240}</span>
                 </p>
-                <p className="text-xs font-bold text-blue-400">{attemptA.percentage}%</p>
+                <p className="text-xs font-bold text-blue-400">{attemptA.percentage ?? 0}%</p>
               </div>
             </div>
 
@@ -181,25 +206,25 @@ export default function AttemptComparisonModal({
                 <span className="flex items-center gap-1.5 font-medium">
                   <CheckCircle2 size={14} /> Correct Answers
                 </span>
-                <span className="font-mono font-bold">{attemptA.correct}</span>
+                <span className="font-mono font-bold">{attemptA.correct ?? 0}</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-rose-500/10 border border-rose-500/20 px-3 py-2 text-rose-300">
                 <span className="flex items-center gap-1.5 font-medium">
                   <XCircle size={14} /> Wrong Answers
                 </span>
-                <span className="font-mono font-bold">{attemptA.wrong}</span>
+                <span className="font-mono font-bold">{attemptA.wrong ?? 0}</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-slate-300">
                 <span className="flex items-center gap-1.5 font-medium">
                   <Minus size={14} /> Unattempted
                 </span>
-                <span className="font-mono font-bold">{attemptA.unattempted}</span>
+                <span className="font-mono font-bold">{attemptA.unattempted ?? 0}</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-slate-300">
                 <span className="flex items-center gap-1.5 font-medium">
                   <Target size={14} /> Overall Accuracy
                 </span>
-                <span className="font-mono font-bold">{attemptA.accuracy?.toFixed(1)}%</span>
+                <span className="font-mono font-bold">{formatAcc(attemptA.accuracy)}%</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-slate-300">
                 <span className="flex items-center gap-1.5 font-medium">
@@ -231,14 +256,14 @@ export default function AttemptComparisonModal({
                   Attempt #{attemptB.attemptNumber || 1}
                 </span>
                 <p className="mt-1 text-xs text-slate-400">
-                  {new Date(attemptB.timestamp).toLocaleString()}
+                  {formatDateTimeSafe(attemptB.timestamp)}
                 </p>
               </div>
               <div className="text-right">
                 <p className="font-serif text-2xl font-black text-white">
-                  {attemptB.score} <span className="text-xs text-slate-500">/ 240</span>
+                  {attemptB.score ?? 0} <span className="text-xs text-slate-500">/ {attemptB.maxScore || 240}</span>
                 </p>
-                <p className="text-xs font-bold text-blue-400">{attemptB.percentage}%</p>
+                <p className="text-xs font-bold text-blue-400">{attemptB.percentage ?? 0}%</p>
               </div>
             </div>
 
@@ -247,25 +272,25 @@ export default function AttemptComparisonModal({
                 <span className="flex items-center gap-1.5 font-medium">
                   <CheckCircle2 size={14} /> Correct Answers
                 </span>
-                <span className="font-mono font-bold">{attemptB.correct}</span>
+                <span className="font-mono font-bold">{attemptB.correct ?? 0}</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-rose-500/10 border border-rose-500/20 px-3 py-2 text-rose-300">
                 <span className="flex items-center gap-1.5 font-medium">
                   <XCircle size={14} /> Wrong Answers
                 </span>
-                <span className="font-mono font-bold">{attemptB.wrong}</span>
+                <span className="font-mono font-bold">{attemptB.wrong ?? 0}</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-slate-300">
                 <span className="flex items-center gap-1.5 font-medium">
                   <Minus size={14} /> Unattempted
                 </span>
-                <span className="font-mono font-bold">{attemptB.unattempted}</span>
+                <span className="font-mono font-bold">{attemptB.unattempted ?? 0}</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-slate-300">
                 <span className="flex items-center gap-1.5 font-medium">
                   <Target size={14} /> Overall Accuracy
                 </span>
-                <span className="font-mono font-bold">{attemptB.accuracy?.toFixed(1)}%</span>
+                <span className="font-mono font-bold">{formatAcc(attemptB.accuracy)}%</span>
               </div>
               <div className="flex items-center justify-between rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-slate-300">
                 <span className="flex items-center gap-1.5 font-medium">

@@ -33,6 +33,18 @@ export default function GlobalLeaderboardModal({
   const avgScore = stats?.averageScore || 0;
   const highestScore = stats?.highestScore || (leaderboard[0]?.score ?? 0);
 
+  const formatDateSafe = (ts) => {
+    if (!ts) return '—';
+    try {
+      const d = new Date(ts);
+      return isNaN(d.getTime())
+        ? '—'
+        : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return '—';
+    }
+  };
+
   const filteredLeaderboard = leaderboard.filter((item) =>
     (item.studentName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (item.email || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -241,13 +253,7 @@ export default function GlobalLeaderboardModal({
                             </div>
                           </td>
                           <td className="px-4 py-3.5 text-slate-400 text-[11px]">
-                            {item.submittedAt
-                              ? new Date(item.submittedAt).toLocaleDateString(undefined, {
-                                  month: 'short',
-                                  day: 'numeric',
-                                  year: 'numeric',
-                                })
-                              : '—'}
+                            {formatDateSafe(item.submittedAt)}
                           </td>
                         </tr>
                       );
@@ -297,7 +303,7 @@ export default function GlobalLeaderboardModal({
                         </span>
                       </div>
                       <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2.5 text-[11px] text-slate-500">
-                        <span>Joined: {cand.registeredAt ? new Date(cand.registeredAt).toLocaleDateString() : 'Active'}</span>
+                        <span>Joined: {cand.registeredAt ? formatDateSafe(cand.registeredAt) : 'Active'}</span>
                         <span className="text-emerald-400 font-semibold">● Registered Candidate</span>
                       </div>
                     </div>
