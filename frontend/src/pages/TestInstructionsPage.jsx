@@ -17,9 +17,7 @@ import {
 export default function TestInstructionsPage({ test, onBack, onStart }) {
   const qCount = test?.totalQuestions || test?.questions?.length || 60;
   const defaultDuration = test?.durationMinutes || 120;
-  const isCustomizable = Boolean(
-    test?.allowCustomDuration || test?.id === 'neet-mechanics-chemical-bonding-drill'
-  );
+  const isCustomizable = Boolean(test?.allowCustomDuration === true);
   const maxDuration = test?.maxCustomDurationMinutes || 180; // 3 Hours strict max
   const minDuration = test?.minCustomDurationMinutes || 10;
 

@@ -24,12 +24,20 @@ import NeetScorePredictorCard from './NeetScorePredictorCard.jsx';
 import { formatDuration } from '../utils/scoring.js';
 import { NEET_BIOLOGY_TEST, NEET_BIOLOGY_QUESTIONS } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from '../data/neetMechanicsBondingTest.js';
+import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from '../data/neetGrandMegaDrillTest.js';
 import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from '../data/neetCalculusTest.js';
 import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from '../data/neetWorkEnergyTest.js';
 
 // Central registry of all test suites with all possible alias keys
 const ALL_TEST_DATA = {
+  // Grand Mega Drill (Mechanics, Chemical Bonding & Morphology - 240 Qs)
+  [NEET_GRAND_MEGA_TEST.id]: { test: NEET_GRAND_MEGA_TEST, questions: NEET_GRAND_MEGA_QUESTIONS },
+  'neet-grand-mechanics-bonding-morphology-drill': { test: NEET_GRAND_MEGA_TEST, questions: NEET_GRAND_MEGA_QUESTIONS },
+  'neet-grand-mega-drill': { test: NEET_GRAND_MEGA_TEST, questions: NEET_GRAND_MEGA_QUESTIONS },
+  'grand-mechanics-bonding-morphology': { test: NEET_GRAND_MEGA_TEST, questions: NEET_GRAND_MEGA_QUESTIONS },
+  'neet-grand-drill': { test: NEET_GRAND_MEGA_TEST, questions: NEET_GRAND_MEGA_QUESTIONS },
+
   // Biology Core
   [NEET_BIOLOGY_TEST.id]: { test: NEET_BIOLOGY_TEST, questions: NEET_BIOLOGY_QUESTIONS },
   'neet-biology-class11-core-drill': { test: NEET_BIOLOGY_TEST, questions: NEET_BIOLOGY_QUESTIONS },

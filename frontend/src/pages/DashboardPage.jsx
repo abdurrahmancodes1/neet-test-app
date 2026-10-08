@@ -43,6 +43,7 @@ import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
+import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
 import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
 
 export default function DashboardPage({
@@ -401,7 +402,7 @@ export default function DashboardPage({
             <div className="space-y-4">
               <div className="flex items-center justify-between text-xs text-slate-400 px-1">
                 <span className="font-semibold text-slate-300">
-                  Showing 4 Full CBT Mock Tests strictly inside NEET Section
+                  Showing 5 Full CBT Mock Tests strictly inside NEET Section
                 </span>
                 <span className="text-[11px] text-blue-400 font-mono">
                   All tests synced with Cloud Leaderboard &amp; KaTeX Typography
@@ -409,6 +410,82 @@ export default function DashboardPage({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* 0. GRAND MASTER DRILL: MECHANICS, BONDING & MORPHOLOGY (240 Qs - FIXED 4.0 HRS) */}
+                <div className="rounded-3xl border border-amber-500/60 bg-gradient-to-b from-[#241705] via-[#160E04] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative flex flex-col justify-between hover:border-amber-500/90 transition group ring-1 ring-amber-500/40 md:col-span-2">
+                  <div className="pointer-events-none absolute top-0 right-0 w-64 h-64 bg-amber-600/15 rounded-full blur-3xl" />
+
+                  <div className="space-y-4 relative z-10">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3.5 py-1 text-xs font-black text-amber-300 flex items-center gap-1.5 shadow-xs">
+                        <Trophy size={14} className="text-amber-400" /> ALL-IN-ONE GRAND DRILL · FULL 5-PDF REPOSITORY
+                      </span>
+                      <span className="rounded-full bg-amber-500/30 border border-amber-400/50 px-3 py-1 text-xs font-extrabold text-amber-100 uppercase tracking-wider">
+                        🏆 240 Questions · Fixed 4 Hours
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="font-sans text-2xl sm:text-3xl font-black text-white group-hover:text-amber-200 transition tracking-tight">
+                        {NEET_GRAND_MEGA_TEST.title}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                        {NEET_GRAND_MEGA_TEST.description}
+                      </p>
+                    </div>
+
+                    {/* Highlights & Chips */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Total Questions</span>
+                        <strong className="font-mono text-base text-white font-black">240 Qs</strong>
+                        <span className="text-[10px] text-amber-400/90 block font-semibold">135 Phys + 45 Chem + 60 Bio</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
+                        <strong className="font-mono text-base text-amber-400 font-black">240 Mins</strong>
+                        <span className="text-[10px] text-amber-500/80 block font-bold">Fixed 4.0 Hours (No Extension)</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
+                        <strong className="font-mono text-base text-emerald-400 font-black">960 Marks</strong>
+                        <span className="text-[10px] text-emerald-500/80 block">+4 / -1 Marking</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Full Syllabus</span>
+                        <strong className="font-mono text-base text-blue-400 font-black">5 Complete Units</strong>
+                        <span className="text-[10px] text-blue-500/80 block">All 5 Source PDFs</span>
+                      </div>
+                    </div>
+
+                    {/* Syllabus summary */}
+                    <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs text-slate-300 space-y-2">
+                      <div className="flex items-start gap-2">
+                        <span className="font-bold text-amber-400 text-xs shrink-0">⚡ Physics (135 Qs):</span>
+                        <span className="text-xs text-slate-300">Work, Energy &amp; Power (45 Qs) + Centre of Mass &amp; Collisions (45 Qs) + Rotational Motion &amp; Rigid Bodies (45 Qs).</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-bold text-teal-400 text-xs shrink-0">🧪 Chemistry (45 Qs):</span>
+                        <span className="text-xs text-slate-300">Complete Chemical Bonding &amp; Molecular Structure (VSEPR, Hybridization, MOT, Dipole, Shapes).</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="font-bold text-emerald-400 text-xs shrink-0">🌿 Botany (60 Qs):</span>
+                        <span className="text-xs text-slate-300">Complete Morphology of Flowering Plants (Roots, Stems, Leaves, Inflorescences, Flowers, Fruits, Seeds, Family Characteristics).</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 relative z-10">
+                    <button
+                      type="button"
+                      onClick={() => onStartTest(NEET_GRAND_MEGA_TEST.id)}
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 py-4 text-sm sm:text-base font-black text-white shadow-xl shadow-orange-600/30 transition active:scale-98"
+                    >
+                      <span>Launch 240-Question Grand Master Examination (4.0 Hours Fixed)</span>
+                      <ArrowRight size={18} />
+                    </button>
+                  </div>
+                </div>
+
                 {/* 1. NEW NEET & JEE MECHANICS + CHEMICAL BONDING DRILL */}
                 <div className="rounded-3xl border border-violet-500/50 bg-gradient-to-b from-[#160E2E] via-[#100A22] to-[#0B0F19] p-6 shadow-2xl relative flex flex-col justify-between hover:border-violet-500/80 transition group ring-1 ring-violet-500/30 md:col-span-2">
                   <div className="pointer-events-none absolute top-0 right-0 w-48 h-48 bg-violet-600/15 rounded-full blur-3xl" />

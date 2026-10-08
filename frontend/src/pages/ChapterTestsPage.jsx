@@ -20,6 +20,7 @@ import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
+import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
 
 export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard }) {
   const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'class10' | 'class9' | 'class8'
@@ -163,10 +164,68 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                   Select a timed examination below to begin your CBT assessment with authentic PYQs and instant solutions.
                 </p>
               </div>
-              <div className="flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-4 py-1.5 text-xs font-bold text-violet-300">
-                <CheckCircle2 size={16} /> 5 Tests Available
+              <div className="flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold text-amber-300">
+                <CheckCircle2 size={16} /> 6 Tests Available
               </div>
             </div>
+
+            {/* Test Card 0: NEET Grand Master Drill (240 Questions - Fixed 4.0 Hours) */}
+            <article className="overflow-hidden rounded-3xl border border-amber-500/60 bg-gradient-to-b from-[#241705] via-[#160E04] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-amber-500/40">
+              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-amber-600/20 blur-3xl" />
+
+              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
+                <div className="max-w-2xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-0.5 text-xs font-bold text-amber-300">
+                      🏆 240 QUESTIONS GRAND MASTER DRILL
+                    </span>
+                    <span className="rounded-full bg-blue-600/20 border border-blue-500/30 px-3 py-0.5 text-xs font-bold text-blue-300">
+                      Physics · Chemistry · Biology
+                    </span>
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-0.5 text-xs font-bold text-emerald-300">
+                      Fixed 4.0 Hours
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3 font-sans text-2xl sm:text-3xl font-black text-white">
+                    {NEET_GRAND_MEGA_TEST.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-400">
+                    {NEET_GRAND_MEGA_TEST.description}
+                  </p>
+
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs leading-relaxed text-slate-300">
+                    <span className="font-bold text-white">Syllabus Covered: </span>
+                    {NEET_GRAND_MEGA_TEST.syllabus}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Clock size={14} className="text-amber-400" />
+                      <strong className="text-white">240 Minutes</strong> (Fixed 4 Hours Continuous CBT)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <BookOpen size={14} className="text-blue-400" />
+                      <strong className="text-white">240 Questions</strong> (135 Phys + 45 Chem + 60 Bio)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Award size={14} className="text-emerald-400" />
+                      <strong className="text-white">960 Marks</strong> (+4 / −1 Marking Scheme)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(NEET_GRAND_MEGA_TEST.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-orange-600/30 transition active:scale-95 lg:w-auto"
+                  >
+                    Start 240-Min Examination <ArrowRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </article>
 
             {/* Test Card 1: NEET & JEE Mechanics + Chemical Bonding Drill */}
             <article className="overflow-hidden rounded-3xl border border-violet-500/50 bg-gradient-to-b from-[#160E2E] via-[#100A22] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-violet-500/30">

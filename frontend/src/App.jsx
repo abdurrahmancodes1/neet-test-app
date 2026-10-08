@@ -15,6 +15,7 @@ import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from './data/neetCalculus
 import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from './data/neet2026CoreTopicsTest.js';
 import { NEET_BIOLOGY_TEST, NEET_BIOLOGY_QUESTIONS } from './data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from './data/neetMechanicsBondingTest.js';
+import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from './data/neetGrandMegaDrillTest.js';
 import AuthPage from './pages/AuthPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
@@ -26,6 +27,10 @@ import ResultPage from './pages/ResultPage.jsx';
 const ACTIVE_TEST_KEY = 'neet_active_test_id';
 
 const ALL_TESTS = {
+  [NEET_GRAND_MEGA_TEST.id]: {
+    ...NEET_GRAND_MEGA_TEST,
+    questions: NEET_GRAND_MEGA_QUESTIONS,
+  },
   [NEET_MECHANICS_BONDING_TEST.id]: {
     ...NEET_MECHANICS_BONDING_TEST,
     questions: NEET_MECHANICS_BONDING_QUESTIONS,

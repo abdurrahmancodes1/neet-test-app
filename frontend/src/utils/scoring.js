@@ -150,20 +150,27 @@ export function getNeetPrediction(testId, score, maxScore, accuracy = 0, correct
   const rawTestId = String(testId).toLowerCase().trim();
 
   // Allow for the 2 newly added comprehensive tests plus core chapter suites
+  const isGrandMega =
+    rawTestId.includes('grand') ||
+    rawTestId.includes('mega') ||
+    (rawTestId.includes('mechanics') && rawTestId.includes('morphology'));
+
   const isBiology =
-    rawTestId.includes('biology') ||
-    rawTestId.includes('botany') ||
-    rawTestId.includes('zoology');
+    !isGrandMega &&
+    (rawTestId.includes('biology') ||
+      rawTestId.includes('botany') ||
+      rawTestId.includes('zoology'));
 
   const isMechanicsBonding =
-    rawTestId.includes('mechanics') ||
-    rawTestId.includes('bonding') ||
-    rawTestId.includes('core-drill') ||
-    rawTestId.includes('2026-core') ||
-    rawTestId.includes('calculus') ||
-    rawTestId.includes('work-energy');
+    !isGrandMega &&
+    (rawTestId.includes('mechanics') ||
+      rawTestId.includes('bonding') ||
+      rawTestId.includes('core-drill') ||
+      rawTestId.includes('2026-core') ||
+      rawTestId.includes('calculus') ||
+      rawTestId.includes('work-energy'));
 
-  if (!isBiology && !isMechanicsBonding) {
+  if (!isGrandMega && !isBiology && !isMechanicsBonding) {
     return null;
   }
 
@@ -182,7 +189,12 @@ export function getNeetPrediction(testId, score, maxScore, accuracy = 0, correct
   let otherSectionName = 'Biology (Botany & Zoology)';
   let difficultyLevel = 'High (JEE / Hard NEET Level)';
 
-  if (isBiology) {
+  if (isGrandMega) {
+    testType = 'full_syllabus';
+    testedSectionName = 'Physics, Chemistry & Biology (All 240 Qs)';
+    otherSectionName = 'Full Comprehensive Curriculum';
+    difficultyLevel = 'National Full Master Benchmark';
+  } else if (isBiology) {
     testType = 'biology';
     testedSectionName = 'Biology (Botany & Human Physiology)';
     otherSectionName = 'Physics & Chemistry';
@@ -195,17 +207,18 @@ export function getNeetPrediction(testId, score, maxScore, accuracy = 0, correct
   }
 
   // 2. Compute Tested Section Score (Scaled to 360) with Question Difficulty Bonus
-  // Because Physics & Chemistry questions without Biology are the hardest deciding section in NEET,
-  // high accuracy in hard questions receives a precision difficulty boost.
-  const difficultyBonus = !isBiology ? Math.min(18, (acc / 100) * 14) : Math.min(8, (acc / 100) * 6);
-  let scaledSectionScore = Math.round(fraction * 360 + difficultyBonus);
+  const difficultyBonus = isGrandMega ? 0 : !isBiology ? Math.min(18, (acc / 100) * 14) : Math.min(8, (acc / 100) * 6);
+  let scaledSectionScore = isGrandMega ? Math.round(fraction * 360) : Math.round(fraction * 360 + difficultyBonus);
   scaledSectionScore = Math.min(360, Math.max(0, scaledSectionScore));
 
   // 3. Compute Auto-Assumed Complementary Subject Score (out of 360)
   let assumedOtherScore = 0;
   let assumedSectionNote = '';
 
-  if (isBiology) {
+  if (isGrandMega) {
+    assumedOtherScore = Math.round(fraction * 360);
+    assumedSectionNote = 'Direct Tri-Subject (Physics, Chemistry & Botany) evaluation based on full 240 question paper.';
+  } else if (isBiology) {
     // Student took Biology test -> Auto-assume Physics & Chemistry score (out of 360)
     // Physics & Chemistry is harder than Biology for NEET students
     if (fraction >= 0.90 && acc >= 92) {
