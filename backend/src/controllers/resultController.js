@@ -339,6 +339,9 @@ export class ResultController {
       }
     }
 
+    return ApiResponse.success(res, 'Result retrieved successfully', result);
+  });
+
   /**
    * GET /api/results/student/:email - Get all attempts for a specific student from server
    */

@@ -256,10 +256,24 @@ export async function fetchServerAttempts(email) {
     if (res.ok) {
       const data = await res.json();
       if (data?.data && Array.isArray(data.data)) {
+        const normalized = data.data.map((a, idx) => ({
+          ...a,
+          id: a.id || a.attemptId || `attempt_${idx}`,
+          timestamp: a.timestamp || a.submittedAt || a.createdAt || new Date().toISOString(),
+          score: a.score ?? a.rawScore ?? 0,
+          maxScore: a.maxScore || 240,
+          accuracy: Math.round(a.accuracy ?? 0),
+          percentage: a.percentage ?? (a.maxScore ? Math.round(((a.score || 0) / a.maxScore) * 1000) / 10 : 0),
+          correct: a.correct ?? a.correctCount ?? 0,
+          wrong: a.wrong ?? a.wrongCount ?? 0,
+          unattempted: a.unattempted ?? a.unattemptedCount ?? 0,
+          totalQuestions: a.totalQuestions || 60,
+          testTitle: a.testTitle || 'NEET Assessment',
+        }));
         try {
-          window.localStorage.setItem(getAttemptsKey(cleanEmail), JSON.stringify(data.data));
+          window.localStorage.setItem(getAttemptsKey(cleanEmail), JSON.stringify(normalized));
         } catch {}
-        return data.data;
+        return normalized;
       }
     }
   } catch (err) {
@@ -501,8 +515,8 @@ export async function getAdminOverview() {
 }
 
 export function getUserAnalytics(email) {
-  const attempts = getUserAttempts(email);
-  if (!attempts || attempts.length === 0) {
+  const rawAttempts = getUserAttempts(email);
+  if (!rawAttempts || !Array.isArray(rawAttempts) || rawAttempts.length === 0) {
     return {
       totalAttempts: 0,
       latestAttempt: null,
@@ -511,48 +525,89 @@ export function getUserAnalytics(email) {
       averageScore: 0,
       averageAccuracy: 0,
       scoreTrend: [],
-      topicMastery: {},
+      topicMap: {},
+      allAttempts: [],
     };
   }
 
-  const sortedByDate = [...attempts].sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-  );
+  const attempts = rawAttempts.map((a, index) => {
+    const score = a.score ?? a.rawScore ?? 0;
+    const maxScore = a.maxScore || 240;
+    const percentage = a.percentage ?? (maxScore > 0 ? Math.round((score / maxScore) * 1000) / 10 : 0);
+    const correct = a.correct ?? a.correctCount ?? 0;
+    const wrong = a.wrong ?? a.wrongCount ?? 0;
+    const unattempted = a.unattempted ?? a.unattemptedCount ?? Math.max(0, (a.totalQuestions || 60) - correct - wrong);
+    const attempted = correct + wrong;
+    const accuracy = a.accuracy !== undefined ? Math.round(a.accuracy) : (attempted > 0 ? Math.round((correct / attempted) * 100) : 0);
+    const ts = a.timestamp || a.submittedAt || a.createdAt || new Date().toISOString();
 
-  const latestAttempt = sortedByDate[sortedByDate.length - 1];
+    return {
+      ...a,
+      id: a.id || a.attemptId || `att_${index}`,
+      attemptNumber: a.attemptNumber || index + 1,
+      timestamp: ts,
+      score,
+      maxScore,
+      percentage,
+      accuracy,
+      correct,
+      wrong,
+      unattempted,
+      totalQuestions: a.totalQuestions || (correct + wrong + unattempted) || 60,
+      testTitle: a.testTitle || 'NEET Practice Test',
+      testId: a.testId || 'neet-work-energy-power',
+    };
+  });
+
+  const sortedByDate = [...attempts].sort((a, b) => {
+    const tA = new Date(a.timestamp).getTime() || 0;
+    const tB = new Date(b.timestamp).getTime() || 0;
+    return tA - tB;
+  });
+
+  const latestAttempt = sortedByDate[sortedByDate.length - 1] || null;
   const previousAttempt = sortedByDate.length > 1 ? sortedByDate[sortedByDate.length - 2] : null;
 
   const bestAttempt = [...attempts].reduce((best, cur) => {
+    if (!best) return cur;
     return (cur.score ?? 0) > (best.score ?? 0) ? cur : best;
-  }, attempts[0]);
+  }, attempts[0] || null);
 
   const totalScore = attempts.reduce((sum, a) => sum + (a.score || 0), 0);
   const totalAccuracy = attempts.reduce((sum, a) => sum + (a.accuracy || 0), 0);
-  const averageScore = Math.round((totalScore / attempts.length) * 10) / 10;
-  const averageAccuracy = Math.round((totalAccuracy / attempts.length) * 10) / 10;
+  const averageScore = attempts.length > 0 ? Math.round((totalScore / attempts.length) * 10) / 10 : 0;
+  const averageAccuracy = attempts.length > 0 ? Math.round((totalAccuracy / attempts.length) * 10) / 10 : 0;
 
-  const scoreTrend = sortedByDate.map((a, index) => ({
-    attempt: `Attempt ${index + 1}`,
-    shortDate: new Date(a.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-    score: a.score,
-    maxScore: a.maxScore || 240,
-    accuracy: Math.round(a.accuracy),
-    correct: a.correct,
-    wrong: a.wrong,
-    unattempted: a.unattempted,
-  }));
+  const scoreTrend = sortedByDate.map((a, index) => {
+    const d = new Date(a.timestamp);
+    const shortDate = isNaN(d.getTime())
+      ? `Attempt ${index + 1}`
+      : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+    return {
+      attempt: `Attempt ${a.attemptNumber || index + 1}`,
+      shortDate,
+      score: a.score,
+      maxScore: a.maxScore,
+      accuracy: a.accuracy,
+      correct: a.correct,
+      wrong: a.wrong,
+      unattempted: a.unattempted,
+    };
+  });
 
   // Aggregate topic mastery
   const topicMap = {};
   attempts.forEach((a) => {
     if (a.topicPerformance && Array.isArray(a.topicPerformance)) {
       a.topicPerformance.forEach((tp) => {
+        if (!tp || !tp.topic) return;
         if (!topicMap[tp.topic]) {
           topicMap[tp.topic] = { topic: tp.topic, totalAttempted: 0, totalCorrect: 0, history: [] };
         }
         topicMap[tp.topic].totalAttempted += tp.total || 0;
         topicMap[tp.topic].totalCorrect += tp.correct || 0;
-        topicMap[tp.topic].history.push(tp.mastery);
+        topicMap[tp.topic].history.push(tp.mastery ?? 0);
       });
     }
   });
@@ -566,6 +621,6 @@ export function getUserAnalytics(email) {
     averageAccuracy,
     scoreTrend,
     topicMap,
-    allAttempts: sortedByDate.reverse(), // most recent first
+    allAttempts: [...sortedByDate].reverse(), // most recent first (immutably)
   };
 }
