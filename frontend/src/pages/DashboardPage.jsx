@@ -40,6 +40,7 @@ import AttemptComparisonModal from '../components/AttemptComparisonModal.jsx';
 import GlobalLeaderboardModal from '../components/GlobalLeaderboardModal.jsx';
 import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
+import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_ROUND_1_TEST } from '../data/neetMegaRound1MechanicsTest.js';
 import { NEET_ROUND_2_TEST } from '../data/neetMegaRound2BondingMorphologyTest.js';
 import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
