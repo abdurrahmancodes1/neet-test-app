@@ -29,6 +29,7 @@ export default function AdminDashboardPage({
   user,
   onGoToStudentDashboard,
   onLogout,
+  onDiagnoseAttempt,
 }) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
@@ -98,8 +99,12 @@ export default function AdminDashboardPage({
   };
 
   const handleInspectAttempt = (att, student) => {
-    setSelectedAttempt(att);
-    setSelectedStudent(student);
+    if (onDiagnoseAttempt) {
+      onDiagnoseAttempt(att, student);
+    } else {
+      setSelectedAttempt(att);
+      setSelectedStudent(student);
+    }
   };
 
   return (

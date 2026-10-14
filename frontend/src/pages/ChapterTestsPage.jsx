@@ -15,6 +15,9 @@ import {
   LogOut,
   BarChart3,
   Target,
+  Scale,
+  Flame,
+  ShieldAlert,
 } from 'lucide-react';
 import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
@@ -656,6 +659,134 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                 </div>
               </div>
             </article>
+
+            {/* Strict JEE Rules & Paper Hardness Matrix */}
+            <div className="rounded-3xl border border-amber-500/30 bg-gradient-to-b from-[#161007] via-[#0E0C07] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative overflow-hidden space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-1 text-xs font-black text-amber-300 flex items-center gap-1.5">
+                      <Scale size={13} /> Strict NTA Examination Rules
+                    </span>
+                    <span className="rounded-full bg-orange-500/20 border border-orange-500/40 px-3 py-1 text-xs font-black text-orange-300 flex items-center gap-1.5">
+                      <Flame size={13} /> Paper Hardness: Tough Shift
+                    </span>
+                  </div>
+                  <h3 className="font-sans text-xl sm:text-2xl font-black text-white tracking-tight">
+                    JEE Main 2027 Normalization &amp; Expected Percentile Architecture
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed max-w-2xl">
+                    Official NTA evaluation guidelines, negative marking penalty (-1 mark), tie-breaker rules, and calibrated marks-versus-percentile matrix according to paper difficulty.
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-center shrink-0">
+                  <span className="text-[10px] uppercase font-bold text-amber-400 block">General Cutoff</span>
+                  <strong className="font-mono text-base font-black text-white block">~93.2%tile</strong>
+                  <span className="text-[9px] text-slate-400">JEE Advanced Qualifier</span>
+                </div>
+              </div>
+
+              {/* Grid of Strict Rules */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
+                    <ShieldAlert size={14} /> 1. Strict Marking (+4 / −1)
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    +4 marks awarded for each correct option; −1 mark deducted for every incorrect attempt. Zero marks for unattempted questions. Random guessing drastically hurts NTA percentile.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
+                    <Scale size={14} /> 2. Shift Normalization
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Percentile is not a raw percentage. Formula: 100 × (Candidates with raw score ≤ Your raw score) ÷ (Total candidates in shift). Reported to 7 decimal places.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
+                    <Target size={14} /> 3. Official Tie-Breaking
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    When scores tie: Chemistry NTA Score → Physics NTA Score → Mathematics NTA Score → Lower ratio of negative to positive attempts → Older candidate.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-[#070A12] p-4 space-y-1.5">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
+                    <Flame size={14} /> 4. Tough Paper Advantage
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    In this Hard Shift (Arjuna Cadbury + Official PYQs), 99.0%tile begins at just 72–78/120 marks (~165/300 full paper), rewarding conceptual accuracy.
+                  </p>
+                </div>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#070A12]">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-white/10 bg-white/5 text-[11px] font-bold text-slate-300">
+                      <th className="p-3">Expected Percentile</th>
+                      <th className="p-3 text-amber-400">Tough Shift (This Test / 120)</th>
+                      <th className="p-3 text-slate-400">Moderate Shift (120)</th>
+                      <th className="p-3 text-slate-500">Easy Shift (120)</th>
+                      <th className="p-3">Estimated AIR &amp; Target Colleges</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 font-mono text-[11px]">
+                    <tr className="hover:bg-white/5 transition">
+                      <td className="p-3 font-black text-emerald-400">99.9+ %tile</td>
+                      <td className="p-3 font-bold text-amber-300">95–104 Marks</td>
+                      <td className="p-3 text-slate-400">105–112 Marks</td>
+                      <td className="p-3 text-slate-500">114–120 Marks</td>
+                      <td className="p-3 font-sans text-slate-300">
+                        <strong>AIR 1 – 650</strong> · NIT Trichy / Surathkal / Warangal CSE · IIIT Hyderabad
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-white/5 transition bg-amber-500/5">
+                      <td className="p-3 font-black text-amber-400">99.0+ %tile</td>
+                      <td className="p-3 font-bold text-amber-300">72–78 Marks</td>
+                      <td className="p-3 text-slate-400">82–88 Marks</td>
+                      <td className="p-3 text-slate-500">92–98 Marks</td>
+                      <td className="p-3 font-sans text-slate-300">
+                        <strong>AIR ~14,000</strong> · Top NITs Computer Science &amp; ECE Cutoff
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-white/5 transition">
+                      <td className="p-3 font-black text-blue-400">98.0+ %tile</td>
+                      <td className="p-3 font-bold text-amber-300">62–71 Marks</td>
+                      <td className="p-3 text-slate-400">72–81 Marks</td>
+                      <td className="p-3 text-slate-500">82–91 Marks</td>
+                      <td className="p-3 font-sans text-slate-300">
+                        <strong>AIR ~28,000</strong> · Top NITs Core Branches (Mechanical, EEE)
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-white/5 transition">
+                      <td className="p-3 font-black text-indigo-400">95.0+ %tile</td>
+                      <td className="p-3 font-bold text-amber-300">48–60 Marks</td>
+                      <td className="p-3 text-slate-400">58–70 Marks</td>
+                      <td className="p-3 text-slate-500">68–80 Marks</td>
+                      <td className="p-3 font-sans text-slate-300">
+                        <strong>AIR ~70,000</strong> · State Engineering Merit &amp; Top IIITs
+                      </td>
+                    </tr>
+                    <tr className="hover:bg-white/5 transition">
+                      <td className="p-3 font-black text-rose-400">93.2+ %tile</td>
+                      <td className="p-3 font-bold text-amber-300">42–46 Marks</td>
+                      <td className="p-3 text-slate-400">50–55 Marks</td>
+                      <td className="p-3 text-slate-500">60–65 Marks</td>
+                      <td className="p-3 font-sans text-slate-300">
+                        <strong>AIR ~96,000</strong> · ⚡ Official JEE Advanced Eligibility Cutoff
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         )}
 

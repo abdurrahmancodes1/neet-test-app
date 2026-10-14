@@ -5,6 +5,7 @@ import ResultSummary from '../components/ResultSummary.jsx';
 import TopicAnalysis from '../components/TopicAnalysis.jsx';
 import QuestionReview from '../components/QuestionReview.jsx';
 import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
+import JeeScorePredictorCard from '../components/JeeScorePredictorCard.jsx';
 
 const TABS = [
   { key: 'overview', label: 'Overview' },
@@ -207,15 +208,28 @@ export default function ResultPage({
               testSubtitle={testSubtitle}
             />
 
-            {/* NEET Score & AIR Rank Projector (Only for the 2 newly added tests) */}
-            <NeetScorePredictorCard
-              testId={activeTestId}
-              score={result.score}
-              maxScore={result.maxScore}
-              accuracy={result.accuracy}
-              correct={result.correct}
-              wrong={result.wrong}
-            />
+            {/* NEET / JEE Score & AIR Rank Projector */}
+            {String(activeTestId).toLowerCase().includes('jee') ||
+            String(testTitle).toLowerCase().includes('jee') ||
+            String(activeTestId).toLowerCase().includes('periodic') ? (
+              <JeeScorePredictorCard
+                testId={activeTestId}
+                score={result.score}
+                maxScore={result.maxScore}
+                accuracy={result.accuracy}
+                correct={result.correct}
+                wrong={result.wrong}
+              />
+            ) : (
+              <NeetScorePredictorCard
+                testId={activeTestId}
+                score={result.score}
+                maxScore={result.maxScore}
+                accuracy={result.accuracy}
+                correct={result.correct}
+                wrong={result.wrong}
+              />
+            )}
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="button"

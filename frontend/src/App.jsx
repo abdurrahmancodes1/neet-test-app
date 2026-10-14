@@ -22,6 +22,7 @@ import { JEE_2027_PERIODIC_TEST, JEE_2027_PERIODIC_QUESTIONS } from './data/jee2
 import AuthPage from './pages/AuthPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
+import AdminDiagnosisPage from './pages/AdminDiagnosisPage.jsx';
 import ChapterTestsPage from './pages/ChapterTestsPage.jsx';
 import TestInstructionsPage from './pages/TestInstructionsPage.jsx';
 import TestPage from './pages/TestPage.jsx';
@@ -88,6 +89,8 @@ export default function App() {
   const [testId, setTestId] = useState(getSavedTestId);
   const [session, setSession] = useState(() => loadSession(getSavedTestId()));
   const [reviewedAttempt, setReviewedAttempt] = useState(null);
+  const [adminDiagnosisAttempt, setAdminDiagnosisAttempt] = useState(null);
+  const [adminDiagnosisStudent, setAdminDiagnosisStudent] = useState(null);
 
   // Live role check on mount / user change (syncs if role was changed in MongoDB)
   useEffect(() => {
@@ -355,6 +358,12 @@ export default function App() {
     setScreen('result');
   }, []);
 
+  const handleDiagnoseAttempt = useCallback((attempt, student) => {
+    setAdminDiagnosisAttempt(attempt);
+    setAdminDiagnosisStudent(student);
+    setScreen('admin-diagnosis');
+  }, []);
+
   useEffect(() => {
     if (screen !== 'test') return undefined;
     const handleFullscreenChange = () => {
@@ -371,6 +380,18 @@ export default function App() {
     return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }
 
+  // Admin Diagnosis Full Page
+  if (screen === 'admin-diagnosis') {
+    return (
+      <AdminDiagnosisPage
+        attempt={adminDiagnosisAttempt}
+        student={adminDiagnosisStudent}
+        onBack={() => setScreen('admin')}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
   // Admin Portal Dashboard
   if (screen === 'admin') {
     return (
@@ -378,6 +399,7 @@ export default function App() {
         user={currentUser}
         onGoToStudentDashboard={handleGoToDashboard}
         onLogout={handleLogout}
+        onDiagnoseAttempt={handleDiagnoseAttempt}
       />
     );
   }
