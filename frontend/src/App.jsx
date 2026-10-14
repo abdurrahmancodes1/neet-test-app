@@ -18,6 +18,7 @@ import { NEET_ROUND_1_TEST, NEET_ROUND_1_QUESTIONS } from './data/neetMegaRound1
 import { NEET_ROUND_2_TEST, NEET_ROUND_2_QUESTIONS } from './data/neetMegaRound2BondingMorphologyTest.js';
 import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from './data/neetGrandMegaDrillTest.js';
 import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from './data/neetMechanicsBondingTest.js';
+import { JEE_2027_PERIODIC_TEST, JEE_2027_PERIODIC_QUESTIONS } from './data/jee2027PeriodicTableTest.js';
 import AuthPage from './pages/AuthPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
@@ -29,6 +30,10 @@ import ResultPage from './pages/ResultPage.jsx';
 const ACTIVE_TEST_KEY = 'neet_active_test_id';
 
 const ALL_TESTS = {
+  [JEE_2027_PERIODIC_TEST.id]: {
+    ...JEE_2027_PERIODIC_TEST,
+    questions: JEE_2027_PERIODIC_QUESTIONS,
+  },
   [NEET_ROUND_1_TEST.id]: {
     ...NEET_ROUND_1_TEST,
     questions: NEET_ROUND_1_QUESTIONS,

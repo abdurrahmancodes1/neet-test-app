@@ -14,6 +14,7 @@ import {
   ChevronRight,
   LogOut,
   BarChart3,
+  Target,
 } from 'lucide-react';
 import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
@@ -23,12 +24,14 @@ import { NEET_ROUND_2_TEST } from '../data/neetMegaRound2BondingMorphologyTest.j
 import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
+import { JEE_2027_PERIODIC_TEST } from '../data/jee2027PeriodicTableTest.js';
 
 export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard }) {
-  const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'class10' | 'class9' | 'class8'
+  const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'jee' | 'class10' | 'class9' | 'class8'
 
   const categories = [
     { id: 'neet', label: 'NEET 2027', badge: 'Active Test Series', icon: Zap },
+    { id: 'jee', label: 'JEE 2027', badge: 'Active Test Series', icon: Target },
     { id: 'class10', label: 'Class 10', badge: 'Upcoming in future', icon: GraduationCap },
     { id: 'class9', label: 'Class 9', badge: 'Upcoming in future', icon: Layers },
     { id: 'class8', label: 'Class 8', badge: 'Upcoming in future', icon: BookOpen },
@@ -569,6 +572,86 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                     className="flex w-full items-center justify-center gap-2 rounded-full bg-white/10 hover:bg-white/15 px-8 py-4 text-sm font-bold text-white border border-white/10 transition active:scale-95 lg:w-auto"
                   >
                     Start 2-Hour Examination <ArrowRight size={16} />
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        )}
+
+        {/* CONTENT FOR JEE SECTION */}
+        {selectedCategory === 'jee' && (
+          <div className="animate-fade-in space-y-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-300">
+                  JEE Main 2027 · Single Subject Chapter Mastery Series
+                </span>
+                <h2 className="mt-2 font-sans text-2xl sm:text-3xl font-black text-white">
+                  JEE Main Periodic Table &amp; Periodicity CBT Mock
+                </h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  Curated directly from 2021-2025 JEE Main Official PYQs and Arjuna JEE Cadbury Challenges with zero duplicate questions.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold text-amber-300">
+                <CheckCircle2 size={16} /> 1 Test Available (60 Mins)
+              </div>
+            </div>
+
+            {/* Test Card: JEE Main 2027 Periodic Properties */}
+            <article className="overflow-hidden rounded-3xl border border-amber-500/60 bg-gradient-to-b from-[#1F160A] via-[#140E06] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative ring-1 ring-amber-500/30">
+              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-amber-600/20 blur-3xl" />
+
+              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
+                <div className="max-w-2xl">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-0.5 text-xs font-bold text-amber-300">
+                      🎯 JEE MAIN 2027 · CHEMISTRY
+                    </span>
+                    <span className="rounded-full bg-amber-600/20 border border-amber-500/30 px-3 py-0.5 text-xs font-bold text-amber-300">
+                      30 Questions · 60 Mins Fixed
+                    </span>
+                    <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-0.5 text-xs font-bold text-emerald-300">
+                      120 Marks (+4 / -1)
+                    </span>
+                  </div>
+
+                  <h3 className="mt-3 font-sans text-2xl sm:text-3xl font-black text-white">
+                    {JEE_2027_PERIODIC_TEST.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">
+                    {JEE_2027_PERIODIC_TEST.description}
+                  </p>
+
+                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs leading-relaxed text-slate-300">
+                    <span className="font-bold text-amber-400">High-Yield Topics Covered: </span>
+                    {JEE_2027_PERIODIC_TEST.syllabus}
+                  </div>
+
+                  <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-300">
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Clock size={14} className="text-amber-400" />
+                      <strong className="text-white">60 Minutes</strong> (Fixed 1-Hour CBT Exam)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <BookOpen size={14} className="text-blue-400" />
+                      <strong className="text-white">30 Questions</strong> (Zero Duplicates · Most Frequent Patterns)
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
+                      <Award size={14} className="text-emerald-400" />
+                      <strong className="text-white">120 Marks</strong> (+4 / −1 Marking Scheme)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(JEE_2027_PERIODIC_TEST.id)}
+                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-amber-600/30 transition active:scale-95 lg:w-auto"
+                  >
+                    Start JEE Exam (60 Mins) <ArrowRight size={16} />
                   </button>
                 </div>
               </div>

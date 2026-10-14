@@ -30,9 +30,20 @@ import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from '.
 import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from '../data/neetCalculusTest.js';
 import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from '../data/neetWorkEnergyTest.js';
+import { JEE_2027_PERIODIC_TEST, JEE_2027_PERIODIC_QUESTIONS } from '../data/jee2027PeriodicTableTest.js';
 
 // Central registry of all test suites with all possible alias keys
 const ALL_TEST_DATA = {
+  // JEE 2027: Classification of Elements & Periodicity in Properties (30 Qs)
+  [JEE_2027_PERIODIC_TEST.id]: { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
+  'jee-2027-periodic-properties-mastery-drill': { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
+  'jee-2027-periodic': { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
+  'jee-periodic-properties': { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
+  'jee-periodic-table': { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
+  'jee-periodic': { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
+  'periodic-properties': { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
+  'periodic-table': { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
+
   // Round 1: Mechanics Master Drill (120 Qs)
   [NEET_ROUND_1_TEST.id]: { test: NEET_ROUND_1_TEST, questions: NEET_ROUND_1_QUESTIONS },
   'neet-2027-mega-round-1-mechanics': { test: NEET_ROUND_1_TEST, questions: NEET_ROUND_1_QUESTIONS },
@@ -244,6 +255,8 @@ export default function AdminAttemptDetailModal({
     let suite = null;
     if (rawTestId && ALL_TEST_DATA[rawTestId]) {
       suite = ALL_TEST_DATA[rawTestId];
+    } else if (rawTestId.includes('jee') || rawTestId.includes('periodic') || rawTitle.includes('periodic') || rawTitle.includes('jee')) {
+      suite = ALL_TEST_DATA['jee-2027-periodic-properties-mastery-drill'];
     } else if (rawTestId.includes('round-1') || rawTestId.includes('round_1') || rawTitle.includes('round 1')) {
       suite = ALL_TEST_DATA['neet-2027-mega-round-1-mechanics'];
     } else if (rawTestId.includes('round-2') || rawTestId.includes('round_2') || rawTitle.includes('round 2') || (rawTitle.includes('bonding') && rawTitle.includes('morphology'))) {

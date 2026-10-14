@@ -46,6 +46,7 @@ import { NEET_ROUND_2_TEST } from '../data/neetMegaRound2BondingMorphologyTest.j
 import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
+import { JEE_2027_PERIODIC_TEST } from '../data/jee2027PeriodicTableTest.js';
 import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
 
 export default function DashboardPage({
@@ -59,12 +60,13 @@ export default function DashboardPage({
   const [comparisonModalOpen, setComparisonModalOpen] = useState(false);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
   const [globalStats, setGlobalStats] = useState(null);
-  const [selectedStandard, setSelectedStandard] = useState('neet'); // 'neet' | 'class10' | 'class9' | 'class8'
+  const [selectedStandard, setSelectedStandard] = useState('neet'); // 'neet' | 'jee' | 'class10' | 'class9' | 'class8'
   const [refreshCounter, setRefreshCounter] = useState(0);
   const testsSectionRef = useRef(null);
 
   const standards = [
     { id: 'neet', label: 'NEET 2027', badge: '6 Active Tests', active: true, icon: Zap },
+    { id: 'jee', label: 'JEE Main 2027', badge: '1 Active Test', active: true, icon: Target },
     { id: 'class10', label: 'Class 10', badge: 'Upcoming in future', active: false, icon: GraduationCap },
     { id: 'class9', label: 'Class 9', badge: 'Upcoming in future', active: false, icon: Layers },
     { id: 'class8', label: 'Class 8', badge: 'Upcoming in future', active: false, icon: BookOpen },
@@ -882,6 +884,84 @@ export default function DashboardPage({
                     >
                       <span>Start Physics Exam (120m)</span>
                       <ArrowRight size={15} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB CONTENT: JEE 2027 */}
+          {selectedStandard === 'jee' && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="flex flex-wrap items-center justify-between text-xs text-slate-400 px-1 gap-2">
+                <span className="font-semibold text-slate-300">
+                  Showing 1 Dedicated CBT Mock Test for JEE Main 2027
+                </span>
+                <span className="text-[11px] text-amber-400 font-mono">
+                  Curated from 2021-2025 Official JEE Main PYQs + Arjuna Cadbury Challenges · 60 Mins
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* 1. JEE PERIODIC TABLE MASTERY DRILL (30 Qs - 60 MINS) */}
+                <div className="rounded-3xl border border-amber-500/60 bg-gradient-to-b from-[#1F160A] via-[#140E06] to-[#0B0F19] p-6 sm:p-7 shadow-2xl relative flex flex-col justify-between hover:border-amber-500/90 transition group ring-1 ring-amber-500/30">
+                  <div className="pointer-events-none absolute top-0 right-0 w-48 h-48 bg-amber-600/15 rounded-full blur-3xl" />
+
+                  <div className="space-y-4 relative z-10">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-1 text-xs font-black text-amber-300 flex items-center gap-1.5">
+                        <Target size={14} className="text-amber-400" /> JEE MAIN 2027 · CHEMISTRY
+                      </span>
+                      <span className="rounded-full bg-amber-500/30 border border-amber-400/50 px-2.5 py-0.5 text-xs font-extrabold text-amber-100 uppercase tracking-wider">
+                        ⚡ 30 Qs · 60 Mins (1 Hour)
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="font-sans text-xl sm:text-2xl font-black text-white group-hover:text-amber-200 transition tracking-tight">
+                        {JEE_2027_PERIODIC_TEST.title}
+                      </h3>
+                      <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+                        {JEE_2027_PERIODIC_TEST.subtitle}
+                      </p>
+                    </div>
+
+                    {/* Chips */}
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Questions</span>
+                        <strong className="font-mono text-sm text-white font-black">30 Qs</strong>
+                        <span className="text-[9px] text-slate-500 block">Single-Subject Drill</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
+                        <strong className="font-mono text-sm text-amber-400 font-black">60 Mins</strong>
+                        <span className="text-[9px] text-amber-400/80 block font-bold">1.0 Hour Fixed</span>
+                      </div>
+                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
+                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
+                        <strong className="font-mono text-sm text-emerald-400 font-black">120 Marks</strong>
+                        <span className="text-[9px] text-emerald-400/80 block">+4 / -1 Scheme</span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl border border-white/10 bg-[#070A12] p-3 text-xs text-slate-300">
+                      <span className="font-bold text-amber-400 text-xs block mb-1">⚡ Topics Included:</span>
+                      <span className="text-[11px] text-slate-300 leading-relaxed">
+                        Isoelectronic Radii, Successive IE Jumps, Period 2 &amp; 3 Anomalies (Be-B, N-O, Mg-Al, P-S), Group 13 Contractions, Electron Gain Enthalpies, Slater's Rules (Z_eff), and Oxide Classification.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-5 relative z-10">
+                    <button
+                      type="button"
+                      onClick={() => onStartTest(JEE_2027_PERIODIC_TEST.id)}
+                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 py-3.5 text-xs sm:text-sm font-black text-white shadow-xl shadow-amber-600/30 transition active:scale-98"
+                    >
+                      <span>Start JEE 2027 Periodic Table Exam (60 Mins)</span>
+                      <ArrowRight size={16} />
                     </button>
                   </div>
                 </div>
