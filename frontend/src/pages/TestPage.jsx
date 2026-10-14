@@ -6,6 +6,7 @@ import QuestionPalette from '../components/QuestionPalette.jsx';
 import TestNavigation from '../components/TestNavigation.jsx';
 import SubmitModal from '../components/SubmitModal.jsx';
 import QuestionMemeModal from '../components/QuestionMemeModal.jsx';
+import { useTheme } from '../utils/themeContext.jsx';
 
 function getQKey(q) {
   return q ? (q.order ?? q.id ?? q._id) : null;
@@ -131,19 +132,21 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
     (currentQuestion.order && session.answers?.[currentQuestion.order]) ??
     (currentQuestion.id && session.answers?.[currentQuestion.id]);
 
+  const { isLight } = useTheme();
+
   if (questions.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ink-50">
+      <div className={`flex min-h-screen items-center justify-center ${isLight ? 'bg-[#F8FAFC]' : 'bg-[#05070B]'}`}>
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-ink-900" />
-          <p className="text-sm font-semibold text-ink-600">Loading test questions...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <p className={`text-sm font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Loading test questions...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-ink-50">
+    <div className={`flex min-h-screen flex-col transition-colors duration-200 ${isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'}`}>
       <TestHeader
         title={testTitle}
         endTime={session.endTime}

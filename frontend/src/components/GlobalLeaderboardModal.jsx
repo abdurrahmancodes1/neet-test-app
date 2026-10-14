@@ -14,6 +14,7 @@ import {
   Zap,
   Globe,
 } from 'lucide-react';
+import { useTheme } from '../utils/themeContext.jsx';
 
 export default function GlobalLeaderboardModal({
   open,
@@ -21,6 +22,7 @@ export default function GlobalLeaderboardModal({
   stats,
   currentUserEmail,
 }) {
+  const { isLight } = useTheme();
   const [activeTab, setActiveTab] = useState('leaderboard'); // 'leaderboard' | 'candidates'
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -57,23 +59,33 @@ export default function GlobalLeaderboardModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-6 backdrop-blur-md animate-fade-in">
-      <div className="relative flex max-h-[90vh] w-full max-w-4xl flex-col rounded-3xl border border-white/10 bg-[#0B0F19] text-slate-100 shadow-2xl overflow-hidden">
+      <div
+        className={`relative flex max-h-[90vh] w-full max-w-4xl flex-col rounded-3xl border shadow-2xl overflow-hidden transition-colors ${
+          isLight
+            ? 'border-slate-200 bg-white text-slate-900 shadow-2xl'
+            : 'border-white/10 bg-[#0B0F19] text-slate-100'
+        }`}
+      >
         {/* Header */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-[#070A12] px-6 py-4">
+        <div
+          className={`flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4 transition-colors ${
+            isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+          }`}
+        >
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-glow">
               <Globe size={20} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-sans text-lg sm:text-xl font-bold text-white">
+                <h2 className={`font-sans text-lg sm:text-xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
                   Global Candidates &amp; Scores
                 </h2>
-                <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+                <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-300">
                   {stats?.isLive ? '🟢 Live Backend Synced' : '🟡 Cloud Synced'}
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 View all registered candidates and national drill examination ranks.
               </p>
             </div>
@@ -81,58 +93,82 @@ export default function GlobalLeaderboardModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-white hover:bg-white/10 transition"
+            className={`rounded-full border p-2 transition ${
+              isLight
+                ? 'border-slate-200 bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200'
+                : 'border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Global Summary Stats Cards */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 p-4 sm:px-6 bg-[#090D17] border-b border-white/10">
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-3 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-center gap-1">
-              <Users size={12} className="text-blue-400" /> Total Users
+        <div
+          className={`grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 p-4 sm:px-6 border-b transition-colors ${
+            isLight ? 'bg-slate-100/70 border-slate-200' : 'bg-[#090D17] border-white/10'
+          }`}
+        >
+          <div className={`rounded-2xl border p-3 text-center ${isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0B0F19]'}`}>
+            <p className={`text-[10px] font-semibold uppercase tracking-wider flex items-center justify-center gap-1 ${
+              isLight ? 'text-slate-500' : 'text-slate-400'
+            }`}>
+              <Users size={12} className={isLight ? 'text-blue-600' : 'text-blue-400'} /> Total Users
             </p>
-            <p className="mt-1 font-serif text-xl sm:text-2xl font-bold text-white">
+            <p className={`mt-1 font-serif text-xl sm:text-2xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {totalUsers}
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-3 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-center gap-1">
-              <Zap size={12} className="text-indigo-400" /> Tests Submitted
+          <div className={`rounded-2xl border p-3 text-center ${isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0B0F19]'}`}>
+            <p className={`text-[10px] font-semibold uppercase tracking-wider flex items-center justify-center gap-1 ${
+              isLight ? 'text-slate-500' : 'text-slate-400'
+            }`}>
+              <Zap size={12} className={isLight ? 'text-indigo-600' : 'text-indigo-400'} /> Tests Submitted
             </p>
-            <p className="mt-1 font-serif text-xl sm:text-2xl font-bold text-white">
+            <p className={`mt-1 font-serif text-xl sm:text-2xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {totalAttempts}
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-3 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-center gap-1">
-              <Sparkles size={12} className="text-amber-400" /> Top Platform Score
+          <div className={`rounded-2xl border p-3 text-center ${isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0B0F19]'}`}>
+            <p className={`text-[10px] font-semibold uppercase tracking-wider flex items-center justify-center gap-1 ${
+              isLight ? 'text-slate-500' : 'text-slate-400'
+            }`}>
+              <Sparkles size={12} className={isLight ? 'text-amber-600' : 'text-amber-400'} /> Top Platform Score
             </p>
-            <p className="mt-1 font-serif text-xl sm:text-2xl font-bold text-amber-400">
+            <p className={`mt-1 font-serif text-xl sm:text-2xl font-bold ${isLight ? 'text-amber-600' : 'text-amber-400'}`}>
               {highestScore} <span className="text-xs text-slate-500 font-normal">/ 240</span>
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-3 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 flex items-center justify-center gap-1">
-              <Target size={12} className="text-emerald-400" /> Platform Average
+          <div className={`rounded-2xl border p-3 text-center ${isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0B0F19]'}`}>
+            <p className={`text-[10px] font-semibold uppercase tracking-wider flex items-center justify-center gap-1 ${
+              isLight ? 'text-slate-500' : 'text-slate-400'
+            }`}>
+              <Target size={12} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} /> Platform Average
             </p>
-            <p className="mt-1 font-serif text-xl sm:text-2xl font-bold text-emerald-400">
+            <p className={`mt-1 font-serif text-xl sm:text-2xl font-bold ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`}>
               {avgScore} <span className="text-xs text-slate-500 font-normal">pts</span>
             </p>
           </div>
         </div>
 
         {/* Tab & Search Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:px-6 bg-[#0B0F19] border-b border-white/10">
-          <div className="flex items-center gap-1 rounded-full bg-[#070A12] border border-white/10 p-1">
+        <div
+          className={`flex flex-wrap items-center justify-between gap-3 p-4 sm:px-6 border-b transition-colors ${
+            isLight ? 'bg-white border-slate-200' : 'bg-[#0B0F19] border-white/10'
+          }`}
+        >
+          <div className={`flex items-center gap-1 rounded-full p-1 border ${
+            isLight ? 'bg-slate-100 border-slate-200' : 'bg-[#070A12] border-white/10'
+          }`}>
             <button
               type="button"
               onClick={() => setActiveTab('leaderboard')}
               className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
                 activeTab === 'leaderboard'
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  : isLight
+                    ? 'text-slate-600 hover:text-slate-900'
+                    : 'text-slate-400 hover:text-white'
               }`}
             >
               <Trophy size={13} />
@@ -144,7 +180,9 @@ export default function GlobalLeaderboardModal({
               className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
                 activeTab === 'candidates'
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-white'
+                  : isLight
+                    ? 'text-slate-600 hover:text-slate-900'
+                    : 'text-slate-400 hover:text-white'
               }`}
             >
               <Users size={13} />
@@ -153,13 +191,17 @@ export default function GlobalLeaderboardModal({
           </div>
 
           <div className="relative min-w-[220px]">
-            <Search size={14} className="absolute left-3.5 top-2.5 text-slate-500" />
+            <Search size={14} className="absolute left-3.5 top-2.5 text-slate-400" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search candidate name or email..."
-              className="w-full rounded-full border border-white/10 bg-[#070A12] py-1.5 pl-9 pr-3 text-xs text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+              className={`w-full rounded-full border py-1.5 pl-9 pr-3 text-xs focus:border-blue-500 focus:outline-none transition ${
+                isLight
+                  ? 'border-slate-200 bg-slate-50 text-slate-900 placeholder:text-slate-400'
+                  : 'border-white/10 bg-[#070A12] text-white placeholder:text-slate-500'
+              }`}
             />
           </div>
         </div>
@@ -169,15 +211,17 @@ export default function GlobalLeaderboardModal({
           {activeTab === 'leaderboard' ? (
             filteredLeaderboard.length === 0 ? (
               <div className="py-12 text-center text-slate-400">
-                <Trophy size={32} className="mx-auto text-slate-600 mb-2" />
-                <p className="text-sm font-semibold text-white">No test submissions match your search.</p>
-                <p className="text-xs text-slate-500">Take the 2-hour exam to be the first on the global leaderboard!</p>
+                <Trophy size={32} className="mx-auto text-slate-400 mb-2" />
+                <p className={`text-sm font-semibold ${isLight ? 'text-slate-800' : 'text-white'}`}>No test submissions match your search.</p>
+                <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Take the 2-hour exam to be the first on the global leaderboard!</p>
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-white/10">
+              <div className={`overflow-x-auto rounded-2xl border ${isLight ? 'border-slate-200' : 'border-white/10'}`}>
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-white/10 bg-[#070A12] text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                    <tr className={`border-b text-[11px] font-semibold uppercase tracking-wider ${
+                      isLight ? 'border-slate-200 bg-slate-100 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-400'
+                    }`}>
                       <th className="px-4 py-3">Rank</th>
                       <th className="px-4 py-3">Candidate Name</th>
                       <th className="px-4 py-3">Score / 240</th>
@@ -186,7 +230,7 @@ export default function GlobalLeaderboardModal({
                       <th className="px-4 py-3">Submission Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/5 bg-[#0D121F]">
+                  <tbody className={`divide-y ${isLight ? 'divide-slate-100 bg-white' : 'divide-white/5 bg-[#0D121F]'}`}>
                     {filteredLeaderboard.map((item, index) => {
                       const isCurrentUser =
                         currentUserEmail &&
@@ -199,8 +243,12 @@ export default function GlobalLeaderboardModal({
                           key={item.id || index}
                           className={`transition ${
                             isCurrentUser
-                              ? 'bg-blue-600/10 border-l-2 border-l-blue-500'
-                              : 'hover:bg-white/[0.02]'
+                              ? isLight
+                                ? 'bg-blue-50/80 border-l-2 border-l-blue-600'
+                                : 'bg-blue-600/10 border-l-2 border-l-blue-500'
+                              : isLight
+                                ? 'hover:bg-slate-50'
+                                : 'hover:bg-white/[0.02]'
                           }`}
                         >
                           <td className="px-4 py-3.5">
@@ -218,41 +266,43 @@ export default function GlobalLeaderboardModal({
                                   🥉
                                 </span>
                               ) : (
-                                <span className="text-slate-400 pl-1">#{rank}</span>
+                                <span className={`pl-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>#{rank}</span>
                               )}
                             </div>
                           </td>
                           <td className="px-4 py-3.5">
-                            <div className="font-semibold text-white flex items-center gap-2">
+                            <div className={`font-semibold flex items-center gap-2 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                               <span>{item.studentName || 'Anonymous Student'}</span>
                               {isCurrentUser && (
-                                <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[10px] font-bold text-blue-300">
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                  isLight ? 'bg-blue-100 border border-blue-300 text-blue-800' : 'bg-blue-500/20 border border-blue-500/30 text-blue-300'
+                                }`}>
                                   You
                                 </span>
                               )}
                             </div>
                             {item.email && (
-                              <p className="text-[11px] text-slate-500">{item.email}</p>
+                              <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>{item.email}</p>
                             )}
                           </td>
                           <td className="px-4 py-3.5">
-                            <span className="font-serif text-sm font-black text-white">{item.score}</span>
+                            <span className={`font-serif text-sm font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>{item.score}</span>
                             <span className="text-[11px] text-slate-500"> / {item.maxScore || 240}</span>
-                            <span className="ml-1.5 font-mono text-[11px] text-blue-400">
+                            <span className={`ml-1.5 font-mono text-[11px] ${isLight ? 'text-blue-700' : 'text-blue-400'}`}>
                               ({Math.round(((item.score || 0) / (item.maxScore || 240)) * 100)}%)
                             </span>
                           </td>
-                          <td className="px-4 py-3.5 font-semibold text-emerald-400">
+                          <td className={`px-4 py-3.5 font-semibold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
                             {item.accuracy ? `${item.accuracy}%` : '—'}
                           </td>
                           <td className="px-4 py-3.5">
                             <div className="flex items-center gap-1 font-mono text-[11px]">
-                              <span className="text-emerald-400 font-bold">+{item.correctCount || item.correct || 0}</span>
-                              <span className="text-slate-600">/</span>
-                              <span className="text-rose-400 font-bold">-{item.wrongCount || item.wrong || 0}</span>
+                              <span className={`font-bold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>+{item.correctCount || item.correct || 0}</span>
+                              <span className="text-slate-400">/</span>
+                              <span className={`font-bold ${isLight ? 'text-rose-700' : 'text-rose-400'}`}>-{item.wrongCount || item.wrong || 0}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3.5 text-slate-400 text-[11px]">
+                          <td className={`px-4 py-3.5 text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                             {formatDateSafe(item.submittedAt)}
                           </td>
                         </tr>
@@ -266,8 +316,8 @@ export default function GlobalLeaderboardModal({
             /* CANDIDATES DIRECTORY TAB */
             filteredCandidates.length === 0 ? (
               <div className="py-12 text-center text-slate-400">
-                <Users size={32} className="mx-auto text-slate-600 mb-2" />
-                <p className="text-sm font-semibold text-white">No registered candidates found.</p>
+                <Users size={32} className="mx-auto text-slate-400 mb-2" />
+                <p className={`text-sm font-semibold ${isLight ? 'text-slate-800' : 'text-white'}`}>No registered candidates found.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -282,29 +332,39 @@ export default function GlobalLeaderboardModal({
                       key={cand.id || idx}
                       className={`rounded-2xl border p-4 transition ${
                         isCurrent
-                          ? 'border-blue-500/40 bg-blue-900/10'
-                          : 'border-white/10 bg-[#0D121F] hover:border-white/20'
+                          ? isLight
+                            ? 'border-blue-300 bg-blue-50/70'
+                            : 'border-blue-500/40 bg-blue-900/10'
+                          : isLight
+                            ? 'border-slate-200 bg-white hover:border-slate-300 shadow-xs'
+                            : 'border-white/10 bg-[#0D121F] hover:border-white/20'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="flex items-center gap-1.5">
-                            <h4 className="font-bold text-white text-sm">{cand.name}</h4>
+                            <h4 className={`font-bold text-sm ${isLight ? 'text-slate-900' : 'text-white'}`}>{cand.name}</h4>
                             {isCurrent && (
-                              <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[10px] font-bold text-blue-300">
+                              <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                isLight ? 'bg-blue-100 border border-blue-300 text-blue-800' : 'bg-blue-500/20 border border-blue-500/30 text-blue-300'
+                              }`}>
                                 You
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-slate-400 mt-0.5">{cand.email}</p>
+                          <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{cand.email}</p>
                         </div>
-                        <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-slate-300">
+                        <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${
+                          isLight ? 'border-slate-200 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'
+                        }`}>
                           {cand.targetExam || 'NEET 2027'}
                         </span>
                       </div>
-                      <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2.5 text-[11px] text-slate-500">
+                      <div className={`mt-3 flex items-center justify-between border-t pt-2.5 text-[11px] ${
+                        isLight ? 'border-slate-100 text-slate-500' : 'border-white/5 text-slate-500'
+                      }`}>
                         <span>Joined: {cand.registeredAt ? formatDateSafe(cand.registeredAt) : 'Active'}</span>
-                        <span className="text-emerald-400 font-semibold">● Registered Candidate</span>
+                        <span className={`font-semibold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>● Registered Candidate</span>
                       </div>
                     </div>
                   );
@@ -315,7 +375,11 @@ export default function GlobalLeaderboardModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#070A12] px-6 py-3.5 text-xs text-slate-400">
+        <div
+          className={`flex items-center justify-between border-t px-6 py-3.5 text-xs transition-colors ${
+            isLight ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-white/10 bg-[#070A12] text-slate-400'
+          }`}
+        >
           <span>Synced across all candidate browser sessions and database.</span>
           <button
             type="button"

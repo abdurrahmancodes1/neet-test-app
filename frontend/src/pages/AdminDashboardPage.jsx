@@ -20,11 +20,10 @@ import {
   Layers,
   CheckCircle2,
   AlertTriangle,
-  Sun,
-  Moon,
 } from 'lucide-react';
 import { getAdminOverview } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
+import { useTheme } from '../utils/themeContext.jsx';
 import AdminAttemptDetailModal from '../components/AdminAttemptDetailModal.jsx';
 
 export default function AdminDashboardPage({
@@ -43,23 +42,8 @@ export default function AdminDashboardPage({
   const [selectedAttempt, setSelectedAttempt] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // Theme state: 'dark' (default) or 'light'
-  const [theme, setTheme] = useState(() => {
-    try {
-      return localStorage.getItem('neet_theme') || 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
-  const isLight = theme === 'light';
-
-  const toggleTheme = () => {
-    const next = isLight ? 'dark' : 'light';
-    setTheme(next);
-    try {
-      localStorage.setItem('neet_theme', next);
-    } catch {}
-  };
+  // Unified global theme
+  const { theme, isLight } = useTheme();
 
   const fetchOverview = async () => {
     setLoading(true);
@@ -166,29 +150,6 @@ export default function AdminDashboardPage({
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Prominent Dark / Light Mode Switcher */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              title={`Switch to ${isLight ? 'Dark' : 'Light'} Mode`}
-              className={`rounded-full px-3 sm:px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 border shadow-md active:scale-95 ${
-                isLight
-                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 hover:bg-amber-500/25'
-                  : 'bg-blue-600/25 border-blue-500/40 text-blue-200 hover:bg-blue-600/35'
-              }`}
-            >
-              {isLight ? (
-                <>
-                  <Sun size={15} className="text-amber-600 shrink-0" />
-                  <span className="font-extrabold text-[11px] sm:text-xs">Light Mode</span>
-                </>
-              ) : (
-                <>
-                  <Moon size={15} className="text-blue-400 shrink-0" />
-                  <span className="font-extrabold text-[11px] sm:text-xs">Dark Mode</span>
-                </>
-              )}
-            </button>
 
             <button
               type="button"
@@ -237,15 +198,15 @@ export default function AdminDashboardPage({
         {/* Hero Title */}
         <section className="text-left space-y-1">
           <div className="flex items-center gap-2">
-            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-blue-400">
+            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-blue-500 dark:text-blue-400">
               National Examination Control Center
             </p>
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
           </div>
-          <h1 className="font-serif italic text-2xl sm:text-4xl text-white">
+          <h1 className={`font-serif italic text-2xl sm:text-4xl ${isLight ? 'text-slate-900' : 'text-white'}`}>
             Candidates &amp; Performance Overview
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400">
+          <p className={`text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             Real-time diagnostics for candidate attempts, weak/strong topics, and projected NEET scores.
           </p>
         </section>
@@ -253,77 +214,103 @@ export default function AdminDashboardPage({
         {/* 4 Key Admin Stats Cards */}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           {/* Total Users */}
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-4 sm:p-5 shadow-xl">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-xl transition-colors ${
+            isLight ? 'border-slate-200 bg-white shadow-sm' : 'border-white/10 bg-[#0B0F19]'
+          }`}>
+            <div className={`flex items-center justify-between text-xs font-semibold uppercase tracking-wider ${
+              isLight ? 'text-slate-500' : 'text-slate-400'
+            }`}>
               <span className="text-[10px] sm:text-xs">Total Users</span>
-              <Users size={16} className="text-blue-400" />
+              <Users size={16} className="text-blue-500" />
             </div>
-            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-white">
+            <p className={`mt-2 font-serif text-2xl sm:text-3xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {totalUsers}
             </p>
-            <p className="mt-1 text-[11px] text-slate-400 font-medium">Registered Aspirants</p>
+            <p className={`mt-1 text-[11px] font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Registered Aspirants</p>
           </div>
 
           {/* Active Users */}
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-4 sm:p-5 shadow-xl">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-xl transition-colors ${
+            isLight ? 'border-slate-200 bg-white shadow-sm' : 'border-white/10 bg-[#0B0F19]'
+          }`}>
+            <div className={`flex items-center justify-between text-xs font-semibold uppercase tracking-wider ${
+              isLight ? 'text-slate-500' : 'text-slate-400'
+            }`}>
               <span className="text-[10px] sm:text-xs">Active Users</span>
-              <UserCheck size={16} className="text-emerald-400" />
+              <UserCheck size={16} className="text-emerald-500" />
             </div>
-            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-emerald-400">
+            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">
               {activeUsers}
             </p>
-            <p className="mt-1 text-[11px] text-slate-400 font-medium truncate">
+            <p className={`mt-1 text-[11px] font-medium truncate ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               {totalUsers > 0 ? `${Math.round((activeUsers / totalUsers) * 100)}% Participation` : '0% Participation'}
             </p>
           </div>
 
           {/* Tests Submitted */}
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-4 sm:p-5 shadow-xl">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-xl transition-colors ${
+            isLight ? 'border-slate-200 bg-white shadow-sm' : 'border-white/10 bg-[#0B0F19]'
+          }`}>
+            <div className={`flex items-center justify-between text-xs font-semibold uppercase tracking-wider ${
+              isLight ? 'text-slate-500' : 'text-slate-400'
+            }`}>
               <span className="text-[10px] sm:text-xs">Tests Taken</span>
-              <Zap size={16} className="text-indigo-400" />
+              <Zap size={16} className="text-indigo-500" />
             </div>
-            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-white">
+            <p className={`mt-2 font-serif text-2xl sm:text-3xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {totalAttempts}
             </p>
-            <p className="mt-1 text-[11px] text-slate-400 font-medium">Completed CBT Exams</p>
+            <p className={`mt-1 text-[11px] font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Completed CBT Exams</p>
           </div>
 
           {/* Platform Average Score */}
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-4 sm:p-5 shadow-xl">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-xl transition-colors ${
+            isLight ? 'border-slate-200 bg-white shadow-sm' : 'border-white/10 bg-[#0B0F19]'
+          }`}>
+            <div className={`flex items-center justify-between text-xs font-semibold uppercase tracking-wider ${
+              isLight ? 'text-slate-500' : 'text-slate-400'
+            }`}>
               <span className="text-[10px] sm:text-xs">Platform Avg</span>
-              <Target size={16} className="text-amber-400" />
+              <Target size={16} className="text-amber-500" />
             </div>
-            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-amber-400">
+            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400">
               {averageScore}
             </p>
-            <p className="mt-1 text-[11px] text-slate-400 font-medium">Mean Score Metric</p>
+            <p className={`mt-1 text-[11px] font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Mean Score Metric</p>
           </div>
         </section>
 
         {/* Students Directory & Progress Section */}
-        <section className="rounded-3xl border border-white/10 bg-[#0B0F19] p-4 sm:p-7 shadow-xl space-y-5">
+        <section className={`rounded-3xl border p-4 sm:p-7 shadow-xl space-y-5 transition-colors ${
+          isLight ? 'border-slate-200 bg-white shadow-sm' : 'border-white/10 bg-[#0B0F19]'
+        }`}>
           {/* Header with Search and Filter */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className={`flex flex-wrap items-center justify-between gap-3 border-b pb-4 ${
+            isLight ? 'border-slate-200' : 'border-white/10'
+          }`}>
             <div>
-              <h2 className="font-sans text-base sm:text-xl font-bold text-white">
+              <h2 className={`font-sans text-base sm:text-xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 Student Progress Directory
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 Click on any candidate to inspect attempt diagnostics, weak topics, and answers.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               {/* Filter Tabs */}
-              <div className="flex items-center rounded-full bg-[#070A12] border border-white/10 p-1 text-xs">
+              <div className={`flex items-center rounded-full border p-1 text-xs ${
+                isLight ? 'bg-slate-100 border-slate-200' : 'bg-[#070A12] border-white/10'
+              }`}>
                 <button
                   type="button"
                   onClick={() => setFilterType('all')}
                   className={`rounded-full px-2.5 sm:px-3 py-1 font-bold transition text-[11px] sm:text-xs ${
-                    filterType === 'all' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+                    filterType === 'all'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : isLight
+                      ? 'text-slate-600 hover:text-slate-900'
+                      : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   All ({students.length})
@@ -332,7 +319,11 @@ export default function AdminDashboardPage({
                   type="button"
                   onClick={() => setFilterType('active')}
                   className={`rounded-full px-2.5 sm:px-3 py-1 font-bold transition text-[11px] sm:text-xs ${
-                    filterType === 'active' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+                    filterType === 'active'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : isLight
+                      ? 'text-slate-600 hover:text-slate-900'
+                      : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   Active ({activeUsers})
@@ -341,7 +332,11 @@ export default function AdminDashboardPage({
                   type="button"
                   onClick={() => setFilterType('inactive')}
                   className={`rounded-full px-2.5 sm:px-3 py-1 font-bold transition text-[11px] sm:text-xs ${
-                    filterType === 'inactive' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
+                    filterType === 'inactive'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : isLight
+                      ? 'text-slate-600 hover:text-slate-900'
+                      : 'text-slate-400 hover:text-white'
                   }`}
                 >
                   Inactive ({students.length - activeUsers})
@@ -350,13 +345,17 @@ export default function AdminDashboardPage({
 
               {/* Search Bar */}
               <div className="relative flex-1 sm:w-60 min-w-[180px]">
-                <Search size={14} className="absolute left-3.5 top-2.5 text-slate-500" />
+                <Search size={14} className={`absolute left-3.5 top-2.5 ${isLight ? 'text-slate-400' : 'text-slate-500'}`} />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search student or email..."
-                  className="w-full rounded-full border border-white/10 bg-[#070A12] py-1.5 pl-9 pr-3 text-xs text-white placeholder:text-slate-500 focus:border-blue-500 focus:outline-none"
+                  className={`w-full rounded-full border py-1.5 pl-9 pr-3 text-xs focus:border-blue-500 focus:outline-none transition ${
+                    isLight
+                      ? 'border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400'
+                      : 'border-white/10 bg-[#070A12] text-white placeholder:text-slate-500'
+                  }`}
                 />
               </div>
             </div>
@@ -364,15 +363,15 @@ export default function AdminDashboardPage({
 
           {/* Student List */}
           {loading ? (
-            <div className="py-12 text-center text-slate-400">
-              <RefreshCw size={24} className="mx-auto animate-spin text-blue-400 mb-2" />
+            <div className={`py-12 text-center ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <RefreshCw size={24} className="mx-auto animate-spin text-blue-500 mb-2" />
               <p className="text-xs">Loading candidate directory...</p>
             </div>
           ) : filteredStudents.length === 0 ? (
-            <div className="py-12 text-center text-slate-400">
-              <Users size={32} className="mx-auto text-slate-600 mb-2" />
-              <p className="text-sm font-semibold text-white">No candidates match your search.</p>
-              <p className="text-xs text-slate-500">Registered candidates will appear here.</p>
+            <div className={`py-12 text-center ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+              <Users size={32} className={`mx-auto mb-2 ${isLight ? 'text-slate-300' : 'text-slate-600'}`} />
+              <p className={`text-sm font-semibold ${isLight ? 'text-slate-900' : 'text-white'}`}>No candidates match your search.</p>
+              <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Registered candidates will appear here.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -383,7 +382,11 @@ export default function AdminDashboardPage({
                 return (
                   <div
                     key={student.id}
-                    className="rounded-2xl border border-white/10 bg-[#0D121F] hover:border-white/20 transition overflow-hidden"
+                    className={`rounded-2xl border transition overflow-hidden ${
+                      isLight
+                        ? 'border-slate-200 bg-slate-50/70 hover:border-slate-300 shadow-xs'
+                        : 'border-white/10 bg-[#0D121F] hover:border-white/20'
+                    }`}
                   >
                     {/* Main Student Row */}
                     <div
@@ -392,23 +395,35 @@ export default function AdminDashboardPage({
                     >
                       {/* Left: Name, Email & Role */}
                       <div className="flex items-center gap-3 min-w-[200px]">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold text-sm">
+                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl font-bold text-sm border ${
+                          isLight
+                            ? 'bg-blue-100 border-blue-200 text-blue-700'
+                            : 'bg-blue-600/20 border-blue-500/30 text-blue-400'
+                        }`}>
                           {student.name ? student.name.charAt(0).toUpperCase() : 'S'}
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-white text-sm truncate">{student.name}</h3>
+                            <h3 className={`font-bold text-sm truncate ${isLight ? 'text-slate-900' : 'text-white'}`}>{student.name}</h3>
                             {student.role === 'admin' ? (
-                              <span className="rounded-full bg-amber-500/20 border border-amber-500/30 px-2 py-0.2 text-[9px] font-bold text-amber-300">
+                              <span className={`rounded-full px-2 py-0.2 text-[9px] font-bold border ${
+                                isLight
+                                  ? 'bg-amber-100 border-amber-300 text-amber-800'
+                                  : 'bg-amber-500/20 border-amber-500/30 text-amber-300'
+                              }`}>
                                 Admin
                               </span>
                             ) : (
-                              <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.2 text-[9px] font-bold text-blue-300">
+                              <span className={`rounded-full px-2 py-0.2 text-[9px] font-bold border ${
+                                isLight
+                                  ? 'bg-blue-100 border-blue-200 text-blue-800'
+                                  : 'bg-blue-500/20 border-blue-500/30 text-blue-300'
+                              }`}>
                                 Student
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-slate-400 truncate">{student.email}</p>
+                          <p className={`text-xs truncate ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>{student.email}</p>
                         </div>
                       </div>
 
@@ -416,23 +431,23 @@ export default function AdminDashboardPage({
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-right flex-1 sm:flex-initial">
                         <div>
                           <span className="text-[10px] uppercase font-semibold text-slate-500 block">Tests</span>
-                          <span className="font-mono font-bold text-white">{student.totalAttempts}</span>
+                          <span className={`font-mono font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>{student.totalAttempts}</span>
                         </div>
                         <div>
                           <span className="text-[10px] uppercase font-semibold text-slate-500 block">Latest Score</span>
-                          <span className="font-mono font-bold text-blue-400">
+                          <span className="font-mono font-bold text-blue-600 dark:text-blue-400">
                             {student.latestScore !== null ? student.latestScore : '—'}
                           </span>
                         </div>
                         <div>
                           <span className="text-[10px] uppercase font-semibold text-slate-500 block">Best Score</span>
-                          <span className="font-mono font-bold text-amber-400">
+                          <span className="font-mono font-bold text-amber-600 dark:text-amber-400">
                             {student.bestScore !== null ? student.bestScore : '—'}
                           </span>
                         </div>
                         <div>
                           <span className="text-[10px] uppercase font-semibold text-slate-500 block">Avg Accuracy</span>
-                          <span className="font-mono font-bold text-emerald-400">
+                          <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
                             {student.averageAccuracy !== null ? `${student.averageAccuracy}%` : '—'}
                           </span>
                         </div>
@@ -442,7 +457,11 @@ export default function AdminDashboardPage({
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                          className="rounded-full border border-white/10 bg-white/5 p-1.5 text-slate-400 hover:text-white"
+                          className={`rounded-full border p-1.5 transition ${
+                            isLight
+                              ? 'border-slate-200 bg-white text-slate-600 hover:text-slate-900'
+                              : 'border-white/10 bg-white/5 text-slate-400 hover:text-white'
+                          }`}
                         >
                           {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                         </button>
@@ -451,13 +470,15 @@ export default function AdminDashboardPage({
 
                     {/* Expandable Attempts Drawer */}
                     {isExpanded && (
-                      <div className="border-t border-white/10 bg-[#070A12] p-4 sm:p-5 space-y-4 animate-fade-in">
+                      <div className={`border-t p-4 sm:p-5 space-y-4 animate-fade-in ${
+                        isLight ? 'border-slate-200 bg-white' : 'border-white/10 bg-[#070A12]'
+                      }`}>
                         <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                          <span className="font-bold text-white flex items-center gap-1.5">
-                            <Layers size={14} className="text-blue-400" />
+                          <span className={`font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                            <Layers size={14} className="text-blue-500" />
                             Recorded Attempts for {student.name} ({student.attempts?.length || 0})
                           </span>
-                          <span className="text-slate-400 text-[11px]">
+                          <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                             Registered: {new Date(student.registeredAt).toLocaleDateString()}
                           </span>
                         </div>
@@ -469,36 +490,46 @@ export default function AdminDashboardPage({
                         ) : (
                           <div className="space-y-3">
                             {student.attempts.map((att, idx) => {
-                              const isPredictionEligible =
-                                att.testId === 'neet-biology-core-drill' ||
-                                att.testId === 'neet-mechanics-chemical-bonding-drill';
-
                               return (
                                 <div
                                   key={att.id || idx}
-                                  className="rounded-2xl border border-white/10 bg-[#090D17] p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 hover:border-white/20 transition"
+                                  className={`rounded-2xl border p-3.5 sm:p-4 flex flex-wrap items-center justify-between gap-3 transition ${
+                                    isLight
+                                      ? 'border-slate-200 bg-slate-50/80 hover:border-slate-300'
+                                      : 'border-white/10 bg-[#090D17] hover:border-white/20'
+                                  }`}
                                 >
                                   {/* Left: Test Title & Date */}
                                   <div className="space-y-1 min-w-[200px]">
                                     <div className="flex flex-wrap items-center gap-2">
-                                      <span className="font-mono text-xs font-bold text-white bg-white/10 px-2 py-0.5 rounded">
+                                      <span className={`font-mono text-xs font-bold rounded px-2 py-0.5 border ${
+                                        isLight ? 'text-slate-800 bg-slate-200 border-slate-300' : 'text-white bg-white/10 border-white/10'
+                                      }`}>
                                         #{att.attemptNumber || student.attempts.length - idx}
                                       </span>
-                                      <h4 className="font-bold text-sm text-white truncate max-w-xs sm:max-w-md">
+                                      <h4 className={`font-bold text-sm truncate max-w-xs sm:max-w-md ${isLight ? 'text-slate-900' : 'text-white'}`}>
                                         {att.testTitle || 'NEET Standard CBT Mock'}
                                       </h4>
                                       {att.isLiveSession || att.status === 'in_progress' ? (
-                                        <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-[10px] font-bold text-amber-300 flex items-center gap-1 animate-pulse">
-                                          <Zap size={10} className="text-amber-400" /> Live / In-Progress (Unsubmitted)
+                                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold flex items-center gap-1 border animate-pulse ${
+                                          isLight
+                                            ? 'bg-amber-100 border-amber-300 text-amber-800'
+                                            : 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                                        }`}>
+                                          <Zap size={10} className="text-amber-500" /> Live / In-Progress (Unsubmitted)
                                         </span>
                                       ) : (
-                                        <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${
+                                          isLight
+                                            ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
+                                            : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
+                                        }`}>
                                           Submitted
                                         </span>
                                       )}
                                     </div>
-                                    <div className="flex items-center gap-2 text-[11px] text-slate-400">
-                                      <Calendar size={12} className="text-slate-500" />
+                                    <div className={`flex items-center gap-2 text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                                      <Calendar size={12} className={isLight ? 'text-slate-400' : 'text-slate-500'} />
                                       <span>
                                         {formatDateTimeSafe(att.timestamp || att.submittedAt)}
                                       </span>
@@ -513,26 +544,36 @@ export default function AdminDashboardPage({
 
                                   {/* Middle: Scores & Breakdown */}
                                   <div className="flex flex-wrap items-center gap-3 sm:gap-5 text-xs">
-                                    <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-center">
-                                      <span className="text-[9px] uppercase font-bold text-slate-400 block">Score</span>
-                                      <span className="font-mono font-bold text-white">
-                                        <strong className="text-sm font-black text-blue-400">{att.score ?? 0}</strong> / {att.maxScore || 240}
+                                    <div className={`rounded-xl px-3 py-1.5 text-center border ${
+                                      isLight ? 'bg-white border-slate-200' : 'bg-white/5 border-white/10'
+                                    }`}>
+                                      <span className={`text-[9px] uppercase font-bold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Score</span>
+                                      <span className={`font-mono font-bold ${isLight ? 'text-slate-800' : 'text-white'}`}>
+                                        <strong className="text-sm font-black text-blue-600 dark:text-blue-400">{att.score ?? 0}</strong> / {att.maxScore || 240}
                                       </span>
                                     </div>
-                                    <div className="rounded-xl bg-emerald-950/20 border border-emerald-500/30 px-3 py-1.5 text-center">
-                                      <span className="text-[9px] uppercase font-bold text-emerald-400 block">Accuracy</span>
-                                      <span className="font-mono font-black text-emerald-400">
+                                    <div className={`rounded-xl px-3 py-1.5 text-center border ${
+                                      isLight ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400'
+                                    }`}>
+                                      <span className="text-[9px] uppercase font-bold block text-emerald-600 dark:text-emerald-400">Accuracy</span>
+                                      <span className="font-mono font-black text-emerald-600 dark:text-emerald-400">
                                         {formatAcc(att.accuracy)}%
                                       </span>
                                     </div>
                                     <div className="flex items-center gap-1.5 font-mono text-xs">
-                                      <span className="rounded-lg bg-emerald-500/20 border border-emerald-500/30 px-2 py-1 text-emerald-300 font-bold" title="Correct Questions">
+                                      <span className={`rounded-lg px-2 py-1 font-bold border ${
+                                        isLight ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
+                                      }`} title="Correct Questions">
                                         +{att.correct ?? 0} Correct
                                       </span>
-                                      <span className="rounded-lg bg-rose-500/20 border border-rose-500/30 px-2 py-1 text-rose-300 font-bold" title="Incorrect Questions">
+                                      <span className={`rounded-lg px-2 py-1 font-bold border ${
+                                        isLight ? 'bg-rose-100 border-rose-300 text-rose-800' : 'bg-rose-500/20 border-rose-500/30 text-rose-300'
+                                      }`} title="Incorrect Questions">
                                         −{att.wrong ?? 0} Wrong
                                       </span>
-                                      <span className="rounded-lg bg-slate-500/20 border border-slate-500/30 px-2 py-1 text-slate-300" title="Skipped Questions">
+                                      <span className={`rounded-lg px-2 py-1 border ${
+                                        isLight ? 'bg-slate-200 border-slate-300 text-slate-700' : 'bg-slate-500/20 border-slate-500/30 text-slate-300'
+                                      }`} title="Skipped Questions">
                                         {att.unattempted ?? 0} Skipped
                                       </span>
                                     </div>

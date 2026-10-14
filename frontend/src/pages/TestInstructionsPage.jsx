@@ -12,28 +12,12 @@ import {
   AlertCircle,
   Timer,
   Sparkles,
-  Sun,
-  Moon,
 } from 'lucide-react';
+import { useTheme } from '../utils/themeContext.jsx';
 
 export default function TestInstructionsPage({ test, onBack, onStart }) {
-  // Theme state: 'dark' (default) or 'light'
-  const [theme, setTheme] = useState(() => {
-    try {
-      return localStorage.getItem('neet_theme') || 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
-  const isLight = theme === 'light';
-
-  const toggleTheme = () => {
-    const next = isLight ? 'dark' : 'light';
-    setTheme(next);
-    try {
-      localStorage.setItem('neet_theme', next);
-    } catch {}
-  };
+  // Global theme
+  const { theme, isLight } = useTheme();
 
   const qCount = test?.totalQuestions || test?.questions?.length || 60;
   const defaultDuration = test?.durationMinutes || 120;
@@ -134,30 +118,6 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
           >
             <ArrowLeft size={14} /> Back to Dashboard
           </button>
-
-          {/* Prominent Theme Switcher */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            title={`Switch to ${isLight ? 'Dark' : 'Light'} Mode`}
-            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 border shadow-md active:scale-95 ${
-              isLight
-                ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 hover:bg-amber-500/25'
-                : 'bg-blue-600/25 border-blue-500/40 text-blue-200 hover:bg-blue-600/35'
-            }`}
-          >
-            {isLight ? (
-              <>
-                <Sun size={15} className="text-amber-600 shrink-0" />
-                <span className="font-extrabold text-[11px] sm:text-xs">Light Mode</span>
-              </>
-            ) : (
-              <>
-                <Moon size={15} className="text-blue-400 shrink-0" />
-                <span className="font-extrabold text-[11px] sm:text-xs">Dark Mode</span>
-              </>
-            )}
-          </button>
         </div>
 
         <section
@@ -185,54 +145,74 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
 
           {/* Metrics overview */}
           <div className="my-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-center">
-              <p className="font-mono text-xl sm:text-2xl font-black text-white">{qCount}</p>
-              <p className="mt-1 text-[11px] font-semibold text-slate-400">Questions</p>
+            <div className={`rounded-2xl border p-3.5 text-center transition ${
+              isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+            }`}>
+              <p className={`font-mono text-xl sm:text-2xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>{qCount}</p>
+              <p className={`mt-1 text-[11px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Questions</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-center">
-              <p className="font-mono text-xl sm:text-2xl font-black text-amber-400">
+            <div className={`rounded-2xl border p-3.5 text-center transition ${
+              isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+            }`}>
+              <p className="font-mono text-xl sm:text-2xl font-black text-amber-500">
                 {effectiveDuration}m
               </p>
-              <p className="mt-1 text-[11px] font-semibold text-slate-400">
+              <p className={`mt-1 text-[11px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                 Duration ({formatHours(effectiveDuration)})
               </p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-center">
-              <p className="font-mono text-xl sm:text-2xl font-black text-white">{qCount * 4}</p>
-              <p className="mt-1 text-[11px] font-semibold text-slate-400">Total Marks</p>
+            <div className={`rounded-2xl border p-3.5 text-center transition ${
+              isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+            }`}>
+              <p className={`font-mono text-xl sm:text-2xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>{qCount * 4}</p>
+              <p className={`mt-1 text-[11px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Total Marks</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-center">
-              <p className="font-mono text-lg sm:text-xl font-black text-emerald-400">+4 / −1</p>
-              <p className="mt-1 text-[11px] font-semibold text-slate-400">Marking</p>
+            <div className={`rounded-2xl border p-3.5 text-center transition ${
+              isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+            }`}>
+              <p className="font-mono text-lg sm:text-xl font-black text-emerald-500">+4 / −1</p>
+              <p className={`mt-1 text-[11px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Marking</p>
             </div>
           </div>
 
           {/* Student Custom Time Limit Modifier (Only for customizable tests) */}
           {isCustomizable && (
-            <div className="my-6 rounded-2xl border border-violet-500/30 bg-gradient-to-br from-violet-950/40 via-[#0B0F1E] to-[#070A12] p-5 shadow-xl space-y-4">
+            <div className={`my-6 rounded-2xl border p-5 shadow-xl space-y-4 transition ${
+              isLight
+                ? 'border-violet-200 bg-gradient-to-br from-violet-50/70 via-purple-50/40 to-white text-slate-800'
+                : 'border-violet-500/30 bg-gradient-to-br from-violet-950/40 via-[#0B0F1E] to-[#070A12]'
+            }`}>
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-600/30 text-violet-300 border border-violet-500/40">
+                  <div className={`flex h-7 w-7 items-center justify-center rounded-lg border ${
+                    isLight
+                      ? 'bg-violet-100 text-violet-700 border-violet-200'
+                      : 'bg-violet-600/30 text-violet-300 border-violet-500/40'
+                  }`}>
                     <Sliders size={15} />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <h2 className={`text-sm font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-900' : 'text-white'}`}>
                       Student Time Limit Customizer
-                      <span className="rounded-full bg-violet-500/20 border border-violet-500/40 px-2 py-0.2 text-[10px] font-bold text-violet-300">
+                      <span className={`rounded-full px-2 py-0.2 text-[10px] font-bold border ${
+                        isLight
+                          ? 'bg-violet-100 border-violet-200 text-violet-800'
+                          : 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                      }`}>
                         Max {formatHours(maxDuration)} ({maxDuration} Mins)
                       </span>
                     </h2>
-                    <p className="text-[11px] text-slate-400">
+                    <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                       Customize your examination duration as needed (Capped at {formatHours(maxDuration)} / {maxDuration} mins).
                     </p>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <span className="font-mono text-lg font-black text-violet-300">
+                  <span className={`font-mono text-lg font-black ${isLight ? 'text-violet-700' : 'text-violet-300'}`}>
                     {effectiveDuration} Mins
                   </span>
-                  <span className="block text-[10px] font-medium text-slate-400">
+                  <span className={`block text-[10px] font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                     ({formatHours(effectiveDuration)})
                   </span>
                 </div>
@@ -249,12 +229,16 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
                       onClick={() => handleDurationChange(p.value)}
                       className={`rounded-xl border p-2 text-center transition ${
                         isSelected
-                          ? 'border-violet-500 bg-violet-600 text-white font-bold shadow-md shadow-violet-600/30 ring-1 ring-violet-400'
+                          ? 'border-violet-600 bg-violet-600 text-white font-bold shadow-md shadow-violet-600/30'
+                          : isLight
+                          ? 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                           : 'border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:bg-white/10'
                       }`}
                     >
                       <span className="block text-xs font-bold">{p.label}</span>
-                      <span className={`block text-[10px] ${isSelected ? 'text-violet-100' : 'text-slate-400'}`}>
+                      <span className={`block text-[10px] ${
+                        isSelected ? 'text-violet-100' : isLight ? 'text-slate-500' : 'text-slate-400'
+                      }`}>
                         {p.desc}
                       </span>
                     </button>
@@ -263,8 +247,8 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
               </div>
 
               {/* Slider & Custom Input Row */}
-              <div className="space-y-2 pt-2 border-t border-white/5">
-                <div className="flex items-center justify-between text-xs text-slate-400">
+              <div className={`space-y-2 pt-2 border-t ${isLight ? 'border-violet-100' : 'border-white/5'}`}>
+                <div className={`flex items-center justify-between text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                   <span>Custom Duration Slider (10m – 180m):</span>
                   <div className="flex items-center gap-1.5">
                     <span>Enter Minutes:</span>
@@ -275,9 +259,13 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
                       value={durationInput}
                       onChange={handleInputChange}
                       onBlur={handleInputBlur}
-                      className="w-16 rounded-lg border border-white/10 bg-[#05070B] px-2 py-1 font-mono text-xs font-bold text-center text-white focus:border-violet-500 focus:outline-none"
+                      className={`w-16 rounded-lg border px-2 py-1 font-mono text-xs font-bold text-center focus:border-violet-500 focus:outline-none ${
+                        isLight
+                          ? 'border-slate-300 bg-white text-slate-900'
+                          : 'border-white/10 bg-[#05070B] text-white'
+                      }`}
                     />
-                    <span className="text-[11px] text-slate-500">mins</span>
+                    <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>mins</span>
                   </div>
                 </div>
 
@@ -288,12 +276,14 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
                   step={5}
                   value={selectedDuration}
                   onChange={(e) => handleDurationChange(e.target.value)}
-                  className="w-full accent-violet-500 h-2 bg-slate-800 rounded-lg cursor-pointer"
+                  className={`w-full accent-violet-600 h-2 rounded-lg cursor-pointer ${
+                    isLight ? 'bg-slate-200' : 'bg-slate-800'
+                  }`}
                 />
 
-                <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
-                  <span>⚡ Pacing: <strong className="text-violet-300 font-mono">~{pacingSec}s</strong> per question</span>
-                  <span className="text-amber-400/90 flex items-center gap-1">
+                <div className={`flex items-center justify-between text-[11px] pt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                  <span>⚡ Pacing: <strong className={`font-mono ${isLight ? 'text-violet-700' : 'text-violet-300'}`}>~{pacingSec}s</strong> per question</span>
+                  <span className={`flex items-center gap-1 font-semibold ${isLight ? 'text-amber-700' : 'text-amber-400/90'}`}>
                     <ShieldCheck size={12} /> Limit: Maximum 3.0 Hours (180 mins)
                   </span>
                 </div>
@@ -302,29 +292,33 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
           )}
 
           {/* Marking & Rules Info */}
-          <div className="space-y-4 rounded-2xl border border-white/10 bg-[#070A12] p-5 text-xs text-slate-300 leading-relaxed">
+          <div className={`space-y-4 rounded-2xl border p-5 text-xs leading-relaxed transition ${
+            isLight
+              ? 'border-slate-200 bg-slate-50 text-slate-700'
+              : 'border-white/10 bg-[#070A12] text-slate-300'
+          }`}>
             <div>
-              <h2 className="font-bold uppercase tracking-wider text-white text-xs">
+              <h2 className={`font-bold uppercase tracking-wider text-xs ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 Marking Scheme &amp; Scoring System :
               </h2>
-              <p className="mt-2 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                • <strong className="text-emerald-400 font-bold">+4 Marks</strong> for each correct answer.
+              <p className={`mt-2 text-xs sm:text-sm leading-relaxed ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                • <strong className="text-emerald-600 dark:text-emerald-400 font-bold">+4 Marks</strong> for each correct answer.
                 <br />
-                • <strong className="text-rose-400 font-bold">−1 Mark</strong> for each incorrect answer (Negative Marking).
+                • <strong className="text-rose-600 dark:text-rose-400 font-bold">−1 Mark</strong> for each incorrect answer (Negative Marking).
                 <br />
-                • <strong className="text-slate-400 font-medium">0 Marks</strong> for unattempted questions.
+                • <strong className={`font-medium ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>0 Marks</strong> for unattempted questions.
               </p>
             </div>
 
-            <div className="border-t border-white/10 pt-3">
-              <h2 className="font-bold uppercase tracking-wider text-white text-xs">
+            <div className={`border-t pt-3 ${isLight ? 'border-slate-200' : 'border-white/10'}`}>
+              <h2 className={`font-bold uppercase tracking-wider text-xs ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 Examination Rules &amp; CBT Navigation :
               </h2>
-              <ul className="mt-2 space-y-1.5 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                <li>• <strong className="text-white">Continuous Timer ({effectiveDuration} Mins):</strong> The countdown timer will run continuously for {effectiveDuration} minutes. Refreshing will restore your active session.</li>
-                <li>• <strong className="text-white">Question Palette:</strong> Use the sidebar palette to jump between questions and toggle review flags.</li>
-                <li>• <strong className="text-white">Auto-Submission:</strong> The examination will automatically submit when the countdown reaches zero.</li>
-                <li>• <strong className="text-white">Instant Results &amp; Solutions:</strong> Complete breakdown and step-by-step KaTeX explanations will appear immediately upon submission.</li>
+              <ul className={`mt-2 space-y-1.5 text-xs sm:text-sm leading-relaxed ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+                <li>• <strong className={isLight ? 'text-slate-900 font-semibold' : 'text-white'}>Continuous Timer ({effectiveDuration} Mins):</strong> The countdown timer will run continuously for {effectiveDuration} minutes. Refreshing will restore your active session.</li>
+                <li>• <strong className={isLight ? 'text-slate-900 font-semibold' : 'text-white'}>Question Palette:</strong> Use the sidebar palette to jump between questions and toggle review flags.</li>
+                <li>• <strong className={isLight ? 'text-slate-900 font-semibold' : 'text-white'}>Auto-Submission:</strong> The examination will automatically submit when the countdown reaches zero.</li>
+                <li>• <strong className={isLight ? 'text-slate-900 font-semibold' : 'text-white'}>Instant Results &amp; Solutions:</strong> Complete breakdown and step-by-step KaTeX explanations will appear immediately upon submission.</li>
               </ul>
             </div>
           </div>
@@ -340,7 +334,11 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
             <button
               type="button"
               onClick={onBack}
-              className="rounded-full border border-white/10 bg-white/5 hover:bg-white/10 px-6 py-4 text-sm font-semibold text-slate-300 transition"
+              className={`rounded-full border px-6 py-4 text-sm font-semibold transition ${
+                isLight
+                  ? 'border-slate-300 bg-white hover:bg-slate-100 text-slate-700 shadow-xs'
+                  : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
+              }`}
             >
               Cancel
             </button>

@@ -1,8 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   ArrowLeft,
-  Sun,
-  Moon,
   Award,
   Clock,
   Target,
@@ -29,6 +27,7 @@ import MathRenderer from '../components/MathRenderer.jsx';
 import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
 import JeeScorePredictorCard from '../components/JeeScorePredictorCard.jsx';
 import { formatDuration } from '../utils/scoring.js';
+import { useTheme } from '../utils/themeContext.jsx';
 import { NEET_ROUND_1_TEST, NEET_ROUND_1_QUESTIONS } from '../data/neetMegaRound1MechanicsTest.js';
 import { NEET_ROUND_2_TEST, NEET_ROUND_2_QUESTIONS } from '../data/neetMegaRound2BondingMorphologyTest.js';
 import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from '../data/neetGrandMegaDrillTest.js';
@@ -236,24 +235,8 @@ export default function AdminDiagnosisPage({
   onBack,
   onLogout,
 }) {
-  // Theme state: 'dark' (default) or 'light'
-  const [theme, setTheme] = useState(() => {
-    try {
-      return localStorage.getItem('neet_theme') || 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
-
-  const isLight = theme === 'light';
-
-  const toggleTheme = () => {
-    const next = isLight ? 'dark' : 'light';
-    setTheme(next);
-    try {
-      localStorage.setItem('neet_theme', next);
-    } catch {}
-  };
+  // Global theme
+  const { theme, isLight } = useTheme();
 
   // Active filter tab: 'wrong' | 'unattempted' | 'diagnostics' | 'all'
   const [activeTab, setActiveTab] = useState('wrong');
@@ -607,31 +590,8 @@ export default function AdminDiagnosisPage({
             </div>
           </div>
 
-          {/* Right: Theme Toggle & Logout */}
+          {/* Right: Logout */}
           <div className="flex items-center gap-2.5">
-            {/* Theme Toggle Button */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              title={`Switch to ${isLight ? 'Dark' : 'Light'} Mode`}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 border shadow-xs ${
-                isLight
-                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-700 hover:bg-amber-500/20'
-                  : 'bg-blue-500/10 border-blue-500/30 text-blue-300 hover:bg-blue-500/20'
-              }`}
-            >
-              {isLight ? (
-                <>
-                  <Sun size={14} className="text-amber-500" />
-                  <span className="hidden sm:inline">Light Theme</span>
-                </>
-              ) : (
-                <>
-                  <Moon size={14} className="text-blue-400" />
-                  <span className="hidden sm:inline">Dark Theme</span>
-                </>
-              )}
-            </button>
 
             {onLogout && (
               <button
@@ -1237,7 +1197,9 @@ export default function AdminDiagnosisPage({
                           <img
                             src={q.image}
                             alt={`Question ${q.questionNumber}`}
-                            className="max-h-72 rounded-2xl border border-white/10 shadow-lg object-contain bg-white/5 p-2"
+                            className={`max-h-72 rounded-2xl object-contain p-2 ${
+                              isLight ? 'border border-slate-200 bg-white shadow-sm' : 'border border-white/10 bg-white/5 shadow-lg'
+                            }`}
                           />
                         </div>
                       )}

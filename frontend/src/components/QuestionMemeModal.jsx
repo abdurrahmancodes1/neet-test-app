@@ -10,6 +10,7 @@ import {
   Smile,
   X,
 } from 'lucide-react';
+import { useTheme } from '../utils/themeContext.jsx';
 
 const HARD_MEMES = [
   {
@@ -76,6 +77,7 @@ export default function QuestionMemeModal({
   isHard = false,
   onClose,
 }) {
+  const { isLight } = useTheme();
   const [memeIndex, setMemeIndex] = useState(0);
 
   useEffect(() => {
@@ -202,7 +204,11 @@ export default function QuestionMemeModal({
     <div className="fixed bottom-20 right-4 z-50 max-w-sm animate-rise-in sm:bottom-24 sm:right-8">
       <div
         onClick={onClose}
-        className="cursor-pointer overflow-hidden rounded-2xl border-2 border-blue-400/60 bg-ink-900 p-4 text-white shadow-pop ring-4 ring-blue-500/20 transition hover:scale-[1.02]"
+        className={`cursor-pointer overflow-hidden rounded-2xl border-2 p-4 shadow-pop transition hover:scale-[1.02] ${
+          isLight
+            ? 'border-blue-400 bg-white text-slate-900 ring-4 ring-blue-500/10 shadow-xl'
+            : 'border-blue-400/60 bg-ink-900 text-white ring-4 ring-blue-500/20'
+        }`}
       >
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 font-bold text-white shadow-xs">
@@ -210,12 +216,16 @@ export default function QuestionMemeModal({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-1">
-              <span className="rounded-md bg-blue-500/30 px-2 py-0.5 text-[10px] font-black text-amber-300">
+              <span className={`rounded-md px-2 py-0.5 text-[10px] font-black ${
+                isLight ? 'bg-blue-100 text-blue-900' : 'bg-blue-500/30 text-amber-300'
+              }`}>
                 Q{questionNumber} · OPTION {selectedOption}
               </span>
-              <span className="text-[10px] text-blue-300 font-bold">{meme.badge}</span>
+              <span className={`text-[10px] font-bold ${isLight ? 'text-blue-700' : 'text-blue-300'}`}>
+                {meme.badge}
+              </span>
             </div>
-            <p className="mt-1 text-xs font-medium leading-snug text-blue-100">
+            <p className={`mt-1 text-xs font-medium leading-snug ${isLight ? 'text-slate-700' : 'text-blue-100'}`}>
               {meme.quote}
             </p>
           </div>

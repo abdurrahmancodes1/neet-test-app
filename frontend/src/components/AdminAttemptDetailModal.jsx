@@ -22,6 +22,7 @@ import {
 import MathRenderer from './MathRenderer.jsx';
 import NeetScorePredictorCard from './NeetScorePredictorCard.jsx';
 import { formatDuration } from '../utils/scoring.js';
+import { useTheme } from '../utils/themeContext.jsx';
 import { NEET_ROUND_1_TEST, NEET_ROUND_1_QUESTIONS } from '../data/neetMegaRound1MechanicsTest.js';
 import { NEET_ROUND_2_TEST, NEET_ROUND_2_QUESTIONS } from '../data/neetMegaRound2BondingMorphologyTest.js';
 import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from '../data/neetGrandMegaDrillTest.js';
@@ -454,6 +455,8 @@ export default function AdminAttemptDetailModal({
     };
   }, [attempt, student]);
 
+  const { isLight } = useTheme();
+
   if (!isOpen || !attempt || !resolved) return null;
 
   const {
@@ -493,24 +496,44 @@ export default function AdminAttemptDetailModal({
       />
 
       {/* Modal Dialog */}
-      <div className="relative w-full max-w-5xl h-[96vh] sm:h-auto sm:max-h-[92vh] flex flex-col rounded-2xl sm:rounded-3xl border border-white/10 bg-[#0B0F19] shadow-2xl overflow-hidden text-slate-100 z-10 animate-rise-in">
+      <div
+        className={`relative w-full max-w-5xl h-[96vh] sm:h-auto sm:max-h-[92vh] flex flex-col rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden z-10 animate-rise-in transition-colors ${
+          isLight
+            ? 'border-slate-200 bg-white text-slate-900'
+            : 'border-white/10 bg-[#0B0F19] text-slate-100'
+        }`}
+      >
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-[#0D121F] px-3 sm:px-6 py-2.5 sm:py-3.5 shrink-0 gap-2">
+        <div
+          className={`flex items-center justify-between border-b px-3 sm:px-6 py-2.5 sm:py-3.5 shrink-0 gap-2 transition-colors ${
+            isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#0D121F]'
+          }`}
+        >
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            <div className="flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 font-bold text-xs sm:text-sm">
+            <div
+              className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border font-bold text-xs sm:text-sm ${
+                isLight ? 'bg-blue-100 border-blue-200 text-blue-800' : 'bg-blue-600/20 border-blue-500/30 text-blue-400'
+              }`}
+            >
               <User size={16} className="sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <h2 className="font-sans text-xs sm:text-base font-black text-white truncate max-w-[180px] sm:max-w-md">
+                <h2 className={`font-sans text-xs sm:text-base font-black truncate max-w-[180px] sm:max-w-md ${
+                  isLight ? 'text-slate-900' : 'text-white'
+                }`}>
                   {candidateName}'s Test Diagnostics
                 </h2>
-                <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-blue-300 shrink-0">
+                <span className={`rounded-full px-2 py-0.5 text-[9px] sm:text-[10px] font-bold shrink-0 ${
+                  isLight ? 'bg-blue-100 border border-blue-300 text-blue-800' : 'bg-blue-500/20 border border-blue-500/30 text-blue-300'
+                }`}>
                   Attempt #{attempt.attemptNumber || 1}
                 </span>
               </div>
-              <p className="text-[11px] sm:text-xs text-slate-400 truncate max-w-[220px] sm:max-w-lg">
-                {candidateEmail} · <strong className="text-slate-200">{testTitle}</strong>
+              <p className={`text-[11px] sm:text-xs truncate max-w-[220px] sm:max-w-lg ${
+                isLight ? 'text-slate-500' : 'text-slate-400'
+              }`}>
+                {candidateEmail} · <strong className={isLight ? 'text-slate-800' : 'text-slate-200'}>{testTitle}</strong>
               </p>
             </div>
           </div>
@@ -519,57 +542,79 @@ export default function AdminAttemptDetailModal({
             type="button"
             onClick={onClose}
             title="Close Modal"
-            className="rounded-full border border-white/10 bg-white/5 p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-white/10 transition shrink-0"
+            className={`rounded-full border p-1.5 sm:p-2 transition shrink-0 ${
+              isLight
+                ? 'border-slate-200 bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200'
+                : 'border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
+            }`}
           >
             <X size={16} className="sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Quick Diagnostic Metrics Bar */}
-        <div className="border-b border-white/10 bg-[#080C16] px-3 sm:px-6 py-2 sm:py-3 grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-3 text-center shrink-0">
-          <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-[#0D121F] p-2 sm:p-2.5">
-            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block">Final Score</span>
-            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-white">
+        <div
+          className={`border-b px-3 sm:px-6 py-2 sm:py-3 grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-3 text-center shrink-0 transition-colors ${
+            isLight ? 'border-slate-200 bg-slate-100/70' : 'border-white/10 bg-[#080C16]'
+          }`}
+        >
+          <div className={`rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
+            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0D121F]'
+          }`}>
+            <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Final Score</span>
+            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {score} <span className="text-[10px] sm:text-xs font-normal text-slate-500">/ {maxScore}</span>
             </p>
-            <span className="text-[9px] sm:text-[10px] text-blue-400 font-semibold">{percentage}% Total</span>
+            <span className={`text-[9px] sm:text-[10px] font-semibold ${isLight ? 'text-blue-600' : 'text-blue-400'}`}>{percentage}% Total</span>
           </div>
 
-          <div className="rounded-xl sm:rounded-2xl border border-rose-500/30 bg-rose-950/30 p-2 sm:p-2.5">
-            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-rose-400 block">Wrong Qs</span>
-            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-rose-400">
+          <div className={`rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
+            isLight ? 'border-rose-200 bg-rose-50' : 'border-rose-500/30 bg-rose-950/30'
+          }`}>
+            <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-rose-700' : 'text-rose-400'}`}>Wrong Qs</span>
+            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-rose-700' : 'text-rose-400'}`}>
               −{wrong}
             </p>
-            <span className="text-[9px] sm:text-[10px] text-rose-300 font-semibold">−{wrong} Negative</span>
+            <span className={`text-[9px] sm:text-[10px] font-semibold ${isLight ? 'text-rose-600' : 'text-rose-300'}`}>−{wrong} Negative</span>
           </div>
 
-          <div className="rounded-xl sm:rounded-2xl border border-emerald-500/20 bg-emerald-950/20 p-2 sm:p-2.5">
-            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-400 block">Correct Qs</span>
-            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-emerald-400">
+          <div className={`rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
+            isLight ? 'border-emerald-200 bg-emerald-50' : 'border-emerald-500/20 bg-emerald-950/20'
+          }`}>
+            <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>Correct Qs</span>
+            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
               +{correct}
             </p>
-            <span className="text-[9px] sm:text-[10px] text-emerald-300 font-semibold">+{correct * 4} Marks</span>
+            <span className={`text-[9px] sm:text-[10px] font-semibold ${isLight ? 'text-emerald-600' : 'text-emerald-300'}`}>+{correct * 4} Marks</span>
           </div>
 
-          <div className="rounded-xl sm:rounded-2xl border border-white/10 bg-[#0D121F] p-2 sm:p-2.5">
-            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block">Skipped Qs</span>
-            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-slate-300">
+          <div className={`rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
+            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0D121F]'
+          }`}>
+            <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Skipped Qs</span>
+            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-slate-800' : 'text-slate-300'}`}>
               {unattempted}
             </p>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 font-semibold">0 Marks</span>
+            <span className={`text-[9px] sm:text-[10px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>0 Marks</span>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 rounded-xl sm:rounded-2xl border border-white/10 bg-[#0D121F] p-2 sm:p-2.5">
-            <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block">Accuracy</span>
-            <p className="mt-0.5 font-mono text-base sm:text-xl font-black text-amber-400">
+          <div className={`col-span-2 sm:col-span-1 rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
+            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0D121F]'
+          }`}>
+            <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Accuracy</span>
+            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-amber-600' : 'text-amber-400'}`}>
               {accuracy}%
             </p>
-            <span className="text-[9px] sm:text-[10px] text-slate-400 font-mono">{timeTaken}</span>
+            <span className={`text-[9px] sm:text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{timeTaken}</span>
           </div>
         </div>
 
         {/* Focused Fast Tabs (Wrong Questions | Skipped Questions | Topic Diagnostics) */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-[#070A12] px-3 sm:px-6 py-2 overflow-x-auto scrollbar-none gap-2 shrink-0">
+        <div
+          className={`flex items-center justify-between border-b px-3 sm:px-6 py-2 overflow-x-auto scrollbar-none gap-2 shrink-0 transition-colors ${
+            isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+          }`}
+        >
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* 1. Wrong Questions Tab (Primary Target) */}
             <button
@@ -578,7 +623,9 @@ export default function AdminAttemptDetailModal({
               className={`rounded-full px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'wrong'
                   ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-1 ring-rose-400'
-                  : 'bg-rose-500/10 text-rose-300 border border-rose-500/20 hover:bg-rose-500/20'
+                  : isLight
+                    ? 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
+                    : 'bg-rose-500/10 text-rose-300 border border-rose-500/20 hover:bg-rose-500/20'
               }`}
             >
               <XCircle size={13} />
@@ -591,8 +638,10 @@ export default function AdminAttemptDetailModal({
               onClick={() => setActiveTab('unattempted')}
               className={`rounded-full px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'unattempted'
-                  ? 'bg-slate-600 text-white shadow-md ring-1 ring-slate-400'
-                  : 'text-slate-400 hover:text-white bg-white/5 border border-white/10'
+                  ? 'bg-slate-700 text-white shadow-md ring-1 ring-slate-400'
+                  : isLight
+                    ? 'text-slate-600 hover:text-slate-900 bg-slate-100 border border-slate-200'
+                    : 'text-slate-400 hover:text-white bg-white/5 border border-white/10'
               }`}
             >
               <MinusCircle size={13} />
@@ -606,7 +655,9 @@ export default function AdminAttemptDetailModal({
               className={`rounded-full px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'diagnostics'
                   ? 'bg-violet-600 text-white shadow-md shadow-violet-600/30'
-                  : 'text-violet-300 hover:text-white bg-violet-500/10 border border-violet-500/20'
+                  : isLight
+                    ? 'text-violet-700 hover:text-violet-900 bg-violet-50 border border-violet-200'
+                    : 'text-violet-300 hover:text-white bg-violet-500/10 border border-violet-500/20'
               }`}
             >
               <Sparkles size={13} />
@@ -614,9 +665,9 @@ export default function AdminAttemptDetailModal({
             </button>
           </div>
 
-          <div className="hidden md:flex items-center gap-2 text-xs font-semibold text-slate-400 shrink-0">
-            <Clock size={13} className="text-blue-400" />
-            <span>Time Spent: <strong className="text-white font-mono">{timeTaken}</strong></span>
+          <div className={`hidden md:flex items-center gap-2 text-xs font-semibold shrink-0 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <Clock size={13} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
+            <span>Time Spent: <strong className={`font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>{timeTaken}</strong></span>
           </div>
         </div>
 
@@ -758,29 +809,31 @@ export default function AdminAttemptDetailModal({
           {/* FOCUSED ERROR & REMEDIATION REVIEW VIEW (Wrong & Skipped Questions ONLY) */}
           {activeTab !== 'diagnostics' && (
             <div className="space-y-5 animate-fade-in">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
-                <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+              <div className={`flex flex-wrap items-center justify-between gap-2 border-b pb-3 ${isLight ? 'border-slate-200' : 'border-white/10'}`}>
+                <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                   Showing:{' '}
-                  <strong className="text-white capitalize">
+                  <strong className={`capitalize ${isLight ? 'text-slate-900 font-extrabold' : 'text-white'}`}>
                     {activeTab === 'wrong'
                       ? `Incorrect / Wrong Questions (${displayedQuestions.length} Questions)`
                       : `Skipped / Unattempted Questions (${displayedQuestions.length} Questions)`}
                   </strong>
                 </span>
-                <span className="text-[11px] text-slate-400">
+                <span className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                   Inspect student's selected answer vs official answer with full step-by-step solutions.
                 </span>
               </div>
 
               {displayedQuestions.length === 0 ? (
-                <div className="rounded-3xl border border-white/10 bg-[#070A12] p-8 text-center text-slate-400 space-y-2">
-                  <CheckCircle2 size={40} className="mx-auto text-emerald-400" />
-                  <p className="text-sm font-bold text-white">
+                <div className={`rounded-3xl border p-8 text-center space-y-2 ${
+                  isLight ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-white/10 bg-[#070A12] text-slate-400'
+                }`}>
+                  <CheckCircle2 size={40} className="mx-auto text-emerald-500" />
+                  <p className={`text-sm font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
                     {activeTab === 'wrong'
                       ? '✨ Zero Incorrect Questions! The student answered all attempted questions correctly.'
                       : '✨ Zero Skipped Questions! The student attempted all questions in this exam.'}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className={`text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>
                     Switch to "Topic Diagnostics" to review curriculum mastery and NEET projection.
                   </p>
                 </div>
@@ -791,9 +844,13 @@ export default function AdminAttemptDetailModal({
                     const isWrong = q.status === 'wrong';
                     const isUnattempted = q.status === 'unattempted';
 
-                    const borderTone = isWrong
-                      ? 'border-rose-500/40 bg-gradient-to-b from-[#180A0E] via-[#11070A] to-[#070A12]'
-                      : 'border-white/10 bg-[#070A12]';
+                    const borderTone = isLight
+                      ? isWrong
+                        ? 'border-rose-300 bg-rose-50/40'
+                        : 'border-slate-200 bg-white'
+                      : isWrong
+                        ? 'border-rose-500/40 bg-gradient-to-b from-[#180A0E] via-[#11070A] to-[#070A12]'
+                        : 'border-white/10 bg-[#070A12]';
 
                     const selectedOptionText = q.selected && q.options ? q.options[q.selected] : null;
                     const correctOptionText = q.correctAnswer && q.options ? q.options[q.correctAnswer] : null;
@@ -804,16 +861,22 @@ export default function AdminAttemptDetailModal({
                         className={`rounded-3xl border p-4 sm:p-6 shadow-xl space-y-4 transition ${borderTone}`}
                       >
                         {/* Top Info Bar: Question #, Topic, and Status Pill */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+                        <div className={`flex flex-wrap items-center justify-between gap-2 border-b pb-3 ${
+                          isLight ? 'border-slate-200' : 'border-white/10'
+                        }`}>
                           <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className="font-mono font-bold text-white bg-white/10 px-2.5 py-0.5 rounded-lg border border-white/10">
+                            <span className={`font-mono font-bold px-2.5 py-0.5 rounded-lg border ${
+                              isLight ? 'text-slate-800 bg-slate-100 border-slate-200' : 'text-white bg-white/10 border-white/10'
+                            }`}>
                               Q{q.questionNumber || idx + 1}
                             </span>
-                            <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2.5 py-0.5 text-[11px] font-bold text-blue-300">
+                            <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
+                              isLight ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-blue-500/20 border-blue-500/30 text-blue-300'
+                            }`}>
                               {q.topic}
                             </span>
                             {q.subject && (
-                              <span className="text-[11px] text-slate-400 font-medium">
+                              <span className={`text-[11px] font-medium ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                                 {q.subject}
                               </span>
                             )}
@@ -822,14 +885,22 @@ export default function AdminAttemptDetailModal({
                           {/* Prominent Status Pill */}
                           <div className="shrink-0">
                             {isWrong && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-500/20 border border-rose-500/50 px-3 py-1 text-xs font-black text-rose-300 shadow-sm shadow-rose-500/20 animate-pulse">
-                                <XCircle size={14} className="text-rose-400" />
+                              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black shadow-sm ${
+                                isLight
+                                  ? 'bg-rose-100 border border-rose-300 text-rose-800'
+                                  : 'bg-rose-500/20 border border-rose-500/50 text-rose-300 shadow-rose-500/20 animate-pulse'
+                              }`}>
+                                <XCircle size={14} className={isLight ? 'text-rose-600' : 'text-rose-400'} />
                                 <span>INCORRECT (−1 Mark)</span>
                               </span>
                             )}
                             {isUnattempted && (
-                              <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-500/20 border border-slate-500/40 px-3 py-1 text-xs font-bold text-slate-300">
-                                <MinusCircle size={14} className="text-slate-400" />
+                              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${
+                                isLight
+                                  ? 'bg-slate-100 border-slate-300 text-slate-700'
+                                  : 'bg-slate-500/20 border-slate-500/40 text-slate-300'
+                              }`}>
+                                <MinusCircle size={14} className={isLight ? 'text-slate-500' : 'text-slate-400'} />
                                 <span>SKIPPED / UNATTEMPTED (0 Marks)</span>
                               </span>
                             )}
@@ -837,14 +908,18 @@ export default function AdminAttemptDetailModal({
                         </div>
 
                         {/* Question Text with KaTeX */}
-                        <div className="text-xs sm:text-sm font-medium text-slate-100 leading-relaxed overflow-x-auto py-1">
+                        <div className={`text-xs sm:text-sm font-medium leading-relaxed overflow-x-auto py-1 ${
+                          isLight ? 'text-slate-900' : 'text-slate-100'
+                        }`}>
                           <MathRenderer text={q.question || q.text || ''} />
                         </div>
 
                         {/* Reference Diagram (if present) */}
                         {q.image && (
                           <div className="my-3 flex flex-col items-center">
-                            <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-[#05070B] p-2 shadow-inner">
+                            <div className={`relative w-full max-w-sm overflow-hidden rounded-2xl border p-2 shadow-inner ${
+                              isLight ? 'border-slate-200 bg-slate-100' : 'border-white/10 bg-[#05070B]'
+                            }`}>
                               <img
                                 src={q.image}
                                 alt={`Question ${q.questionNumber} Diagram`}
@@ -859,9 +934,13 @@ export default function AdminAttemptDetailModal({
                           {/* Left: Student Marked Response */}
                           <div
                             className={`rounded-2xl border p-3.5 flex items-center justify-between gap-2 ${
-                              isWrong
-                                ? 'border-rose-500/50 bg-rose-500/15 text-rose-200 ring-1 ring-rose-500/30'
-                                : 'border-white/10 bg-white/5 text-slate-400'
+                              isLight
+                                ? isWrong
+                                  ? 'border-rose-300 bg-rose-50 text-rose-900 ring-1 ring-rose-200'
+                                  : 'border-slate-200 bg-slate-50 text-slate-600'
+                                : isWrong
+                                  ? 'border-rose-500/50 bg-rose-500/15 text-rose-200 ring-1 ring-rose-500/30'
+                                  : 'border-white/10 bg-white/5 text-slate-400'
                             }`}
                           >
                             <div className="min-w-0">
@@ -871,7 +950,9 @@ export default function AdminAttemptDetailModal({
                               <div className="mt-0.5">
                                 {q.selected ? (
                                   <div className="flex items-center gap-1.5 font-bold text-sm">
-                                    <span className="font-mono text-base font-black underline decoration-rose-400">
+                                    <span className={`font-mono text-base font-black underline ${
+                                      isLight ? 'decoration-rose-500 text-rose-950' : 'decoration-rose-400 text-rose-200'
+                                    }`}>
                                       Option {q.selected}
                                     </span>
                                     {selectedOptionText && (
@@ -881,31 +962,41 @@ export default function AdminAttemptDetailModal({
                                     )}
                                   </div>
                                 ) : (
-                                  <strong className="font-mono text-sm text-slate-400">
+                                  <strong className={`font-mono text-sm ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                                     Not Answered / Skipped
                                   </strong>
                                 )}
                               </div>
                             </div>
                             <div className="shrink-0">
-                              {isWrong && <XCircle size={22} className="text-rose-400" />}
-                              {isUnattempted && <MinusCircle size={22} className="text-slate-500" />}
+                              {isWrong && <XCircle size={22} className={isLight ? 'text-rose-600' : 'text-rose-400'} />}
+                              {isUnattempted && <MinusCircle size={22} className={isLight ? 'text-slate-400' : 'text-slate-500'} />}
                             </div>
                           </div>
 
                           {/* Right: Official Correct Key */}
-                          <div className="rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-3.5 flex items-center justify-between gap-2 text-emerald-300">
+                          <div className={`rounded-2xl border p-3.5 flex items-center justify-between gap-2 ${
+                            isLight
+                              ? 'border-emerald-300 bg-emerald-50 text-emerald-950'
+                              : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+                          }`}>
                             <div className="min-w-0">
                               <span className="block text-[10px] uppercase font-black opacity-75">
                                 Official Verified Answer:
                               </span>
                               <div className="mt-0.5">
                                 <div className="flex items-center gap-1.5 font-bold text-sm">
-                                  <span className="font-mono text-base font-black text-emerald-200 underline decoration-emerald-400">
+                                  <span className={`font-mono text-base font-black underline ${
+                                    isLight
+                                      ? 'text-emerald-900 decoration-emerald-500'
+                                      : 'text-emerald-200 underline decoration-emerald-400'
+                                  }`}>
                                     Option {q.correctAnswer}
                                   </span>
                                   {correctOptionText && (
-                                    <span className="text-xs font-normal text-emerald-200 opacity-90 truncate max-w-[200px]">
+                                    <span className={`text-xs font-normal opacity-90 truncate max-w-[200px] ${
+                                      isLight ? 'text-emerald-800' : 'text-emerald-200'
+                                    }`}>
                                       (<MathRenderer text={correctOptionText} inline />)
                                     </span>
                                   )}
@@ -913,7 +1004,7 @@ export default function AdminAttemptDetailModal({
                               </div>
                             </div>
                             <div className="shrink-0">
-                              <CheckCircle2 size={22} className="text-emerald-400" />
+                              <CheckCircle2 size={22} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
                             </div>
                           </div>
                         </div>
@@ -921,7 +1012,9 @@ export default function AdminAttemptDetailModal({
                         {/* Complete Options List (A, B, C, D) */}
                         {q.options && Object.keys(q.options).length > 0 && (
                           <div className="space-y-2 pt-2">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+                            <span className={`text-[11px] font-bold uppercase tracking-wider block ${
+                              isLight ? 'text-slate-500' : 'text-slate-400'
+                            }`}>
                               All Answer Choices:
                             </span>
                             <div className="grid grid-cols-1 gap-2">
@@ -929,13 +1022,17 @@ export default function AdminAttemptDetailModal({
                                 const isThisCorrect = optKey.toUpperCase() === q.correctAnswer?.toUpperCase();
                                 const isThisSelected = optKey.toUpperCase() === q.selected?.toUpperCase();
 
-                                let optClasses = 'border-white/10 bg-[#0A0E17] text-slate-300';
+                                let optClasses = isLight
+                                  ? 'border-slate-200 bg-slate-50/80 text-slate-800'
+                                  : 'border-white/10 bg-[#0A0E17] text-slate-300';
                                 if (isThisCorrect) {
-                                  optClasses =
-                                    'border-emerald-500/50 bg-emerald-950/30 text-emerald-200 ring-1 ring-emerald-500/40 font-semibold';
+                                  optClasses = isLight
+                                    ? 'border-emerald-300 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-300 font-semibold'
+                                    : 'border-emerald-500/50 bg-emerald-950/30 text-emerald-200 ring-1 ring-emerald-500/40 font-semibold';
                                 } else if (isThisSelected && !isThisCorrect) {
-                                  optClasses =
-                                    'border-rose-500/50 bg-rose-950/30 text-rose-200 ring-1 ring-rose-500/40';
+                                  optClasses = isLight
+                                    ? 'border-rose-300 bg-rose-50 text-rose-950 ring-1 ring-rose-300 font-semibold'
+                                    : 'border-rose-500/50 bg-rose-950/30 text-rose-200 ring-1 ring-rose-500/40';
                                 }
 
                                 return (
@@ -947,10 +1044,10 @@ export default function AdminAttemptDetailModal({
                                       <span
                                         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-black ${
                                           isThisCorrect
-                                            ? 'bg-emerald-500 text-slate-950'
+                                            ? isLight ? 'bg-emerald-600 text-white' : 'bg-emerald-500 text-slate-950'
                                             : isThisSelected
-                                            ? 'bg-rose-500 text-white'
-                                            : 'bg-white/10 text-slate-300'
+                                            ? isLight ? 'bg-rose-600 text-white' : 'bg-rose-500 text-white'
+                                            : isLight ? 'bg-slate-200 text-slate-700' : 'bg-white/10 text-slate-300'
                                         }`}
                                       >
                                         {optKey}
@@ -963,12 +1060,20 @@ export default function AdminAttemptDetailModal({
                                     {/* Option Status Tags */}
                                     <div className="flex items-center gap-1.5 shrink-0 text-[10px] font-black uppercase">
                                       {isThisCorrect && (
-                                        <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-2.5 py-0.5 text-emerald-300 flex items-center gap-1">
+                                        <span className={`rounded-full px-2.5 py-0.5 flex items-center gap-1 border ${
+                                          isLight
+                                            ? 'bg-emerald-100 border-emerald-300 text-emerald-800'
+                                            : 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
+                                        }`}>
                                           <Check size={11} /> Correct Answer
                                         </span>
                                       )}
                                       {isThisSelected && !isThisCorrect && (
-                                        <span className="rounded-full bg-rose-500/20 border border-rose-500/40 px-2.5 py-0.5 text-rose-300 flex items-center gap-1">
+                                        <span className={`rounded-full px-2.5 py-0.5 flex items-center gap-1 border ${
+                                          isLight
+                                            ? 'bg-rose-100 border-rose-300 text-rose-800'
+                                            : 'bg-rose-500/20 border border-rose-500/40 text-rose-300'
+                                        }`}>
                                           <X size={11} /> Student Pick (Wrong)
                                         </span>
                                       )}
@@ -982,12 +1087,18 @@ export default function AdminAttemptDetailModal({
 
                         {/* Step-by-Step Solution and Concept Explanation */}
                         {q.explanation && (
-                          <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-b from-[#0E1A33] to-[#091122] p-4 sm:p-5 text-xs sm:text-sm text-slate-200 space-y-2 mt-3">
-                            <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase tracking-wider">
+                          <div className={`rounded-2xl border p-4 sm:p-5 text-xs sm:text-sm space-y-2 mt-3 ${
+                            isLight
+                              ? 'border-blue-200 bg-blue-50/70 text-slate-800 shadow-sm'
+                              : 'border-blue-500/30 bg-gradient-to-b from-[#0E1A33] to-[#091122] text-slate-200'
+                          }`}>
+                            <div className={`flex items-center gap-2 font-bold text-xs uppercase tracking-wider ${
+                              isLight ? 'text-blue-700' : 'text-blue-400'
+                            }`}>
                               <Sparkles size={15} />
                               <span>Step-by-Step Solution &amp; Concept Explanation:</span>
                             </div>
-                            <div className="leading-relaxed overflow-x-auto pt-1 text-slate-300">
+                            <div className={`leading-relaxed overflow-x-auto pt-1 ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
                               <MathRenderer text={q.explanation} />
                             </div>
                           </div>
@@ -1002,7 +1113,9 @@ export default function AdminAttemptDetailModal({
         </div>
 
         {/* Footer Bar */}
-        <div className="flex items-center justify-between border-t border-white/10 bg-[#0D121F] px-4 sm:px-7 py-3 text-xs text-slate-400 shrink-0">
+        <div className={`flex items-center justify-between border-t px-4 sm:px-7 py-3 text-xs shrink-0 ${
+          isLight ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-white/10 bg-[#0D121F] text-slate-400'
+        }`}>
           <span>Administrator Diagnostic &amp; Error Review Suite</span>
           <button
             type="button"

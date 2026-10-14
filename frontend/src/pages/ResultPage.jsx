@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight, Sun, Moon } from 'lucide-react';
+import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight } from 'lucide-react';
 import { formatDuration, computeResult } from '../utils/scoring.js';
 import ResultSummary from '../components/ResultSummary.jsx';
 import TopicAnalysis from '../components/TopicAnalysis.jsx';
 import QuestionReview from '../components/QuestionReview.jsx';
 import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
 import JeeScorePredictorCard from '../components/JeeScorePredictorCard.jsx';
+import { useTheme } from '../utils/themeContext.jsx';
 
 const TABS = [
   { key: 'overview', label: 'Overview' },
@@ -22,23 +23,7 @@ export default function ResultPage({
   onGoToDashboard,
   reviewedAttempt = null,
 }) {
-  // Theme state: 'dark' (default) or 'light'
-  const [theme, setTheme] = useState(() => {
-    try {
-      return localStorage.getItem('neet_theme') || 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
-  const isLight = theme === 'light';
-
-  const toggleTheme = () => {
-    const next = isLight ? 'dark' : 'light';
-    setTheme(next);
-    try {
-      localStorage.setItem('neet_theme', next);
-    } catch {}
-  };
+  const { theme, isLight } = useTheme();
 
   const [tab, setTab] = useState('overview');
   const [confirmRetake, setConfirmRetake] = useState(false);
@@ -184,29 +169,6 @@ export default function ResultPage({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Prominent Theme Switcher */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              title={`Switch to ${isLight ? 'Dark' : 'Light'} Mode`}
-              className={`rounded-full px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 border shadow-md active:scale-95 ${
-                isLight
-                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 hover:bg-amber-500/25'
-                  : 'bg-blue-600/25 border-blue-500/40 text-blue-200 hover:bg-blue-600/35'
-              }`}
-            >
-              {isLight ? (
-                <>
-                  <Sun size={14} className="text-amber-600 shrink-0" />
-                  <span className="font-extrabold text-[11px]">Light Mode</span>
-                </>
-              ) : (
-                <>
-                  <Moon size={14} className="text-blue-400 shrink-0" />
-                  <span className="font-extrabold text-[11px]">Dark Mode</span>
-                </>
-              )}
-            </button>
 
             {onGoToDashboard && (
               <button
@@ -252,7 +214,9 @@ export default function ResultPage({
               className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition ${
                 tab === t.key
                   ? 'border-blue-500 bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                  : 'border-white/10 bg-[#0B0F19] text-slate-400 hover:border-white/20 hover:text-white'
+                  : isLight
+                    ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 shadow-xs'
+                    : 'border-white/10 bg-[#0B0F19] text-slate-400 hover:border-white/20 hover:text-white'
               }`}
             >
               {t.label}
@@ -296,14 +260,22 @@ export default function ResultPage({
               <button
                 type="button"
                 onClick={() => setTab('review')}
-                className="flex-1 rounded-full border border-white/10 bg-[#0B0F19] hover:bg-[#131926] py-3 text-xs font-semibold text-slate-200 transition"
+                className={`flex-1 rounded-full border py-3 text-xs font-semibold transition ${
+                  isLight
+                    ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-xs'
+                    : 'border-white/10 bg-[#0B0F19] hover:bg-[#131926] text-slate-200'
+                }`}
               >
                 Review Answers &amp; Solutions
               </button>
               <button
                 type="button"
                 onClick={() => setTab('analysis')}
-                className="flex-1 rounded-full border border-white/10 bg-[#0B0F19] hover:bg-[#131926] py-3 text-xs font-semibold text-slate-200 transition"
+                className={`flex-1 rounded-full border py-3 text-xs font-semibold transition ${
+                  isLight
+                    ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-xs'
+                    : 'border-white/10 bg-[#0B0F19] hover:bg-[#131926] text-slate-200'
+                }`}
               >
                 View Topic Analysis
               </button>
@@ -311,7 +283,11 @@ export default function ResultPage({
                 <button
                   type="button"
                   onClick={onGoToDashboard}
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full border border-blue-500/30 bg-blue-600/15 hover:bg-blue-600/25 py-3 text-xs font-bold text-blue-300 transition"
+                  className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-full border py-3 text-xs font-bold transition ${
+                    isLight
+                      ? 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 shadow-xs'
+                      : 'border-blue-500/30 bg-blue-600/15 hover:bg-blue-600/25 text-blue-300'
+                  }`}
                 >
                   Attempt Comparison
                 </button>
@@ -346,16 +322,26 @@ export default function ResultPage({
             className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in"
             onClick={() => setConfirmRetake(false)}
           />
-          <div className="animate-rise-in relative w-full max-w-sm rounded-3xl border border-white/10 bg-[#0B0F19] p-6 sm:p-8 shadow-2xl text-slate-100">
-            <h2 className="mb-2 text-base font-bold text-white">Retake this test?</h2>
-            <p className="mb-6 text-xs text-slate-400 leading-relaxed">
+          <div
+            className={`animate-rise-in relative w-full max-w-sm rounded-3xl border p-6 sm:p-8 shadow-2xl transition-colors ${
+              isLight
+                ? 'border-slate-200 bg-white text-slate-900'
+                : 'border-white/10 bg-[#0B0F19] text-slate-100'
+            }`}
+          >
+            <h2 className={`mb-2 text-base font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Retake this test?</h2>
+            <p className={`mb-6 text-xs leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               This clears your current answers, timer, and result, and starts a fresh attempt from Q1.
             </p>
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={() => setConfirmRetake(false)}
-                className="flex-1 rounded-full border border-white/10 bg-white/5 py-2.5 text-xs font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+                className={`flex-1 rounded-full border py-2.5 text-xs font-semibold transition ${
+                  isLight
+                    ? 'border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
+                    : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                }`}
               >
                 Cancel
               </button>

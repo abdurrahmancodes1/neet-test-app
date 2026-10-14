@@ -18,6 +18,7 @@ import {
   Flame,
 } from 'lucide-react';
 import { getJeePrediction } from '../utils/scoring.js';
+import { useTheme } from '../utils/themeContext.jsx';
 
 export default function JeeScorePredictorCard({
   testId,
@@ -27,8 +28,10 @@ export default function JeeScorePredictorCard({
   correct = 0,
   wrong = 0,
   candidateName = null,
-  isLight = false,
+  isLight: propIsLight,
 }) {
+  const { isLight: contextIsLight } = useTheme();
+  const isLight = propIsLight !== undefined ? propIsLight : contextIsLight;
   const [showRules, setShowRules] = useState(true);
 
   const prediction = getJeePrediction(testId, score, maxScore, accuracy, correct, wrong);

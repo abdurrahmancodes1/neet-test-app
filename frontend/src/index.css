@@ -2,62 +2,121 @@
 @tailwind components;
 @tailwind utilities;
 
-html {
-  -webkit-tap-highlight-color: transparent;
+:root {
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+  --card: #FFFFFF;
+  --card-foreground: #0F172A;
+  --card-muted: #F1F5F9;
+  --muted: #F1F5F9;
+  --muted-foreground: #475569;
+  --muted-text: #64748B;
+  --border: #E2E8F0;
+  --input: #E2E8F0;
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EFF6FF;
+  --secondary-foreground: #1D4ED8;
+  --accent: #F8FAFC;
+  --accent-foreground: #0F172A;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --ring: #3B82F6;
+  --warning: #F59E0B;
+  --warning-foreground: #B45309;
+  --success: #10B981;
+  --success-foreground: #047857;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #05070B;
+  --foreground: #F8FAFC;
+  --card: #0B0F19;
+  --card-foreground: #F8FAFC;
+  --card-muted: #07090E;
+  --muted: #111827;
+  --muted-foreground: #94A3B8;
+  --muted-text: #64748B;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --primary: #2563EB;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1E293B;
+  --secondary-foreground: #93C5FD;
+  --accent: #111827;
+  --accent-foreground: #F8FAFC;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --ring: #3B82F6;
+  --warning: #F59E0B;
+  --warning-foreground: #FBBF24;
+  --success: #10B981;
+  --success-foreground: #34D399;
   color-scheme: dark;
 }
 
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
-  @apply bg-[#05070B] text-slate-100 font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen;
-  background-color: #05070B;
+  @apply font-sans antialiased selection:bg-brand-600 selection:text-white min-h-screen transition-colors duration-150;
+  background-color: var(--background);
+  color: var(--foreground);
+  background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(37, 99, 235, 0.05), transparent 70%),
+    radial-gradient(circle at 100% 0%, rgba(29, 78, 216, 0.02), transparent 40%),
+    radial-gradient(circle at 0% 100%, rgba(30, 58, 138, 0.02), transparent 40%);
+  background-attachment: fixed;
+}
+
+.dark body,
+html.dark body {
   background-image: 
     radial-gradient(ellipse 80% 50% at 50% -20%, rgba(37, 99, 235, 0.15), transparent 70%),
     radial-gradient(circle at 100% 0%, rgba(29, 78, 216, 0.08), transparent 40%),
     radial-gradient(circle at 0% 100%, rgba(30, 58, 138, 0.08), transparent 40%);
-  background-attachment: fixed;
 }
 
 ::selection {
   @apply bg-brand-600 text-white;
 }
 
-/* Chemical notation helpers */
-.chem sub,
-.chem-sub {
-  vertical-align: sub;
-  font-size: 0.72em;
-}
-.chem sup,
-.chem-sup {
-  vertical-align: super;
-  font-size: 0.72em;
-}
-.chem {
-  font-variant-ligatures: none;
-  letter-spacing: 0.01em;
+/* KaTeX color inheritance */
+.katex {
+  color: inherit;
 }
 
 /* Focus visibility */
 :focus-visible {
-  outline: 2px solid #3B82F6;
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
   border-radius: 6px;
 }
 
-/* Dark Scrollbar (desktop) */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(148, 163, 184, 0.4);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+.dark ::-webkit-scrollbar-thumb,
+html.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+.dark ::-webkit-scrollbar-thumb:hover,
+html.dark ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
 ::-webkit-scrollbar-track {
-  background: #05070B;
+  background: transparent;
 }
 
 @media (prefers-reduced-motion: reduce) {

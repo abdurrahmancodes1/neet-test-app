@@ -1,15 +1,28 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Send } from 'lucide-react';
+import { useTheme } from '../utils/themeContext.jsx';
 
 export default function TestNavigation({ onPrev, onNext, onSubmit, isFirst, isLast }) {
+  const { isLight } = useTheme();
+
   return (
-    <div className="sticky bottom-0 z-20 border-t border-white/10 bg-[#0D121F]/90 backdrop-blur-md">
+    <div
+      className={`sticky bottom-0 z-20 border-t backdrop-blur-md transition-colors ${
+        isLight
+          ? 'border-slate-200 bg-white/95 shadow-xs'
+          : 'border-white/10 bg-[#0D121F]/90'
+      }`}
+    >
       <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-3">
         <button
           type="button"
           onClick={onPrev}
           disabled={isFirst}
-          className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-[#070A12] px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold text-slate-300 transition hover:border-white/20 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
+          className={`inline-flex items-center gap-1 rounded-full border px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-semibold transition disabled:cursor-not-allowed ${
+            isLight
+              ? 'border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 disabled:opacity-40'
+              : 'border-white/10 bg-[#070A12] text-slate-300 hover:border-white/20 hover:text-white disabled:opacity-30'
+          }`}
         >
           <ChevronLeft size={16} />
           <span>Previous</span>
