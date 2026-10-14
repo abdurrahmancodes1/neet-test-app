@@ -29,7 +29,6 @@ import { NEET_BIOLOGY_TEST, NEET_BIOLOGY_QUESTIONS } from '../data/neetBiologyCo
 import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from '../data/neetMechanicsBondingTest.js';
 import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from '../data/neetCalculusTest.js';
-import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from '../data/neetWorkEnergyTest.js';
 import { JEE_2027_PERIODIC_TEST, JEE_2027_PERIODIC_QUESTIONS } from '../data/jee2027PeriodicTableTest.js';
 
 // Central registry of all test suites with all possible alias keys
@@ -89,11 +88,6 @@ const ALL_TEST_DATA = {
   [NEET_CALCULUS_TEST.id]: { test: NEET_CALCULUS_TEST, questions: NEET_CALCULUS_QUESTIONS },
   'neet-definite-indefinite-calculus': { test: NEET_CALCULUS_TEST, questions: NEET_CALCULUS_QUESTIONS },
   'neet-calculus': { test: NEET_CALCULUS_TEST, questions: NEET_CALCULUS_QUESTIONS },
-
-  // Work Energy Power
-  [NEET_WEP_TEST.id]: { test: NEET_WEP_TEST, questions: NEET_WEP_QUESTIONS },
-  'neet-work-energy-power': { test: NEET_WEP_TEST, questions: NEET_WEP_QUESTIONS },
-  'neet-wep': { test: NEET_WEP_TEST, questions: NEET_WEP_QUESTIONS },
 };
 
 /**

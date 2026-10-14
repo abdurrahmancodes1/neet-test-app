@@ -36,13 +36,14 @@ import {
   Flame,
   ShieldCheck,
   ShieldAlert,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { getUserAnalytics, getGlobalPlatformStats, fetchServerAttempts } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
 import { AttemptComparisonChart, AttemptAccuracyChart } from '../components/AttemptComparisonChart.jsx';
 import AttemptComparisonModal from '../components/AttemptComparisonModal.jsx';
 import GlobalLeaderboardModal from '../components/GlobalLeaderboardModal.jsx';
-import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_ROUND_1_TEST } from '../data/neetMegaRound1MechanicsTest.js';
@@ -69,8 +70,26 @@ export default function DashboardPage({
   const [refreshCounter, setRefreshCounter] = useState(0);
   const testsSectionRef = useRef(null);
 
+  // Theme state: 'dark' (default) or 'light'
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('neet_theme') || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+  const isLight = theme === 'light';
+
+  const toggleTheme = () => {
+    const next = isLight ? 'dark' : 'light';
+    setTheme(next);
+    try {
+      localStorage.setItem('neet_theme', next);
+    } catch {}
+  };
+
   const standards = [
-    { id: 'neet', label: 'NEET 2027', badge: '6 Active Tests', active: true, icon: Zap },
+    { id: 'neet', label: 'NEET 2027', badge: '5 Active Tests', active: true, icon: Zap },
     { id: 'jee', label: 'JEE Main 2027', badge: '1 Active Test', active: true, icon: Target },
     { id: 'class10', label: 'Class 10', badge: 'Upcoming in future', active: false, icon: GraduationCap },
     { id: 'class9', label: 'Class 9', badge: 'Upcoming in future', active: false, icon: Layers },
@@ -157,13 +176,29 @@ export default function DashboardPage({
 
 
   return (
-    <main className="min-h-screen bg-[#05070B] text-slate-100 px-4 py-4 sm:py-8 relative overflow-hidden selection:bg-blue-600 selection:text-white">
+    <main
+      className={`min-h-screen px-4 py-4 sm:py-8 relative overflow-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200 ${
+        isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'
+      }`}
+    >
       {/* Background Ambient Radial Glow */}
-      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-blue-900/5 to-transparent blur-2xl" />
+      <div
+        className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] blur-2xl ${
+          isLight
+            ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-indigo-500/5 to-transparent'
+            : 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-blue-900/5 to-transparent'
+        }`}
+      />
 
       <div className="mx-auto max-w-6xl space-y-10 relative z-10 animate-fade-in">
-        {/* Floating Dark Pill Navigation Bar */}
-        <header className="rounded-full border border-white/10 bg-[#0D121F]/90 backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xl flex items-center justify-between gap-3">
+        {/* Floating Pill Navigation Bar */}
+        <header
+          className={`rounded-full border backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xl flex items-center justify-between gap-3 transition-colors ${
+            isLight
+              ? 'bg-white/95 border-slate-200 text-slate-900 shadow-sm'
+              : 'bg-[#0D121F]/90 border-white/10 text-white'
+          }`}
+        >
           {/* Brand on Left */}
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-black text-xs shadow-glow">
@@ -217,6 +252,30 @@ export default function DashboardPage({
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Prominent Theme Switcher (Dark / Light Mode) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={`Switch to ${isLight ? 'Dark' : 'Light'} Mode`}
+              className={`rounded-full px-3 sm:px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 border shadow-md active:scale-95 ${
+                isLight
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 hover:bg-amber-500/25'
+                  : 'bg-blue-600/25 border-blue-500/40 text-blue-200 hover:bg-blue-600/35'
+              }`}
+            >
+              {isLight ? (
+                <>
+                  <Sun size={15} className="text-amber-600 shrink-0" />
+                  <span className="font-extrabold text-[11px] sm:text-xs">Light Mode</span>
+                </>
+              ) : (
+                <>
+                  <Moon size={15} className="text-blue-400 shrink-0" />
+                  <span className="font-extrabold text-[11px] sm:text-xs">Dark Mode</span>
+                </>
+              )}
+            </button>
+
             {user?.role === 'admin' && onGoToAdmin && (
               <button
                 type="button"
@@ -249,7 +308,11 @@ export default function DashboardPage({
                 type="button"
                 onClick={onLogout}
                 title="Sign Out"
-                className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
+                className={`rounded-full border p-2 transition ${
+                  isLight
+                    ? 'border-slate-200 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600'
+                    : 'border-white/10 bg-white/5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
+                }`}
               >
                 <LogOut size={14} />
               </button>
@@ -258,39 +321,45 @@ export default function DashboardPage({
         </header>
 
         {/* Global Live Platform Stats Ticker Bar */}
-        <section className="rounded-2xl border border-white/10 bg-gradient-to-r from-[#0D1322] via-[#090D17] to-[#0D1322] p-3 sm:px-6 shadow-xl flex flex-wrap items-center justify-between gap-3 text-xs">
+        <section
+          className={`rounded-2xl border p-3 sm:px-6 shadow-xl flex flex-wrap items-center justify-between gap-3 text-xs transition-colors ${
+            isLight
+              ? 'border-blue-100 bg-gradient-to-r from-blue-50/90 via-white to-blue-50/90 text-slate-800 shadow-sm'
+              : 'border-white/10 bg-gradient-to-r from-[#0D1322] via-[#090D17] to-[#0D1322] text-slate-300'
+          }`}
+        >
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-400">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600/20 border border-blue-500/30 text-blue-500">
               <Globe size={15} />
             </div>
             <div>
-              <span className="font-bold text-white">Live Platform Status:</span>{' '}
-              <span className="text-slate-300">
-                <strong className="text-blue-400 font-bold">{globalStats?.totalUsers || 1}</strong> Registered Candidate{(globalStats?.totalUsers || 1) > 1 ? 's' : ''} ·{' '}
-                <strong className="text-indigo-400 font-bold">{globalStats?.totalAttempts || totalAttempts}</strong> Tests Submitted ·{' '}
-                Top Score: <strong className="text-amber-400 font-bold">{globalStats?.highestScore ?? (bestAttempt?.score || 0)}/240</strong>
+              <span className={`font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Live Platform Status:</span>{' '}
+              <span className={isLight ? 'text-slate-600' : 'text-slate-300'}>
+                <strong className="text-blue-600 dark:text-blue-400 font-bold">{globalStats?.totalUsers || 1}</strong> Registered Candidate{(globalStats?.totalUsers || 1) > 1 ? 's' : ''} ·{' '}
+                <strong className="text-indigo-600 dark:text-indigo-400 font-bold">{globalStats?.totalAttempts || totalAttempts}</strong> Tests Submitted ·{' '}
+                Top Score: <strong className="text-amber-600 dark:text-amber-400 font-bold">{globalStats?.highestScore ?? (bestAttempt?.score || 0)}/240</strong>
               </span>
             </div>
           </div>
           <button
             type="button"
             onClick={() => setLeaderboardModalOpen(true)}
-            className="inline-flex items-center gap-1 rounded-full bg-blue-600/20 border border-blue-500/30 hover:bg-blue-600/30 px-3 py-1 text-[11px] font-bold text-blue-300 transition"
+            className="inline-flex items-center gap-1 rounded-full bg-blue-600/15 border border-blue-500/30 hover:bg-blue-600/25 px-3 py-1 text-[11px] font-bold text-blue-600 dark:text-blue-300 transition"
           >
-            <Trophy size={12} className="text-amber-400" />
+            <Trophy size={12} className="text-amber-500" />
             View Leaderboard &amp; Student Scores &rarr;
           </button>
         </section>
 
         {/* Hero Header Section */}
         <section className="text-center pt-2 sm:pt-4 max-w-3xl mx-auto space-y-4">
-          <p className="font-serif italic text-2xl sm:text-3xl text-slate-300 font-normal">
+          <p className={`font-serif italic text-2xl sm:text-3xl font-normal ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
             Everything you need
           </p>
-          <h1 className="font-sans text-3xl sm:text-5xl font-black tracking-tight text-white">
+          <h1 className={`font-sans text-3xl sm:text-5xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
             for NEET 2027 Preparation
           </h1>
-          <p className="text-sm sm:text-base text-slate-400 max-w-xl mx-auto leading-relaxed font-normal">
+          <p className={`text-sm sm:text-base max-w-xl mx-auto leading-relaxed font-normal ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             The national standard assessment platform with KaTeX LaTeX typesetting, timed CBT mock drills, verified solutions, and live candidate analytics.
           </p>
 
@@ -308,15 +377,19 @@ export default function DashboardPage({
             <button
               type="button"
               onClick={() => setLeaderboardModalOpen(true)}
-              className="rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 font-semibold text-xs sm:text-sm px-6 py-3 transition flex items-center gap-1.5"
+              className="rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-blue-300 font-semibold text-xs sm:text-sm px-6 py-3 transition flex items-center gap-1.5"
             >
-              <Trophy size={16} className="text-amber-400" />
+              <Trophy size={16} className="text-amber-500" />
               <span>Global Rankings ({globalStats?.totalUsers || 1} Users)</span>
             </button>
             <button
               type="button"
               onClick={onBrowseTests}
-              className="rounded-full border border-white/10 bg-[#0D121F] hover:bg-[#131926] text-slate-300 hover:text-white font-semibold text-xs sm:text-sm px-6 py-3 transition flex items-center gap-1.5"
+              className={`rounded-full border px-6 py-3 font-semibold text-xs sm:text-sm transition flex items-center gap-1.5 ${
+                isLight
+                  ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 shadow-xs'
+                  : 'border-white/10 bg-[#0D121F] hover:bg-[#131926] text-slate-300 hover:text-white'
+              }`}
             >
               <GraduationCap size={15} />
               <span>Standard Curriculum Portal</span>
@@ -328,23 +401,27 @@ export default function DashboardPage({
         {/* Top Key Metrics Cards */}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           {/* 1. Latest Score */}
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-4 sm:p-5 shadow-xl hover:border-blue-500/40 hover:shadow-blue-500/5 transition group">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-xl transition group ${
+            isLight
+              ? 'border-slate-200 bg-white text-slate-900 shadow-sm hover:border-blue-400'
+              : 'border-white/10 bg-[#0B0F19] text-white hover:border-blue-500/40 hover:shadow-blue-500/5'
+          }`}>
+            <div className={`flex items-center justify-between text-xs font-semibold uppercase tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               <span>Latest Score</span>
-              <Award size={16} className="text-blue-400 group-hover:scale-110 transition" />
+              <Award size={16} className="text-blue-500 group-hover:scale-110 transition" />
             </div>
-            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-white">
+            <p className={`mt-2 font-serif text-2xl sm:text-3xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {latestAttempt ? latestAttempt.score : '—'}
-              <span className="text-xs font-semibold text-slate-500 sm:text-sm"> / {latestAttempt?.maxScore || 240}</span>
+              <span className={`text-xs font-semibold sm:text-sm ${isLight ? 'text-slate-500' : 'text-slate-500'}`}> / {latestAttempt?.maxScore || 240}</span>
             </p>
             <div className="mt-1 flex items-center gap-1 text-xs">
               {scoreDelta !== null ? (
                 scoreDelta > 0 ? (
-                  <span className="flex items-center font-bold text-emerald-400">
+                  <span className="flex items-center font-bold text-emerald-500">
                     <TrendingUp size={13} className="mr-0.5" /> +{scoreDelta} vs prev
                   </span>
                 ) : scoreDelta < 0 ? (
-                  <span className="flex items-center font-bold text-rose-400">
+                  <span className="flex items-center font-bold text-rose-500">
                     <TrendingDown size={13} className="mr-0.5" /> {scoreDelta} vs prev
                   </span>
                 ) : (
@@ -357,44 +434,56 @@ export default function DashboardPage({
           </div>
 
           {/* 2. Personal Best */}
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-4 sm:p-5 shadow-xl hover:border-blue-500/40 hover:shadow-blue-500/5 transition group">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-xl transition group ${
+            isLight
+              ? 'border-slate-200 bg-white text-slate-900 shadow-sm hover:border-blue-400'
+              : 'border-white/10 bg-[#0B0F19] text-white hover:border-blue-500/40 hover:shadow-blue-500/5'
+          }`}>
+            <div className={`flex items-center justify-between text-xs font-semibold uppercase tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               <span>Personal Best</span>
-              <Sparkles size={16} className="text-amber-400 group-hover:scale-110 transition" />
+              <Sparkles size={16} className="text-amber-500 group-hover:scale-110 transition" />
             </div>
-            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-white">
+            <p className={`mt-2 font-serif text-2xl sm:text-3xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {bestAttempt ? bestAttempt.score : '—'}
               <span className="text-xs font-semibold text-slate-500 sm:text-sm"> / {bestAttempt?.maxScore || 240}</span>
             </p>
-            <p className="mt-1 text-xs font-semibold text-amber-400">
+            <p className="mt-1 text-xs font-semibold text-amber-500">
               {bestAttempt ? `${bestAttempt.percentage}% Peak Score` : 'No attempts yet'}
             </p>
           </div>
 
           {/* 3. Average Accuracy */}
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-4 sm:p-5 shadow-xl hover:border-blue-500/40 hover:shadow-blue-500/5 transition group">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-xl transition group ${
+            isLight
+              ? 'border-slate-200 bg-white text-slate-900 shadow-sm hover:border-blue-400'
+              : 'border-white/10 bg-[#0B0F19] text-white hover:border-blue-500/40 hover:shadow-blue-500/5'
+          }`}>
+            <div className={`flex items-center justify-between text-xs font-semibold uppercase tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               <span>Avg. Accuracy</span>
-              <Target size={16} className="text-emerald-400 group-hover:scale-110 transition" />
+              <Target size={16} className="text-emerald-500 group-hover:scale-110 transition" />
             </div>
-            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-white">
+            <p className={`mt-2 font-serif text-2xl sm:text-3xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {hasAttempts ? `${averageAccuracy}%` : '—'}
             </p>
-            <p className="mt-1 text-xs font-medium text-slate-400">
+            <p className={`mt-1 text-xs font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               {hasAttempts ? 'Across all attempts' : 'Take test to calculate'}
             </p>
           </div>
 
           {/* 4. Total Completed Tests */}
-          <div className="rounded-2xl border border-white/10 bg-[#0B0F19] p-4 sm:p-5 shadow-xl hover:border-blue-500/40 hover:shadow-blue-500/5 transition group">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <div className={`rounded-2xl border p-4 sm:p-5 shadow-xl transition group ${
+            isLight
+              ? 'border-slate-200 bg-white text-slate-900 shadow-sm hover:border-blue-400'
+              : 'border-white/10 bg-[#0B0F19] text-white hover:border-blue-500/40 hover:shadow-blue-500/5'
+          }`}>
+            <div className={`flex items-center justify-between text-xs font-semibold uppercase tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               <span>Tests Taken</span>
-              <BarChart3 size={16} className="text-blue-400 group-hover:scale-110 transition" />
+              <BarChart3 size={16} className="text-blue-500 group-hover:scale-110 transition" />
             </div>
-            <p className="mt-2 font-serif text-2xl sm:text-3xl font-bold text-white">
+            <p className={`mt-2 font-serif text-2xl sm:text-3xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {totalAttempts}
             </p>
-            <p className="mt-1 text-xs font-medium text-slate-400">
+            <p className={`mt-1 text-xs font-medium ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
               {totalAttempts === 1 ? '1 Completed Exam' : `${totalAttempts} Completed Exams`}
             </p>
           </div>
@@ -402,21 +491,29 @@ export default function DashboardPage({
 
         {/* EMBEDDED STANDARD & CURRICULUM DRILLS DIRECT TEST SELECTION */}
         <section ref={testsSectionRef} className="space-y-6 pt-4">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className={`flex flex-wrap items-center justify-between gap-4 border-b pb-4 ${
+            isLight ? 'border-slate-200' : 'border-white/10'
+          }`}>
             <div>
               <div className="flex items-center gap-2">
                 <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <h2 className="font-sans text-xl sm:text-2xl font-black tracking-tight text-white">
+                <h2 className={`font-sans text-xl sm:text-2xl font-black tracking-tight ${
+                  isLight ? 'text-slate-900' : 'text-white'
+                }`}>
                   Standard &amp; Curriculum Practice Drills
                 </h2>
               </div>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              <p className={`text-xs sm:text-sm mt-1 ${
+                isLight ? 'text-slate-600' : 'text-slate-400'
+              }`}>
                 Select your target examination to begin a dedicated timed CBT mock drill with instant KaTeX solutions.
               </p>
             </div>
 
             {/* Standard Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-white/10 bg-[#0B0F19] p-1.5">
+            <div className={`flex flex-wrap items-center gap-1.5 rounded-2xl border p-1.5 ${
+              isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0B0F19]'
+            }`}>
               {standards.map((std) => {
                 const isSelected = selectedStandard === std.id;
                 const Icon = std.icon;
@@ -428,14 +525,16 @@ export default function DashboardPage({
                     className={`flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold transition ${
                       isSelected
                         ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                        : isLight
+                        ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                         : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
                     }`}
                   >
-                    <Icon size={14} className={isSelected ? 'text-white' : 'text-slate-400'} />
+                    <Icon size={14} className={isSelected ? 'text-white' : isLight ? 'text-slate-500' : 'text-slate-400'} />
                     <span>{std.label}</span>
                     {std.id === 'neet' && (
-                      <span className="ml-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-1.5 py-0.2 text-[9px] text-emerald-300 font-bold">
-                        4 Active
+                      <span className="ml-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-1.5 py-0.2 text-[9px] text-emerald-600 dark:text-emerald-300 font-bold">
+                        5 Active
                       </span>
                     )}
                   </button>
@@ -832,66 +931,6 @@ export default function DashboardPage({
                     </button>
                   </div>
                 </div>
-
-                {/* 4. WORK ENERGY POWER TEST CARD */}
-                <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-b from-[#101426] to-[#0B0F19] p-6 shadow-2xl relative flex flex-col justify-between hover:border-indigo-500/60 transition group">
-                  <div className="pointer-events-none absolute top-0 right-0 w-36 h-36 bg-indigo-600/10 rounded-full blur-2xl" />
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="rounded-full bg-indigo-600/20 border border-indigo-500/30 px-3 py-1 text-[11px] font-bold text-indigo-300 flex items-center gap-1.5">
-                        <Zap size={12} className="text-indigo-400" /> NEET Section · Physics
-                      </span>
-                      <span className="rounded-full bg-indigo-500/20 border border-indigo-500/30 px-2.5 py-0.5 text-[10px] font-bold text-indigo-300 uppercase">
-                        Active Exam
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="font-sans text-xl font-black text-white group-hover:text-indigo-200 transition">
-                        {NEET_WEP_TEST.title}
-                      </h3>
-                      <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                        {NEET_WEP_TEST.subtitle}
-                      </p>
-                    </div>
-
-                    {/* Highlights & Chips */}
-                    <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
-                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Questions</span>
-                        <strong className="font-mono text-sm text-white font-black">60 Qs</strong>
-                      </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
-                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
-                        <strong className="font-mono text-sm text-amber-400 font-black">120 Mins</strong>
-                      </div>
-                      <div className="rounded-xl border border-white/10 bg-[#070A12] p-2.5">
-                        <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
-                        <strong className="font-mono text-sm text-emerald-400 font-black">240 Mks</strong>
-                      </div>
-                    </div>
-
-                    {/* Syllabus summary */}
-                    <div className="rounded-2xl border border-white/10 bg-[#070A12] p-3.5 text-xs text-slate-300 space-y-1">
-                      <p className="font-bold text-indigo-400 text-[11px]">⚡ Work, Energy &amp; Power:</p>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">
-                        Work-Energy Theorem, Conservative Forces, Potential Energy Curves, Vertical Circular Motion, Power &amp; Collisions.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-6">
-                    <button
-                      type="button"
-                      onClick={() => onStartTest(NEET_WEP_TEST.id)}
-                      className="w-full flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 hover:bg-indigo-500 py-3.5 text-xs sm:text-sm font-bold text-white shadow-lg shadow-indigo-600/30 transition active:scale-98"
-                    >
-                      <span>Start Physics Exam (120m)</span>
-                      <ArrowRight size={15} />
-                    </button>
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -904,12 +943,12 @@ export default function DashboardPage({
                   Showing 1 Dedicated CBT Mock Test for JEE Main 2027
                 </span>
                 <span className="text-[11px] text-amber-400 font-mono">
-                  Curated from 2021-2025 Official JEE Main PYQs + Arjuna Cadbury Challenges · 60 Mins
+                  Curated from 2021-2025 Official JEE Main PYQs + Advanced Conceptual Drills · 90 Mins (Adjustable)
                 </span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* 1. JEE PERIODIC TABLE MASTERY DRILL (30 Qs - 60 MINS) */}
+                {/* 1. JEE PERIODIC TABLE MASTERY DRILL (60 Qs - 90 MINS) */}
                 <div className="rounded-3xl border border-amber-500/60 bg-gradient-to-b from-[#1F160A] via-[#140E06] to-[#0B0F19] p-6 sm:p-7 shadow-2xl relative flex flex-col justify-between hover:border-amber-500/90 transition group ring-1 ring-amber-500/30">
                   <div className="pointer-events-none absolute top-0 right-0 w-48 h-48 bg-amber-600/15 rounded-full blur-3xl" />
 
@@ -919,7 +958,7 @@ export default function DashboardPage({
                         <Target size={14} className="text-amber-400" /> JEE MAIN 2027 · CHEMISTRY
                       </span>
                       <span className="rounded-full bg-amber-500/30 border border-amber-400/50 px-2.5 py-0.5 text-xs font-extrabold text-amber-100 uppercase tracking-wider">
-                        ⚡ 30 Qs · 60 Mins (1 Hour)
+                        ⚡ 60 Qs · 90 Mins (Adjustable)
                       </span>
                     </div>
 
@@ -936,17 +975,17 @@ export default function DashboardPage({
                     <div className="grid grid-cols-3 gap-2 text-center text-xs">
                       <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Questions</span>
-                        <strong className="font-mono text-sm text-white font-black">30 Qs</strong>
+                        <strong className="font-mono text-sm text-white font-black">60 Qs</strong>
                         <span className="text-[9px] text-slate-500 block">Single-Subject Drill</span>
                       </div>
                       <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Duration</span>
-                        <strong className="font-mono text-sm text-amber-400 font-black">60 Mins</strong>
-                        <span className="text-[9px] text-amber-400/80 block font-bold">1.0 Hour Fixed</span>
+                        <strong className="font-mono text-sm text-amber-400 font-black">90 Mins</strong>
+                        <span className="text-[9px] text-amber-400/80 block font-bold">Adjustable 30m-90m</span>
                       </div>
                       <div className="rounded-xl border border-white/10 bg-[#070A12] p-2">
                         <span className="block text-slate-400 text-[10px] uppercase font-semibold">Max Score</span>
-                        <strong className="font-mono text-sm text-emerald-400 font-black">120 Marks</strong>
+                        <strong className="font-mono text-sm text-emerald-400 font-black">240 Marks</strong>
                         <span className="text-[9px] text-emerald-400/80 block">+4 / -1 Scheme</span>
                       </div>
                     </div>
@@ -965,7 +1004,7 @@ export default function DashboardPage({
                       onClick={() => onStartTest(JEE_2027_PERIODIC_TEST.id)}
                       className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 py-3.5 text-xs sm:text-sm font-black text-white shadow-xl shadow-amber-600/30 transition active:scale-98"
                     >
-                      <span>Start JEE 2027 Periodic Table Exam (60 Mins)</span>
+                      <span>Start JEE 2027 Periodic Table Exam (90 Mins)</span>
                       <ArrowRight size={16} />
                     </button>
                   </div>
@@ -1034,7 +1073,7 @@ export default function DashboardPage({
                       <Flame size={14} /> 4. Tough Paper Advantage
                     </div>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
-                      In this Hard Shift (Arjuna Cadbury + Official PYQs), 99.0%tile begins at just 72–78/120 marks (~165/300 full paper), rewarding conceptual accuracy.
+                      In this Hard Shift (Advanced Drills + Official PYQs), 99.0%tile begins at just 72–78/120 marks (~165/300 full paper), rewarding conceptual accuracy.
                     </p>
                   </div>
                 </div>
@@ -1641,26 +1680,6 @@ export default function DashboardPage({
                   className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 py-2.5 text-xs font-bold text-white transition shadow-sm"
                 >
                   <span>Launch Calculus Exam</span>
-                  <ArrowRight size={13} />
-                </button>
-              </div>
-
-              <div className="rounded-2xl border border-indigo-500/30 bg-[#070A12] p-5 flex flex-col justify-between space-y-3 hover:border-indigo-500/60 transition">
-                <div>
-                  <span className="rounded-full bg-indigo-600/20 border border-indigo-500/30 px-2 py-0.5 text-[10px] font-bold text-indigo-300">
-                    120 Mins · 60 Questions
-                  </span>
-                  <h4 className="text-white font-bold text-sm mt-2">Work, Energy &amp; Power</h4>
-                  <p className="text-xs text-slate-400 mt-1">
-                    Physics mock with conceptual diagrams &amp; solutions.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => onStartTest(NEET_WEP_TEST.id)}
-                  className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 py-2.5 text-xs font-bold text-white transition shadow-sm"
-                >
-                  <span>Launch Physics Exam</span>
                   <ArrowRight size={13} />
                 </button>
               </div>

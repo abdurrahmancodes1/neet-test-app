@@ -12,9 +12,29 @@ import {
   AlertCircle,
   Timer,
   Sparkles,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export default function TestInstructionsPage({ test, onBack, onStart }) {
+  // Theme state: 'dark' (default) or 'light'
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('neet_theme') || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+  const isLight = theme === 'light';
+
+  const toggleTheme = () => {
+    const next = isLight ? 'dark' : 'light';
+    setTheme(next);
+    try {
+      localStorage.setItem('neet_theme', next);
+    } catch {}
+  };
+
   const qCount = test?.totalQuestions || test?.questions?.length || 60;
   const defaultDuration = test?.durationMinutes || 120;
   const isCustomizable = Boolean(test?.allowCustomDuration === true);
@@ -70,39 +90,93 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
   const effectiveDuration = isCustomizable ? selectedDuration : defaultDuration;
   const pacingSec = ((effectiveDuration * 60) / qCount).toFixed(0);
 
-  const presets = [
-    { label: '60 Mins', value: 60, desc: '1h · Speed Drill' },
-    { label: '90 Mins', value: 90, desc: '1.5h · Paced' },
-    { label: '120 Mins', value: 120, desc: '2h · Standard' },
-    { label: '150 Mins', value: 150, desc: '2.5h · Extended' },
-    { label: '180 Mins (Max)', value: 180, desc: '3h · Full 3 Hours' },
-  ];
+  const presets = maxDuration <= 90
+    ? [
+        { label: '30 Mins', value: 30, desc: '30m · Speed Drill' },
+        { label: '45 Mins', value: 45, desc: '45m · Rapid Practice' },
+        { label: '60 Mins', value: 60, desc: '1h · Standard JEE' },
+        { label: '75 Mins', value: 75, desc: '1h 15m · Paced' },
+        { label: '90 Mins (Max)', value: 90, desc: '1.5h · Full 1h 30m' },
+      ]
+    : [
+        { label: '60 Mins', value: 60, desc: '1h · Speed Drill' },
+        { label: '90 Mins', value: 90, desc: '1.5h · Paced' },
+        { label: '120 Mins', value: 120, desc: '2h · Standard' },
+        { label: '150 Mins', value: 150, desc: '2.5h · Extended' },
+        { label: '180 Mins (Max)', value: 180, desc: '3h · Full 3 Hours' },
+      ];
 
   return (
-    <main className="min-h-screen bg-[#05070B] text-slate-100 px-4 py-6 sm:py-10 relative overflow-hidden selection:bg-blue-600 selection:text-white">
+    <main
+      className={`min-h-screen px-4 py-6 sm:py-10 relative overflow-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200 ${
+        isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'
+      }`}
+    >
       {/* Background Ambient Radial Glow */}
-      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-96 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-transparent to-transparent blur-2xl" />
+      <div
+        className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-96 blur-2xl ${
+          isLight
+            ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent'
+            : 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-transparent to-transparent'
+        }`}
+      />
 
       <div className="mx-auto max-w-2xl animate-rise-in relative z-10 space-y-6">
-        <button
-          type="button"
-          onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition rounded-full border border-white/10 bg-white/5 px-4 py-2"
-        >
-          <ArrowLeft size={14} /> Back to Dashboard
-        </button>
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className={`inline-flex items-center gap-1.5 text-xs font-semibold transition rounded-full border px-4 py-2 ${
+              isLight
+                ? 'border-slate-200 bg-white text-slate-700 hover:text-slate-900 shadow-xs hover:bg-slate-50'
+                : 'border-white/10 bg-white/5 text-slate-400 hover:text-white'
+            }`}
+          >
+            <ArrowLeft size={14} /> Back to Dashboard
+          </button>
 
-        <section className="rounded-3xl border border-white/10 bg-gradient-to-b from-[#0D1322] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+          {/* Prominent Theme Switcher */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={`Switch to ${isLight ? 'Dark' : 'Light'} Mode`}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 border shadow-md active:scale-95 ${
+              isLight
+                ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 hover:bg-amber-500/25'
+                : 'bg-blue-600/25 border-blue-500/40 text-blue-200 hover:bg-blue-600/35'
+            }`}
+          >
+            {isLight ? (
+              <>
+                <Sun size={15} className="text-amber-600 shrink-0" />
+                <span className="font-extrabold text-[11px] sm:text-xs">Light Mode</span>
+              </>
+            ) : (
+              <>
+                <Moon size={15} className="text-blue-400 shrink-0" />
+                <span className="font-extrabold text-[11px] sm:text-xs">Dark Mode</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        <section
+          className={`rounded-3xl border p-6 sm:p-8 shadow-2xl relative overflow-hidden transition-colors ${
+            isLight
+              ? 'border-slate-200 bg-white text-slate-900 shadow-sm'
+              : 'border-white/10 bg-gradient-to-b from-[#0D1322] to-[#0B0F19] text-white'
+          }`}
+        >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="rounded-full bg-blue-500/15 border border-blue-500/30 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-blue-300">
+            <span className="rounded-full bg-blue-500/15 border border-blue-500/30 px-3.5 py-1 text-xs font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-300">
               {badge}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-semibold text-emerald-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
               <CheckCircle2 size={13} /> CBT Mode Active
             </span>
           </div>
 
-          <h1 className="mt-3 font-sans text-2xl sm:text-3xl font-black text-white">
+          <h1 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
             {title}
           </h1>
           <p className="mt-1 text-sm text-slate-400 font-normal">
@@ -145,11 +219,11 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
                     <h2 className="text-sm font-bold text-white flex items-center gap-1.5">
                       Student Time Limit Customizer
                       <span className="rounded-full bg-violet-500/20 border border-violet-500/40 px-2 py-0.2 text-[10px] font-bold text-violet-300">
-                        Max 3 Hours
+                        Max {formatHours(maxDuration)} ({maxDuration} Mins)
                       </span>
                     </h2>
                     <p className="text-[11px] text-slate-400">
-                      Customize your examination duration as needed (Capped at 180 mins / 3 hrs).
+                      Customize your examination duration as needed (Capped at {formatHours(maxDuration)} / {maxDuration} mins).
                     </p>
                   </div>
                 </div>

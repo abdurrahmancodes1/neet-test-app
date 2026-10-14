@@ -20,6 +20,8 @@ import {
   Layers,
   CheckCircle2,
   AlertTriangle,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { getAdminOverview } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
@@ -40,6 +42,24 @@ export default function AdminDashboardPage({
   // Selected attempt for detailed diagnostics modal
   const [selectedAttempt, setSelectedAttempt] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
+
+  // Theme state: 'dark' (default) or 'light'
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('neet_theme') || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+  const isLight = theme === 'light';
+
+  const toggleTheme = () => {
+    const next = isLight ? 'dark' : 'light';
+    setTheme(next);
+    try {
+      localStorage.setItem('neet_theme', next);
+    } catch {}
+  };
 
   const fetchOverview = async () => {
     setLoading(true);
@@ -108,34 +128,78 @@ export default function AdminDashboardPage({
   };
 
   return (
-    <main className="min-h-screen bg-[#05070B] text-slate-100 px-3 sm:px-6 py-4 sm:py-8 relative overflow-hidden selection:bg-blue-600 selection:text-white">
+    <main
+      className={`min-h-screen px-3 sm:px-6 py-4 sm:py-8 relative overflow-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200 ${
+        isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'
+      }`}
+    >
       {/* Ambient background glow */}
-      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-indigo-900/5 to-transparent blur-2xl" />
+      <div
+        className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] blur-2xl ${
+          isLight
+            ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-indigo-500/5 to-transparent'
+            : 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-indigo-900/5 to-transparent'
+        }`}
+      />
 
       <div className="mx-auto max-w-5xl space-y-6 sm:space-y-8 relative z-10 animate-fade-in">
         {/* Navigation Header */}
-        <header className="rounded-2xl sm:rounded-full border border-white/10 bg-[#0D121F]/90 backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xl flex flex-wrap items-center justify-between gap-3">
+        <header
+          className={`rounded-2xl sm:rounded-full border backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xl flex flex-wrap items-center justify-between gap-3 transition-colors ${
+            isLight
+              ? 'bg-white/95 border-slate-200 text-slate-900 shadow-sm'
+              : 'bg-[#0D121F]/90 border-white/10 text-white'
+          }`}
+        >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white shadow-glow">
               <ShieldCheck size={16} />
             </div>
             <div className="flex items-center gap-2 min-w-0">
-              <span className="font-sans text-sm sm:text-base font-bold text-white truncate">
+              <span className="font-sans text-sm sm:text-base font-bold truncate">
                 Admin<span className="text-blue-500">Portal</span>
               </span>
-              <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[10px] font-bold text-blue-300">
+              <span className="rounded-full bg-blue-500/20 border border-blue-500/30 px-2 py-0.5 text-[10px] font-bold text-blue-500 dark:text-blue-300">
                 Administrator
               </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Prominent Dark / Light Mode Switcher */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={`Switch to ${isLight ? 'Dark' : 'Light'} Mode`}
+              className={`rounded-full px-3 sm:px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 border shadow-md active:scale-95 ${
+                isLight
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 hover:bg-amber-500/25'
+                  : 'bg-blue-600/25 border-blue-500/40 text-blue-200 hover:bg-blue-600/35'
+              }`}
+            >
+              {isLight ? (
+                <>
+                  <Sun size={15} className="text-amber-600 shrink-0" />
+                  <span className="font-extrabold text-[11px] sm:text-xs">Light Mode</span>
+                </>
+              ) : (
+                <>
+                  <Moon size={15} className="text-blue-400 shrink-0" />
+                  <span className="font-extrabold text-[11px] sm:text-xs">Dark Mode</span>
+                </>
+              )}
+            </button>
+
             <button
               type="button"
               onClick={fetchOverview}
               disabled={loading}
               title="Refresh Data"
-              className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-white hover:bg-white/10 transition"
+              className={`rounded-full border p-2 transition ${
+                isLight
+                  ? 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-600'
+                  : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white'
+              }`}
             >
               <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             </button>
@@ -143,7 +207,11 @@ export default function AdminDashboardPage({
             <button
               type="button"
               onClick={onGoToStudentDashboard}
-              className="rounded-full border border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 px-3.5 sm:px-4 py-1.5 text-xs font-semibold transition flex items-center gap-1.5"
+              className={`rounded-full border px-3.5 sm:px-4 py-1.5 text-xs font-semibold transition flex items-center gap-1.5 ${
+                isLight
+                  ? 'border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-700'
+                  : 'border-blue-500/30 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300'
+              }`}
             >
               <ArrowLeft size={13} />
               <span>Student View</span>
@@ -154,7 +222,11 @@ export default function AdminDashboardPage({
                 type="button"
                 onClick={onLogout}
                 title="Sign Out"
-                className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
+                className={`rounded-full border p-2 transition ${
+                  isLight
+                    ? 'border-slate-200 bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50'
+                    : 'border-white/10 bg-white/5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
+                }`}
               >
                 <LogOut size={14} />
               </button>

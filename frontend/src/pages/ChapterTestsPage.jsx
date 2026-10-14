@@ -18,8 +18,9 @@ import {
   Scale,
   Flame,
   ShieldAlert,
+  Sun,
+  Moon,
 } from 'lucide-react';
-import { NEET_WEP_TEST } from '../data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_ROUND_1_TEST } from '../data/neetMegaRound1MechanicsTest.js';
@@ -32,6 +33,24 @@ import { JEE_2027_PERIODIC_TEST } from '../data/jee2027PeriodicTableTest.js';
 export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard }) {
   const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'jee' | 'class10' | 'class9' | 'class8'
 
+  // Unified Theme state: 'dark' (default) or 'light'
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('neet_theme') || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+  const isLight = theme === 'light';
+
+  const toggleTheme = () => {
+    const next = isLight ? 'dark' : 'light';
+    setTheme(next);
+    try {
+      localStorage.setItem('neet_theme', next);
+    } catch {}
+  };
+
   const categories = [
     { id: 'neet', label: 'NEET 2027', badge: 'Active Test Series', icon: Zap },
     { id: 'jee', label: 'JEE 2027', badge: 'Active Test Series', icon: Target },
@@ -41,41 +60,89 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
   ];
 
   return (
-    <main className="min-h-screen bg-[#05070B] text-slate-100 px-4 py-4 sm:py-8 relative overflow-hidden selection:bg-blue-600 selection:text-white">
+    <main
+      className={`min-h-screen px-4 py-4 sm:py-8 relative overflow-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200 ${
+        isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'
+      }`}
+    >
       {/* Background Ambient Radial Glow */}
-      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-blue-900/5 to-transparent blur-2xl" />
+      <div
+        className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] blur-2xl ${
+          isLight
+            ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-indigo-500/5 to-transparent'
+            : 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-blue-900/5 to-transparent'
+        }`}
+      />
 
       <div className="mx-auto max-w-5xl space-y-10 relative z-10 animate-fade-in">
-        {/* Floating Dark Pill Navigation Bar */}
-        <header className="rounded-full border border-white/10 bg-[#0D121F]/90 backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xl flex items-center justify-between gap-3">
+        {/* Floating Pill Navigation Bar */}
+        <header
+          className={`rounded-full border backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xl flex items-center justify-between gap-3 transition-colors ${
+            isLight
+              ? 'bg-white/95 border-slate-200 text-slate-900 shadow-sm'
+              : 'bg-[#0D121F]/90 border-white/10 text-white'
+          }`}
+        >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-black text-xs shadow-glow">
               <Zap size={15} className="fill-white text-white" />
             </div>
-            <span className="truncate font-sans text-sm sm:text-base font-bold tracking-tight text-white">
+            <span
+              className={`truncate font-sans text-sm sm:text-base font-bold tracking-tight ${
+                isLight ? 'text-slate-900' : 'text-white'
+              }`}
+            >
               NEET<span className="text-blue-500">2027</span>
             </span>
           </div>
 
-          <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-300">
+          <nav
+            className={`hidden md:flex items-center gap-6 text-xs font-semibold ${
+              isLight ? 'text-slate-600' : 'text-slate-300'
+            }`}
+          >
             {onGoToDashboard && (
               <button
                 type="button"
                 onClick={onGoToDashboard}
-                className="text-slate-400 hover:text-white transition flex items-center gap-1.5"
+                className="hover:text-blue-600 dark:hover:text-white transition flex items-center gap-1.5"
               >
                 <BarChart3 size={14} /> Dashboard
               </button>
             )}
-            <span className="text-white flex items-center gap-1.5 cursor-pointer">
-              <Layers size={14} className="text-blue-400" /> Standard Tests
+            <span className="text-blue-600 dark:text-white flex items-center gap-1.5 cursor-pointer">
+              <Layers size={14} className="text-blue-500" /> Standard Tests
             </span>
-            <span className="text-slate-500 text-[11px] font-medium border border-white/10 rounded-full px-2.5 py-0.5">
+            <span className="text-slate-400 text-[11px] font-medium border border-slate-300 dark:border-white/10 rounded-full px-2.5 py-0.5">
               Curriculum Drills
             </span>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Prominent Theme Switcher */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={`Switch to ${isLight ? 'Dark' : 'Light'} Mode`}
+              className={`rounded-full px-3 sm:px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 border shadow-md active:scale-95 ${
+                isLight
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 hover:bg-amber-500/25'
+                  : 'bg-blue-600/25 border-blue-500/40 text-blue-200 hover:bg-blue-600/35'
+              }`}
+            >
+              {isLight ? (
+                <>
+                  <Sun size={15} className="text-amber-600 shrink-0" />
+                  <span className="font-extrabold text-[11px] sm:text-xs">Light Mode</span>
+                </>
+              ) : (
+                <>
+                  <Moon size={15} className="text-blue-400 shrink-0" />
+                  <span className="font-extrabold text-[11px] sm:text-xs">Dark Mode</span>
+                </>
+              )}
+            </button>
+
             {onGoToDashboard && (
               <button
                 type="button"
@@ -91,7 +158,11 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                 type="button"
                 onClick={onLogout}
                 title="Sign Out"
-                className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
+                className={`rounded-full border p-2 transition ${
+                  isLight
+                    ? 'border-slate-200 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600'
+                    : 'border-white/10 bg-white/5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
+                }`}
               >
                 <LogOut size={14} />
               </button>
@@ -524,61 +595,6 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                 </div>
               </div>
             </article>
-
-            {/* Test Card 2: Work, Energy and Power */}
-            <article className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#0D1322] to-[#0B0F19] p-6 sm:p-8 shadow-2xl relative">
-              <div className="pointer-events-none absolute -top-12 -right-12 h-48 w-48 rounded-full bg-blue-600/10 blur-3xl" />
-
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
-                <div className="max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-blue-600/20 border border-blue-500/30 px-3 py-0.5 text-xs font-bold text-blue-300">
-                      Physics Drill
-                    </span>
-                    <span className="rounded-full bg-rose-500/20 border border-rose-500/30 px-3 py-0.5 text-xs font-bold text-rose-300">
-                      Hard Level
-                    </span>
-                  </div>
-
-                  <h3 className="mt-3 font-sans text-2xl sm:text-3xl font-black text-white">
-                    {NEET_WEP_TEST.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-400">
-                    Comprehensive full-chapter examination designed to test conceptual clarity, graphical analysis, spring systems, variable forces, and vertical circular motion up to NEET standard.
-                  </p>
-
-                  <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs leading-relaxed text-slate-300">
-                    <span className="font-bold text-white">Syllabus Covered: </span>
-                    {NEET_WEP_TEST.syllabus}
-                  </div>
-
-                  <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-300">
-                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
-                      <Clock size={14} className="text-blue-400" />
-                      <strong className="text-white">2 Hours</strong> (120 Minutes)
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
-                      <BookOpen size={14} className="text-blue-400" />
-                      <strong className="text-white">60 Questions</strong>
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
-                      <Award size={14} className="text-blue-400" />
-                      <strong className="text-white">240 Marks</strong> (+4 / −1 Scheme)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onSelect(NEET_WEP_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-white/10 hover:bg-white/15 px-8 py-4 text-sm font-bold text-white border border-white/10 transition active:scale-95 lg:w-auto"
-                  >
-                    Start 2-Hour Examination <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </article>
           </div>
         )}
 
@@ -594,11 +610,11 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                   JEE Main Periodic Table &amp; Periodicity CBT Mock
                 </h2>
                 <p className="mt-1 text-sm text-slate-400">
-                  Curated directly from 2021-2025 JEE Main Official PYQs and Arjuna JEE Cadbury Challenges with zero duplicate questions.
+                  Curated directly from 2021-2025 JEE Main Official PYQs and Advanced Top-Rankers Drills with zero duplicate questions.
                 </p>
               </div>
               <div className="flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold text-amber-300">
-                <CheckCircle2 size={16} /> 1 Test Available (60 Mins)
+                <CheckCircle2 size={16} /> 1 Test Available (90 Mins · Adjustable)
               </div>
             </div>
 
@@ -613,10 +629,10 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                       🎯 JEE MAIN 2027 · CHEMISTRY
                     </span>
                     <span className="rounded-full bg-amber-600/20 border border-amber-500/30 px-3 py-0.5 text-xs font-bold text-amber-300">
-                      30 Questions · 60 Mins Fixed
+                      60 Questions · 90 Mins (Adjustable)
                     </span>
                     <span className="rounded-full bg-emerald-500/20 border border-emerald-500/30 px-3 py-0.5 text-xs font-bold text-emerald-300">
-                      120 Marks (+4 / -1)
+                      240 Marks (+4 / -1)
                     </span>
                   </div>
 
@@ -624,7 +640,7 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                     {JEE_2027_PERIODIC_TEST.title}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-300">
-                    {JEE_2027_PERIODIC_TEST.description}
+                    {JEE_2027_PERIODIC_TEST.subtitle}
                   </p>
 
                   <div className="mt-5 rounded-2xl border border-white/10 bg-[#070A12] p-4 text-xs leading-relaxed text-slate-300">
@@ -635,15 +651,15 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                   <div className="mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-300">
                     <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
                       <Clock size={14} className="text-amber-400" />
-                      <strong className="text-white">60 Minutes</strong> (Fixed 1-Hour CBT Exam)
+                      <strong className="text-white">90 Minutes</strong> (Self-Adjustable up to 1 Hr 30 Mins)
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
                       <BookOpen size={14} className="text-blue-400" />
-                      <strong className="text-white">30 Questions</strong> (Zero Duplicates · Most Frequent Patterns)
+                      <strong className="text-white">60 Questions</strong> (Zero Duplicates · Most Frequent &amp; Expected 2027)
                     </span>
                     <span className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2">
                       <Award size={14} className="text-emerald-400" />
-                      <strong className="text-white">120 Marks</strong> (+4 / −1 Marking Scheme)
+                      <strong className="text-white">240 Marks</strong> (+4 / −1 Marking Scheme)
                     </span>
                   </div>
                 </div>
@@ -654,7 +670,7 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                     onClick={() => onSelect(JEE_2027_PERIODIC_TEST.id)}
                     className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-amber-600/30 transition active:scale-95 lg:w-auto"
                   >
-                    Start JEE Exam (60 Mins) <ArrowRight size={16} />
+                    Start JEE Exam (90 Mins) <ArrowRight size={16} />
                   </button>
                 </div>
               </div>
@@ -720,7 +736,7 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                     <Flame size={14} /> 4. Tough Paper Advantage
                   </div>
                   <p className="text-[11px] text-slate-400 leading-relaxed">
-                    In this Hard Shift (Arjuna Cadbury + Official PYQs), 99.0%tile begins at just 72–78/120 marks (~165/300 full paper), rewarding conceptual accuracy.
+                    In this Hard Shift (Advanced Drills + Official PYQs), 99.0%tile begins at just 72–78/120 marks (~165/300 full paper), rewarding conceptual accuracy.
                   </p>
                 </div>
               </div>

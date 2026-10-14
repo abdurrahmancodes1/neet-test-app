@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight } from 'lucide-react';
+import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight, Sun, Moon } from 'lucide-react';
 import { formatDuration, computeResult } from '../utils/scoring.js';
 import ResultSummary from '../components/ResultSummary.jsx';
 import TopicAnalysis from '../components/TopicAnalysis.jsx';
@@ -22,6 +22,24 @@ export default function ResultPage({
   onGoToDashboard,
   reviewedAttempt = null,
 }) {
+  // Theme state: 'dark' (default) or 'light'
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('neet_theme') || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+  const isLight = theme === 'light';
+
+  const toggleTheme = () => {
+    const next = isLight ? 'dark' : 'light';
+    setTheme(next);
+    try {
+      localStorage.setItem('neet_theme', next);
+    } catch {}
+  };
+
   const [tab, setTab] = useState('overview');
   const [confirmRetake, setConfirmRetake] = useState(false);
 
@@ -135,21 +153,61 @@ export default function ResultPage({
   const avgTimeLabel = attempted > 0 ? `${Math.round(avgMs / 1000)}s` : '—';
 
   return (
-    <div className="min-h-screen bg-[#05070B] text-slate-100 pb-16 relative overflow-hidden selection:bg-blue-600 selection:text-white">
+    <div
+      className={`min-h-screen pb-16 relative overflow-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200 ${
+        isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'
+      }`}
+    >
       {/* Background Glow */}
-      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-96 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-transparent to-transparent blur-2xl" />
+      <div
+        className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-5xl h-96 blur-2xl ${
+          isLight
+            ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-transparent to-transparent'
+            : 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-transparent to-transparent'
+        }`}
+      />
 
-      {/* Floating Dark Navigation Header */}
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0D121F]/90 backdrop-blur-md">
+      {/* Floating Navigation Header */}
+      <header
+        className={`sticky top-0 z-30 border-b backdrop-blur-md transition-colors ${
+          isLight ? 'border-slate-200 bg-white/95 text-slate-900 shadow-sm' : 'border-white/10 bg-[#0D121F]/90 text-white'
+        }`}
+      >
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3.5">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs shadow-glow">
               <Zap size={14} className="fill-white text-white" />
             </div>
-            <p className="text-xs sm:text-sm font-bold text-white tracking-tight">{testTitle} — Dashboard</p>
+            <p className={`text-xs sm:text-sm font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              {testTitle} — Performance Report
+            </p>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Prominent Theme Switcher */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={`Switch to ${isLight ? 'Dark' : 'Light'} Mode`}
+              className={`rounded-full px-3 py-1.5 text-xs font-bold transition flex items-center gap-1.5 border shadow-md active:scale-95 ${
+                isLight
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-800 hover:bg-amber-500/25'
+                  : 'bg-blue-600/25 border-blue-500/40 text-blue-200 hover:bg-blue-600/35'
+              }`}
+            >
+              {isLight ? (
+                <>
+                  <Sun size={14} className="text-amber-600 shrink-0" />
+                  <span className="font-extrabold text-[11px]">Light Mode</span>
+                </>
+              ) : (
+                <>
+                  <Moon size={14} className="text-blue-400 shrink-0" />
+                  <span className="font-extrabold text-[11px]">Dark Mode</span>
+                </>
+              )}
+            </button>
+
             {onGoToDashboard && (
               <button
                 type="button"
@@ -164,7 +222,11 @@ export default function ResultPage({
               <button
                 type="button"
                 onClick={onBackToChapters}
-                className="rounded-full border border-white/10 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-semibold text-slate-300 transition flex items-center gap-1"
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1 ${
+                  isLight
+                    ? 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
+                }`}
               >
                 <ArrowLeft size={13} />
                 <span>All Tests</span>

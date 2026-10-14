@@ -10,7 +10,6 @@ import {
 } from './utils/storage.js';
 import { getCurrentUser, logoutUser, saveUserAttempt, API_BASE } from './utils/auth.js';
 import { computeResult } from './utils/scoring.js';
-import { NEET_WEP_TEST, NEET_WEP_QUESTIONS } from './data/neetWorkEnergyTest.js';
 import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from './data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from './data/neet2026CoreTopicsTest.js';
 import { NEET_BIOLOGY_TEST, NEET_BIOLOGY_QUESTIONS } from './data/neetBiologyCoreTest.js';
@@ -63,18 +62,14 @@ const ALL_TESTS = {
     ...NEET_CALCULUS_TEST,
     questions: NEET_CALCULUS_QUESTIONS,
   },
-  [NEET_WEP_TEST.id]: {
-    ...NEET_WEP_TEST,
-    questions: NEET_WEP_QUESTIONS,
-  },
 };
 
 const getSavedTestId = () => {
   try {
     const saved = window.localStorage.getItem(ACTIVE_TEST_KEY);
-    return saved && ALL_TESTS[saved] ? saved : NEET_WEP_TEST.id;
+    return saved && ALL_TESTS[saved] ? saved : JEE_2027_PERIODIC_TEST.id;
   } catch {
-    return NEET_WEP_TEST.id;
+    return JEE_2027_PERIODIC_TEST.id;
   }
 };
 
@@ -120,7 +115,7 @@ export default function App() {
 
   // Dynamically resolve active test configuration
   const activeTest = useMemo(() => {
-    return ALL_TESTS[testId] || ALL_TESTS[NEET_WEP_TEST.id];
+    return ALL_TESTS[testId] || ALL_TESTS[JEE_2027_PERIODIC_TEST.id];
   }, [testId]);
 
   const durationMs = useMemo(() => {

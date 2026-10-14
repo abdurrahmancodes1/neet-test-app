@@ -385,7 +385,7 @@ export function getJeePrediction(testId, score, maxScore, accuracy = 0, correct 
   // Single-subject chemistry scaled to 100
   const scaledChemistry100 = Math.round(fraction * 100);
 
-  // Paper Hardness: High / Challenging (ATS Sir Arjuna Challenges + Official JEE 2021-2025 PYQs)
+  // Paper Hardness: High / Challenging (National Benchmark Drills + Official JEE 2021-2025 PYQs)
   const paperHardness = 'Hard / Tough Shift';
   const hardnessBonus = Math.min(8, Math.round((acc / 100) * 6));
 
