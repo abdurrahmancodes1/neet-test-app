@@ -196,6 +196,10 @@ async function runApiTests() {
     console.log('🎉 ALL REST API ENDPOINTS TESTED & PASSED 100%');
     console.log('========================================\n');
   } finally {
+    try {
+      await User.deleteMany({ email: 'testadmin@neet.local' });
+      await Result.deleteMany({ studentEmail: 'testadmin@neet.local' });
+    } catch (_) {}
     if (server) {
       await new Promise((resolve) => server.close(resolve));
     }

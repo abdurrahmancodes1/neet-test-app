@@ -1,11 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import TestHeader from '../components/TestHeader.jsx';
 import QuestionCard from '../components/QuestionCard.jsx';
 import QuestionPalette from '../components/QuestionPalette.jsx';
 import TestNavigation from '../components/TestNavigation.jsx';
 import SubmitModal from '../components/SubmitModal.jsx';
-import QuestionMemeModal from '../components/QuestionMemeModal.jsx';
 import { useTheme } from '../utils/themeContext.jsx';
 
 function getQKey(q) {
@@ -16,12 +15,6 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [autoSubmitNotice, setAutoSubmitNotice] = useState(false);
-  const [memeState, setMemeState] = useState({
-    open: false,
-    questionNumber: 1,
-    selectedOption: 'A',
-    isHard: false,
-  });
 
   const questions = test?.questions || [];
   const testTitle = test?.title || 'NEET Practice Test';
@@ -50,23 +43,12 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
   const selectAnswer = useCallback(
     (letter) => {
       if (!currentKey) return;
-      const prevAnswer = session.answers?.[currentKey];
       updateSession((prev) => ({
         ...prev,
         answers: { ...(prev.answers || {}), [currentKey]: letter },
       }));
-
-      // Trigger student-teacher exam meme celebration on solving
-      if (prevAnswer !== letter) {
-        setMemeState({
-          open: true,
-          questionNumber: currentIndex + 1,
-          selectedOption: letter,
-          isHard: currentQuestion.difficulty === 'Hard',
-        });
-      }
     },
-    [currentKey, session.answers, updateSession, currentIndex, currentQuestion.difficulty]
+    [currentKey, updateSession]
   );
 
   const clearAnswer = useCallback(() => {
@@ -132,6 +114,20 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
     (currentQuestion.order && session.answers?.[currentQuestion.order]) ??
     (currentQuestion.id && session.answers?.[currentQuestion.id]);
 
+  // Keyboard navigation for CBT (ArrowLeft -> Previous, ArrowRight -> Next)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target?.tagName)) return;
+      if (e.key === 'ArrowLeft') {
+        goTo(currentIndex - 1);
+      } else if (e.key === 'ArrowRight') {
+        goTo(currentIndex + 1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, goTo]);
+
   const { isLight } = useTheme();
 
   if (questions.length === 0) {
@@ -185,13 +181,17 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
         </main>
       </div>
 
-      <div className="mx-auto w-full max-w-3xl px-4">
+      <div className="mx-auto w-full max-w-4xl px-4 pb-4">
         <TestNavigation
           onPrev={() => goTo(currentIndex - 1)}
           onNext={() => goTo(currentIndex + 1)}
           onSubmit={() => setModalOpen(true)}
           isFirst={currentIndex === 0}
           isLast={currentIndex === total - 1}
+          marked={marked}
+          onToggleMark={toggleMark}
+          hasAnswer={Boolean(selectedAnswer)}
+          onClearAnswer={clearAnswer}
         />
       </div>
 
@@ -207,17 +207,9 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
         marked={markedCount}
       />
 
-      <QuestionMemeModal
-        open={memeState.open}
-        questionNumber={memeState.questionNumber}
-        selectedOption={memeState.selectedOption}
-        isHard={memeState.isHard}
-        onClose={() => setMemeState((prev) => ({ ...prev, open: false }))}
-      />
-
       {autoSubmitNotice && (
-        <div className="fixed inset-x-0 top-4 z-50 mx-auto flex w-fit items-center gap-2 rounded-full bg-ink-900 px-4 py-2 text-sm font-medium text-white shadow-pop animate-rise-in">
-          <AlertTriangle size={15} className="text-gold-300" />
+        <div className="fixed inset-x-0 top-4 z-50 mx-auto flex w-fit items-center gap-2 rounded-full bg-slate-900 border border-slate-700 px-4 py-2 text-sm font-medium text-white shadow-2xl animate-rise-in">
+          <AlertTriangle size={15} className="text-amber-400" />
           Time's up — your test was submitted automatically.
         </div>
       )}

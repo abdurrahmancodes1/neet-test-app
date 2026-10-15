@@ -142,4 +142,15 @@ export class AuthController {
     const overview = await AuthService.getAdminOverview();
     return ApiResponse.success(res, 'Admin overview retrieved successfully', overview);
   });
+
+  /**
+   * PUT /api/auth/profile - Update candidate profile (name, rollNumber, targetExam)
+   */
+  static updateProfile = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const { name, rollNumber, targetExam } = req.body;
+    const updated = await AuthService.updateProfile(userId, { name, rollNumber, targetExam });
+    return ApiResponse.success(res, 'Profile updated successfully', updated);
+  });
 }
+

@@ -41,6 +41,7 @@ export default function DashboardPage({
   onGoToCurriculum,
   onGoToAdmin,
   onLogout,
+  onUserUpdated,
   platformTests = {},
 }) {
   const { isLight } = useTheme();
@@ -151,6 +152,7 @@ export default function DashboardPage({
           onNavigate={handleNav}
           onOpenLeaderboard={() => setLeaderboardModalOpen(true)}
           onLogout={onLogout}
+          onUserUpdated={onUserUpdated}
         />
 
         {/* Compact Preparation Welcome Banner */}

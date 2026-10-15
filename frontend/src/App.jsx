@@ -275,6 +275,10 @@ export default function App() {
     }
   }, []);
 
+  const handleUserUpdated = useCallback((updatedUser) => {
+    setCurrentUser(updatedUser);
+  }, []);
+
   const handleLogout = useCallback(() => {
     logoutUser();
     setCurrentUser(null);
@@ -409,11 +413,43 @@ export default function App() {
 
       // Record snapshot to user attempt history and backend
       if (currentUser?.email) {
-        let serverResult = null;
         const timeTakenMs = session.startTime ? Math.max(0, submittedAt - session.startTime) : 0;
         const timeSpentSeconds = Math.round(timeTakenMs / 1000);
+        const computed = computeResult(updatedSession.answers || {}, activeTest.questions);
+        const attemptId = `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-        // Try server-side grading if it is a platform MongoDB test
+        const submitPayload = {
+          attemptId,
+          testId: activeTest.id,
+          testTitle: activeTest.title || 'NEET Practice Test',
+          userId: currentUser._id || currentUser.id || null,
+          studentEmail: (currentUser.email || '').toLowerCase().trim(),
+          studentName: currentUser.name || 'Anonymous Student',
+          studentRollNumber: currentUser.rollNumber || null,
+          answers: updatedSession.answers || {},
+          markedForReview: updatedSession.markedForReview || [],
+          timeSpentSeconds,
+          timeTakenMs,
+          startTime: session.startTime ? new Date(session.startTime).toISOString() : null,
+          autoSubmitted: auto,
+          score: computed.score,
+          rawScore: computed.rawScore,
+          maxScore: computed.maxScore,
+          percentage: computed.percentage,
+          accuracy: computed.accuracy,
+          correct: computed.correct,
+          wrong: computed.wrong,
+          unattempted: computed.unattempted,
+          totalQuestions: computed.totalQuestions,
+          topicPerformance: computed.topicPerformance || [],
+          weakestTopics: computed.weakestTopics || [],
+          strongestTopics: computed.strongestTopics || [],
+          perQuestion: computed.perQuestion || [],
+        };
+
+        let serverResult = null;
+
+        // 1. Try server-side grading / submission endpoint
         try {
           const res = await fetch(`${API_BASE}/tests/${testId}/submit`, {
             method: 'POST',
@@ -422,46 +458,70 @@ export default function App() {
               ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
             },
             credentials: 'include',
-            body: JSON.stringify({
-              attemptId: `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-              userId: currentUser._id || null,
-              studentName: currentUser.name || 'Anonymous Student',
-              studentRollNumber: currentUser.rollNumber || null,
-              answers: updatedSession.answers || {},
-              markedForReview: updatedSession.markedForReview || [],
-              timeSpentSeconds,
-              startTime: session.startTime ? new Date(session.startTime).toISOString() : null,
-              autoSubmitted: auto,
-            }),
+            body: JSON.stringify(submitPayload),
           });
           if (res.ok) {
             const data = await res.json();
             if (data?.data) {
               serverResult = data.data;
             }
+          } else {
+            // 2. Fallback to direct results sync endpoint
+            const syncRes = await fetch(`${API_BASE}/results/sync`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
+              },
+              credentials: 'include',
+              body: JSON.stringify(submitPayload),
+            });
+            if (syncRes.ok) {
+              const syncData = await syncRes.json();
+              if (syncData?.data) {
+                serverResult = syncData.data;
+              }
+            }
           }
         } catch (submitErr) {
-          console.warn('Server grading request error:', submitErr);
+          console.warn('Submission network error, attempting sync fallback:', submitErr);
+          try {
+            const syncRes = await fetch(`${API_BASE}/results/sync`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
+              },
+              credentials: 'include',
+              body: JSON.stringify(submitPayload),
+            });
+            if (syncRes.ok) {
+              const syncData = await syncRes.json();
+              if (syncData?.data) {
+                serverResult = syncData.data;
+              }
+            }
+          } catch {}
         }
 
-        const computed = computeResult(updatedSession.answers || {}, activeTest.questions);
-
+        // Save to local cache with confirmed server result or computed values
         saveUserAttempt(currentUser.email, {
-          testId: activeTest.id,
-          testTitle: activeTest.title,
-          score: serverResult ? serverResult.score : computed.score,
-          rawScore: serverResult ? serverResult.rawScore : computed.rawScore,
-          maxScore: serverResult ? serverResult.maxScore : computed.maxScore,
-          percentage: serverResult ? serverResult.percentage : computed.percentage,
-          accuracy: serverResult ? serverResult.accuracy : computed.accuracy,
-          correct: serverResult ? serverResult.correctCount : computed.correct,
-          wrong: serverResult ? serverResult.wrongCount : computed.wrong,
-          unattempted: serverResult ? serverResult.unattemptedCount : computed.unattempted,
-          totalQuestions: serverResult ? serverResult.totalQuestions : computed.totalQuestions,
-          topicPerformance: serverResult ? serverResult.topicPerformance : computed.topicPerformance,
-          weakestTopics: serverResult ? serverResult.weakestTopics : computed.weakestTopics,
-          strongestTopics: serverResult ? serverResult.strongestTopics : computed.strongestTopics,
-          perQuestion: serverResult ? serverResult.answers : computed.perQuestion,
+          ...submitPayload,
+          ...(serverResult || {}),
+          id: serverResult?.attemptId || attemptId,
+          score: serverResult?.score ?? computed.score,
+          rawScore: serverResult?.rawScore ?? computed.rawScore,
+          maxScore: serverResult?.maxScore ?? computed.maxScore,
+          percentage: serverResult?.percentage ?? computed.percentage,
+          accuracy: serverResult?.accuracy ?? computed.accuracy,
+          correct: serverResult?.correctCount ?? serverResult?.correct ?? computed.correct,
+          wrong: serverResult?.wrongCount ?? serverResult?.wrong ?? computed.wrong,
+          unattempted: serverResult?.unattemptedCount ?? serverResult?.unattempted ?? computed.unattempted,
+          totalQuestions: serverResult?.totalQuestions ?? computed.totalQuestions,
+          topicPerformance: serverResult?.topicPerformance ?? computed.topicPerformance,
+          weakestTopics: serverResult?.weakestTopics ?? computed.weakestTopics,
+          strongestTopics: serverResult?.strongestTopics ?? computed.strongestTopics,
+          perQuestion: serverResult?.perQuestion ?? serverResult?.answers ?? computed.perQuestion,
           answers: updatedSession.answers || {},
           timeTakenMs,
           autoSubmitted: auto,
@@ -549,6 +609,7 @@ export default function App() {
         onGoToCurriculum={handleGoToCurriculum}
         onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
         onLogout={handleLogout}
+        onUserUpdated={handleUserUpdated}
         platformTests={platformTests}
       />
     );
@@ -564,6 +625,7 @@ export default function App() {
         onGoToDashboard={handleGoToDashboard}
         onGoToCurriculum={handleGoToCurriculum}
         onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
+        onUserUpdated={handleUserUpdated}
         platformTests={platformTests}
         customTests={platformTests}
       />
@@ -580,6 +642,7 @@ export default function App() {
         onGoToDashboard={handleGoToDashboard}
         onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
         onLogout={handleLogout}
+        onUserUpdated={handleUserUpdated}
       />
     );
   }

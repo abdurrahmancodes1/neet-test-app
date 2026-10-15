@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Result, Test, Question } from '../models/index.js';
+import { Result, Test, Question, User, LiveSession } from '../models/index.js';
 import { AppError } from '../utils/AppError.js';
 import { ScoringService } from './scoringService.js';
 
@@ -9,9 +9,11 @@ export class ResultService {
    */
   static async submitExam({
     testIdOrSlug,
+    testTitle = null,
     answers = {},
     markedForReview = [],
     studentName = 'Anonymous Student',
+    studentEmail = null,
     studentRollNumber = null,
     userId = null,
     attemptId = null,
@@ -29,6 +31,31 @@ export class ResultService {
     if (!test) {
       throw new AppError('Test not found', 404);
     }
+
+    const cleanEmail = (studentEmail || '').toLowerCase().trim();
+    let effectiveUserId = userId || null;
+    let effectiveStudentEmail = cleanEmail || null;
+
+    if (!effectiveUserId && effectiveStudentEmail) {
+      const userDoc = await User.findOne({ email: effectiveStudentEmail }).lean();
+      if (userDoc) {
+        effectiveUserId = userDoc._id;
+        if (!studentName || studentName === 'Anonymous Student') {
+          studentName = userDoc.name;
+        }
+      }
+    } else if (effectiveUserId && !effectiveStudentEmail) {
+      const userDoc = await User.findById(effectiveUserId).lean();
+      if (userDoc) {
+        effectiveStudentEmail = userDoc.email.toLowerCase().trim();
+        if (!studentName || studentName === 'Anonymous Student') {
+          studentName = userDoc.name;
+        }
+      }
+    }
+
+    const effectiveAttemptId =
+      attemptId || `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
     // Check for duplicate submission if attemptId is present
     if (attemptId) {
@@ -58,13 +85,16 @@ export class ResultService {
     const now = new Date();
     const start = startTime ? new Date(startTime) : new Date(now.getTime() - (timeSpentSeconds || 0) * 1000);
     const end = new Date(start.getTime() + (test.durationMinutes || 60) * 60 * 1000);
+    const resolvedTitle = testTitle || test.title || 'NEET Practice Test';
 
     // Persist verified result record in database
     const resultDoc = await Result.create({
-      testId: test._id,
-      userId: userId || null,
-      attemptId: attemptId || null,
+      testId: test.slug || test._id,
+      testTitle: resolvedTitle,
+      userId: effectiveUserId,
+      attemptId: effectiveAttemptId,
       studentName: studentName || 'Anonymous Student',
+      studentEmail: effectiveStudentEmail,
       studentRollNumber: studentRollNumber || null,
       status: 'submitted',
       answers: evaluation.evaluatedAnswers,
@@ -87,7 +117,26 @@ export class ResultService {
       endTime: end,
       submittedAt: now,
       autoSubmitted: Boolean(autoSubmitted),
+      timeSpentSeconds: timeSpentSeconds || Math.round((now.getTime() - start.getTime()) / 1000),
+      timeTakenMs: (timeSpentSeconds || 0) * 1000,
+      metadata: {
+        testTitle: resolvedTitle,
+        examType: test.examType,
+        category: test.category,
+      },
     });
+
+    // Clean up corresponding live session if any exists
+    if (effectiveStudentEmail) {
+      try {
+        await LiveSession.deleteMany({
+          studentEmail: effectiveStudentEmail,
+          testId: { $in: [test.slug, test._id.toString(), testIdOrSlug] },
+        });
+      } catch (err) {
+        console.warn('Could not remove live session on submission:', err.message);
+      }
+    }
 
     return this.formatResultResponse(resultDoc, test);
   }

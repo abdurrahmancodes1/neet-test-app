@@ -223,6 +223,92 @@ export async function logoutUser() {
   setCurrentUser(null);
 }
 
+/**
+ * Update authenticated user profile on backend and synchronize local storage
+ */
+export async function updateUserProfile({ name, rollNumber, targetExam }) {
+  const currentUser = getCurrentUser();
+  if (!currentUser) {
+    return { success: false, error: 'User is not authenticated' };
+  }
+
+  const cleanName = (name || '').trim();
+  if (cleanName && cleanName.length < 2) {
+    return { success: false, error: 'Name must be at least 2 characters long.' };
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/auth/profile`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        name: cleanName || currentUser.name,
+        rollNumber: rollNumber !== undefined ? rollNumber : currentUser.rollNumber,
+        targetExam: targetExam !== undefined ? targetExam : (currentUser.targetExam || 'NEET 2027'),
+      }),
+    });
+
+    const data = await res.json();
+    if (res.ok && data?.data) {
+      const updatedUser = {
+        ...currentUser,
+        ...data.data,
+        token: currentUser.token,
+      };
+      setCurrentUser(updatedUser);
+
+      // Synchronize in users list cache
+      const users = getUsers();
+      const updatedList = users.map((u) =>
+        u.email?.toLowerCase() === updatedUser.email?.toLowerCase() ? { ...u, ...updatedUser } : u
+      );
+      saveUsers(updatedList);
+
+      return { success: true, user: updatedUser };
+    } else {
+      return { success: false, error: data?.message || 'Failed to update profile' };
+    }
+  } catch (err) {
+    console.warn('Backend profile update failed, updating local state:', err);
+    const updatedUser = {
+      ...currentUser,
+      name: cleanName || currentUser.name,
+      rollNumber: rollNumber !== undefined ? rollNumber : currentUser.rollNumber,
+      targetExam: targetExam !== undefined ? targetExam : currentUser.targetExam,
+    };
+    setCurrentUser(updatedUser);
+    return { success: true, user: updatedUser, offline: true };
+  }
+}
+
+/**
+ * Format timestamp into Indian Standard Time (IST)
+ */
+export function formatISTDateTime(dateValue) {
+  if (!dateValue) return 'Unknown';
+  try {
+    const d = new Date(dateValue);
+    if (isNaN(d.getTime())) return 'Unknown';
+    return (
+      new Intl.DateTimeFormat('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      }).format(d) + ' IST'
+    );
+  } catch {
+    return 'Unknown';
+  }
+}
+
 // User Attempts Management
 function getAttemptsKey(email) {
   const cleanEmail = (email || 'guest').toLowerCase().trim();
@@ -288,19 +374,31 @@ export async function fetchServerAttempts(email) {
 export function saveUserAttempt(email, attemptData) {
   try {
     const attempts = getUserAttempts(email);
+    const existingIndex = attempts.findIndex(
+      (a) =>
+        (attemptData?.id && a.id === attemptData.id) ||
+        (attemptData?.attemptId && (a.attemptId === attemptData.attemptId || a.id === attemptData.attemptId))
+    );
+
     const newAttempt = {
-      id: `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      timestamp: new Date().toISOString(),
-      attemptNumber: attempts.length + 1,
-      studentEmail: email,
+      id: attemptData?.attemptId || attemptData?.id || `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      timestamp: attemptData?.timestamp || attemptData?.submittedAt || new Date().toISOString(),
+      attemptNumber: existingIndex >= 0 ? attempts[existingIndex].attemptNumber : attempts.length + 1,
+      studentEmail: (email || '').toLowerCase().trim(),
       ...attemptData,
     };
-    attempts.push(newAttempt);
+
+    if (existingIndex >= 0) {
+      attempts[existingIndex] = { ...attempts[existingIndex], ...newAttempt };
+    } else {
+      attempts.push(newAttempt);
+    }
+
     try {
       window.localStorage.setItem(getAttemptsKey(email), JSON.stringify(attempts));
     } catch {}
 
-    // Immediately post to Backend API server
+    // Post to Backend API server
     syncAttemptToBackend(email, newAttempt);
 
     return newAttempt;
@@ -310,10 +408,11 @@ export function saveUserAttempt(email, attemptData) {
   }
 }
 
-async function syncAttemptToBackend(email, attempt) {
+export async function syncAttemptToBackend(email, attempt) {
   try {
     const currentUser = getCurrentUser();
-    await fetch(`${API_BASE}/results/sync`, {
+    const cleanEmail = (email || currentUser?.email || '').toLowerCase().trim();
+    const res = await fetch(`${API_BASE}/results/sync`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -323,12 +422,19 @@ async function syncAttemptToBackend(email, attempt) {
       keepalive: true,
       body: JSON.stringify({
         ...attempt,
-        studentEmail: (email || currentUser?.email || '').toLowerCase().trim(),
+        attemptId: attempt.attemptId || attempt.id,
+        studentEmail: cleanEmail,
         studentName: currentUser?.name || attempt.studentName || 'Student',
       }),
     });
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, data: data?.data };
+    }
+    return { success: false, status: res.status };
   } catch (err) {
     console.warn('Could not sync attempt to backend in real-time:', err.message);
+    return { success: false, error: err.message };
   }
 }
 

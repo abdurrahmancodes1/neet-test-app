@@ -146,9 +146,12 @@ export class ResultController {
     }
 
     const cleanEmail = (attempt.studentEmail || req.user?.email || attempt.email || '').toLowerCase().trim();
+    const finalAttemptId =
+      attempt.attemptId || attempt.id || `sync_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+
     const cleanAttempt = {
-      id: attempt.id || `sync_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      attemptId: attempt.id || attempt.attemptId,
+      id: finalAttemptId,
+      attemptId: finalAttemptId,
       studentName: attempt.studentName || req.user?.name || 'Anonymous Student',
       studentEmail: cleanEmail || null,
       studentRollNumber: attempt.studentRollNumber || req.user?.rollNumber || null,
@@ -183,6 +186,7 @@ export class ResultController {
     }
 
     // 3. Save to MongoDB if connected
+    let savedDoc = null;
     if (mongoose.connection.readyState === 1) {
       try {
         let effectiveUserId = req.user?._id || null;
@@ -190,17 +194,20 @@ export class ResultController {
           const userDoc = await User.findOne({ email: cleanAttempt.studentEmail });
           if (userDoc) {
             effectiveUserId = userDoc._id;
+            if (!cleanAttempt.studentName || cleanAttempt.studentName === 'Anonymous Student') {
+              cleanAttempt.studentName = userDoc.name;
+            }
           }
         }
 
-        // Upsert Result document
-        await Result.findOneAndUpdate(
-          { attemptId: cleanAttempt.attemptId },
+        // Upsert Result document atomically
+        savedDoc = await Result.findOneAndUpdate(
+          { attemptId: finalAttemptId },
           {
             testId: cleanAttempt.testId,
             testTitle: cleanAttempt.testTitle,
             userId: effectiveUserId,
-            attemptId: cleanAttempt.attemptId,
+            attemptId: finalAttemptId,
             studentName: cleanAttempt.studentName,
             studentEmail: cleanAttempt.studentEmail,
             studentRollNumber: cleanAttempt.studentRollNumber,
@@ -244,11 +251,12 @@ export class ResultController {
           });
         }
       } catch (err) {
-        console.warn('Could not sync result directly to MongoDB, saved to fallback store:', err.message);
+        console.error('CRITICAL: Error syncing result to MongoDB:', err);
+        throw new AppError(`Failed to persist test result to database: ${err.message}`, 500);
       }
     }
 
-    return ApiResponse.success(res, 'Attempt synchronized successfully', cleanAttempt, 201);
+    return ApiResponse.success(res, 'Attempt synchronized successfully', savedDoc ? savedDoc.toObject() : cleanAttempt, 201);
   });
 
   /**

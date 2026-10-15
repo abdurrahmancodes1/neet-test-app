@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AuthController } from '../controllers/authController.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { validate } from '../middleware/validate.js';
-import { registerSchema, loginSchema } from '../validators/authValidators.js';
+import { registerSchema, loginSchema, updateProfileSchema } from '../validators/authValidators.js';
 
 const router = Router();
 
@@ -18,6 +18,7 @@ router.get('/user-role/:email', AuthController.getUserRole);
 
 // Protected User Endpoints
 router.get('/me', authenticate, AuthController.getMe);
+router.put('/profile', authenticate, validate(updateProfileSchema, 'body'), AuthController.updateProfile);
 router.get('/my-results', authenticate, AuthController.getMyResults);
 
 export default router;

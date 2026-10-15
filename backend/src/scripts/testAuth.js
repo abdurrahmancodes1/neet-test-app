@@ -230,6 +230,11 @@ async function runAuthTests() {
     console.log('🎉 PHASE 8: AUTHENTICATION & AUTHORIZATION 100% PASSED');
     console.log('====================================================\n');
   } finally {
+    try {
+      const testEmails = ['student@neet.test', 'otherstudent@neet.test', 'admin@neet.test'];
+      await User.deleteMany({ email: { $in: testEmails } });
+      await Result.deleteMany({ studentEmail: { $in: testEmails } });
+    } catch (_) {}
     if (server) await new Promise((resolve) => server.close(resolve));
     await closeDatabase();
   }

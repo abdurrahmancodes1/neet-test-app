@@ -12,3 +12,12 @@ export const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
 });
+
+export const updateProfileSchema = z
+  .object({
+    name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name cannot exceed 100 characters').optional(),
+    rollNumber: z.string().trim().max(50).nullable().optional(),
+    targetExam: z.string().trim().max(100).nullable().optional(),
+  })
+  .strict();
+

@@ -3,6 +3,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { TestService } from '../services/testService.js';
 import { QuestionService } from '../services/questionService.js';
 import { ResultService } from '../services/resultService.js';
+import { ResultController } from './resultController.js';
 
 export class TestController {
   /**
@@ -72,20 +73,49 @@ export class TestController {
     const authenticatedUser = req.user;
     const effectiveUserId = authenticatedUser?._id || req.body.userId || null;
     const effectiveStudentName = authenticatedUser?.name || studentName || 'Anonymous Student';
+    const effectiveEmail = (authenticatedUser?.email || req.body.studentEmail || '').toLowerCase().trim();
     const effectiveRollNumber = authenticatedUser?.rollNumber || studentRollNumber || null;
+    const testTitle = req.body.testTitle || null;
 
-    const result = await ResultService.submitExam({
-      testIdOrSlug: testId,
-      attemptId,
-      userId: effectiveUserId,
-      answers,
-      markedForReview,
-      studentName: effectiveStudentName,
-      studentRollNumber: effectiveRollNumber,
-      autoSubmitted,
-      timeSpentSeconds,
-      startTime,
-    });
+    let result;
+    try {
+      result = await ResultService.submitExam({
+        testIdOrSlug: testId,
+        testTitle,
+        attemptId,
+        userId: effectiveUserId,
+        studentEmail: effectiveEmail || null,
+        answers,
+        markedForReview,
+        studentName: effectiveStudentName,
+        studentRollNumber: effectiveRollNumber,
+        autoSubmitted,
+        timeSpentSeconds,
+        startTime,
+      });
+    } catch (err) {
+      // If test not found in DB (e.g. built-in test like neet-work-energy-power), persist directly as Result
+      if (err.statusCode === 404 || err.message?.includes('not found')) {
+        const payload = {
+          ...req.body,
+          testId,
+          testTitle: testTitle || testId.replace(/-/g, ' ').toUpperCase(),
+          attemptId: attemptId || `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+          userId: effectiveUserId,
+          studentEmail: effectiveEmail || null,
+          studentName: effectiveStudentName,
+          studentRollNumber: effectiveRollNumber,
+          answers,
+          markedForReview: markedForReview || [],
+          autoSubmitted: Boolean(autoSubmitted),
+          timeSpentSeconds: timeSpentSeconds || 0,
+        };
+        // Delegate to syncResult
+        req.body = payload;
+        return ResultController.syncResult(req, res);
+      }
+      throw err;
+    }
 
     return ApiResponse.success(res, 'Test submitted and graded successfully', result, 201);
   });

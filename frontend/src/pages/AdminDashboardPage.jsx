@@ -21,8 +21,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileCode,
+  ArrowUpDown,
 } from 'lucide-react';
-import { getAdminOverview } from '../utils/auth.js';
+import { getAdminOverview, formatISTDateTime } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
 import { useTheme } from '../utils/themeContext.jsx';
 import AdminAttemptDetailModal from '../components/AdminAttemptDetailModal.jsx';
@@ -40,6 +41,7 @@ export default function AdminDashboardPage({
   const [data, setData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // 'all' | 'active' | 'inactive'
+  const [sortBy, setSortBy] = useState('newest_registered'); // 'newest_registered' | 'oldest_registered' | 'most_attempts' | 'best_score' | 'name'
   const [activeAdminTab, setActiveAdminTab] = useState('candidates'); // 'candidates' | 'import'
   const [expandedStudentId, setExpandedStudentId] = useState(null);
 
@@ -69,16 +71,39 @@ export default function AdminDashboardPage({
   const totalAttempts = data?.totalAttempts ?? 0;
   const averageScore = data?.averageScore ?? 0;
 
-  const filteredStudents = students.filter((s) => {
-    const matchesSearch =
-      (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (s.email || '').toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredStudents = students
+    .filter((s) => {
+      const matchesSearch =
+        (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (s.email || '').toLowerCase().includes(searchTerm.toLowerCase());
 
-    if (!matchesSearch) return false;
-    if (filterType === 'active') return (s.totalAttempts || 0) > 0;
-    if (filterType === 'inactive') return (s.totalAttempts || 0) === 0;
-    return true;
-  });
+      if (!matchesSearch) return false;
+      if (filterType === 'active') return (s.totalAttempts || 0) > 0;
+      if (filterType === 'inactive') return (s.totalAttempts || 0) === 0;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortBy === 'newest_registered') {
+        const tA = new Date(a.registeredAt || a.createdAt || 0).getTime() || 0;
+        const tB = new Date(b.registeredAt || b.createdAt || 0).getTime() || 0;
+        return tB - tA;
+      }
+      if (sortBy === 'oldest_registered') {
+        const tA = new Date(a.registeredAt || a.createdAt || 0).getTime() || 0;
+        const tB = new Date(b.registeredAt || b.createdAt || 0).getTime() || 0;
+        return tA - tB;
+      }
+      if (sortBy === 'most_attempts') {
+        return (b.totalAttempts || 0) - (a.totalAttempts || 0);
+      }
+      if (sortBy === 'best_score') {
+        return (b.bestScore ?? -1) - (a.bestScore ?? -1);
+      }
+      if (sortBy === 'name') {
+        return (a.name || '').localeCompare(b.name || '');
+      }
+      return 0;
+    });
 
   const formatDateSafe = (ts) => {
     if (!ts) return 'Recent';
@@ -400,6 +425,27 @@ export default function AdminDashboardPage({
                   }`}
                 />
               </div>
+
+              {/* Sort Selector */}
+              <div className={`flex items-center rounded-full border px-3 py-1.5 text-xs ${
+                isLight ? 'bg-slate-100 border-slate-200' : 'bg-[#070A12] border-white/10'
+              }`}>
+                <ArrowUpDown size={12} className="text-blue-500 mr-1.5 shrink-0" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  aria-label="Sort candidates by"
+                  className={`bg-transparent text-xs font-semibold focus:outline-none cursor-pointer ${
+                    isLight ? 'text-slate-800' : 'text-slate-200'
+                  }`}
+                >
+                  <option value="newest_registered">Registered: Newest First</option>
+                  <option value="oldest_registered">Registered: Oldest First</option>
+                  <option value="most_attempts">Most Tests Taken</option>
+                  <option value="best_score">Highest Score</option>
+                  <option value="name">Candidate Name (A-Z)</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -469,8 +515,17 @@ export default function AdminDashboardPage({
                         </div>
                       </div>
 
-                      {/* Middle: Metrics */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-right flex-1 sm:flex-initial">
+                      {/* Middle: Metrics including Registered On Column */}
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-4 text-xs sm:text-right flex-1 sm:flex-initial">
+                        <div>
+                          <span className="text-[10px] uppercase font-semibold text-slate-500 block flex sm:justify-end items-center gap-1">
+                            <Calendar size={10} className="text-blue-500" />
+                            Registered On
+                          </span>
+                          <span className={`font-mono text-[11px] font-semibold ${isLight ? 'text-slate-800' : 'text-slate-200'}`}>
+                            {formatISTDateTime(student.registeredAt || student.createdAt)}
+                          </span>
+                        </div>
                         <div>
                           <span className="text-[10px] uppercase font-semibold text-slate-500 block">Tests</span>
                           <span className={`font-mono font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>{student.totalAttempts}</span>

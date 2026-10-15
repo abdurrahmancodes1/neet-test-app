@@ -32,6 +32,7 @@ export default function CurriculumPage({
   onGoToDashboard,
   onGoToAdmin,
   onLogout,
+  onUserUpdated,
 }) {
   const { isLight } = useTheme();
   const [selectedTrack, setSelectedTrack] = useState('neet'); // 'neet' | 'jee' | 'foundation'
@@ -91,6 +92,7 @@ export default function CurriculumPage({
           onNavigate={handleNav}
           onOpenLeaderboard={() => setLeaderboardModalOpen(true)}
           onLogout={onLogout}
+          onUserUpdated={onUserUpdated}
         />
 
         {/* Curriculum Header */}

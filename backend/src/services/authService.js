@@ -533,4 +533,71 @@ export class AuthService {
       students,
     };
   }
+
+  /**
+   * Update student profile (name, rollNumber, targetExam)
+   * Strictly forbids privilege escalation (role, email, password changes are blocked)
+   */
+  static async updateProfile(userId, { name, rollNumber, targetExam }) {
+    if (!userId) {
+      throw new AppError('User ID is required', 400);
+    }
+
+    const updates = {};
+    if (name !== undefined && name !== null) {
+      const cleanName = name.trim();
+      if (cleanName.length < 2) {
+        throw new AppError('Name must be at least 2 characters long', 400);
+      }
+      updates.name = cleanName;
+    }
+
+    if (rollNumber !== undefined) {
+      updates.rollNumber = rollNumber ? rollNumber.trim().toUpperCase() : null;
+    }
+
+    if (targetExam !== undefined) {
+      updates['metadata.targetExam'] = targetExam ? targetExam.trim() : null;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updates },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      throw new AppError('User not found', 404);
+    }
+
+    // Cascade name changes to Result and LiveSession records
+    if (updates.name) {
+      try {
+        await Promise.all([
+          Result.updateMany({ userId: updatedUser._id }, { $set: { studentName: updatedUser.name } }),
+          LiveSession.updateMany({ userId: updatedUser._id }, { $set: { studentName: updatedUser.name } }),
+        ]);
+      } catch (cascadeErr) {
+        console.warn('Could not cascade name update to attempts:', cascadeErr.message);
+      }
+    }
+
+    const effectiveTargetExam =
+      (updatedUser.metadata instanceof Map
+        ? updatedUser.metadata.get('targetExam')
+        : updatedUser.metadata?.targetExam) || 'NEET 2027';
+
+    return {
+      id: updatedUser._id.toString(),
+      name: updatedUser.name,
+      email: updatedUser.email,
+      rollNumber: updatedUser.rollNumber,
+      role: updatedUser.role,
+      status: updatedUser.status,
+      targetExam: effectiveTargetExam,
+      createdAt: updatedUser.createdAt,
+      updatedAt: updatedUser.updatedAt,
+    };
+  }
 }
+

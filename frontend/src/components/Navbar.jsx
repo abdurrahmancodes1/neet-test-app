@@ -18,6 +18,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { useTheme } from '../utils/themeContext.jsx';
+import ProfileSettingsModal from './ProfileSettingsModal.jsx';
 
 export default function Navbar({
   currentScreen = 'dashboard',
@@ -25,10 +26,12 @@ export default function Navbar({
   onNavigate,
   onOpenLeaderboard,
   onLogout,
+  onUserUpdated,
 }) {
   const { theme, isLight, toggleTheme } = useTheme();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   // Close profile dropdown when clicking outside
@@ -295,6 +298,20 @@ export default function Navbar({
                 <div className="py-1 text-xs">
                   <button
                     type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      setProfileModalOpen(true);
+                    }}
+                    className={`w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition font-semibold ${
+                      isLight ? 'hover:bg-blue-50 text-blue-700' : 'hover:bg-blue-500/10 text-blue-400'
+                    }`}
+                  >
+                    <User size={15} className="text-blue-500" />
+                    <span>Edit Profile &amp; Target Exam</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => handleNav('dashboard')}
                     className={`w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition ${
                       isLight ? 'hover:bg-slate-50 text-slate-700' : 'hover:bg-white/5 text-slate-300'
@@ -492,6 +509,14 @@ export default function Navbar({
           </div>
         </nav>
       )}
+
+      {/* Candidate Profile Settings Modal */}
+      <ProfileSettingsModal
+        open={profileModalOpen}
+        onClose={() => setProfileModalOpen(false)}
+        user={user}
+        onUserUpdated={onUserUpdated}
+      />
     </header>
   );
 }

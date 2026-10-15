@@ -195,6 +195,7 @@ export default function ChapterTestsPage({
   onGoToDashboard,
   onGoToCurriculum,
   onGoToAdmin,
+  onUserUpdated,
   platformTests = {},
   customTests = {},
 }) {
@@ -335,6 +336,7 @@ export default function ChapterTestsPage({
           onNavigate={handleNav}
           onOpenLeaderboard={() => setLeaderboardModalOpen(true)}
           onLogout={onLogout}
+          onUserUpdated={onUserUpdated}
         />
 
         {/* Streamlined Catalog Section Header */}
