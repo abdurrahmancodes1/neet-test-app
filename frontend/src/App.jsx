@@ -23,6 +23,7 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 import AdminDiagnosisPage from './pages/AdminDiagnosisPage.jsx';
 import ChapterTestsPage from './pages/ChapterTestsPage.jsx';
+import CurriculumPage from './pages/CurriculumPage.jsx';
 import TestInstructionsPage from './pages/TestInstructionsPage.jsx';
 import TestPage from './pages/TestPage.jsx';
 import ResultPage from './pages/ResultPage.jsx';
@@ -295,6 +296,11 @@ export default function App() {
     setScreen('chapters');
   }, []);
 
+  const handleGoToCurriculum = useCallback(() => {
+    setReviewedAttempt(null);
+    setScreen('curriculum');
+  }, []);
+
   const handleSelectTest = useCallback(
     async (selectedId) => {
       setTestId(selectedId);
@@ -540,22 +546,40 @@ export default function App() {
         onStartTest={(id) => handleSelectTest(id || NEET_CALCULUS_TEST.id)}
         onBrowseTests={handleBrowseTests}
         onReviewAttempt={handleReviewAttempt}
+        onGoToCurriculum={handleGoToCurriculum}
         onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
         onLogout={handleLogout}
+        platformTests={platformTests}
       />
     );
   }
 
-  // Chapters / All Standard Tests Portal
-  if (screen === 'chapters') {
+  // Tests Catalog Page
+  if (screen === 'chapters' || screen === 'tests') {
     return (
       <ChapterTestsPage
         onSelect={handleSelectTest}
         onLogout={handleLogout}
         user={currentUser}
         onGoToDashboard={handleGoToDashboard}
+        onGoToCurriculum={handleGoToCurriculum}
+        onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
         platformTests={platformTests}
         customTests={platformTests}
+      />
+    );
+  }
+
+  // Curriculum Portal Page
+  if (screen === 'curriculum') {
+    return (
+      <CurriculumPage
+        user={currentUser}
+        onStartTest={(id) => handleSelectTest(id || NEET_ROUND_1_TEST.id)}
+        onBrowseTests={handleBrowseTests}
+        onGoToDashboard={handleGoToDashboard}
+        onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
+        onLogout={handleLogout}
       />
     );
   }

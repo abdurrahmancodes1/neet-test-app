@@ -19,8 +19,11 @@ import {
   Flame,
   ShieldAlert,
   FileCode,
+  Trophy,
 } from 'lucide-react';
 import { useTheme } from '../utils/themeContext.jsx';
+import Navbar from '../components/Navbar.jsx';
+import GlobalLeaderboardModal from '../components/GlobalLeaderboardModal.jsx';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_ROUND_1_TEST } from '../data/neetMegaRound1MechanicsTest.js';
@@ -190,11 +193,24 @@ export default function ChapterTestsPage({
   onLogout,
   user,
   onGoToDashboard,
+  onGoToCurriculum,
+  onGoToAdmin,
   platformTests = {},
   customTests = {},
 }) {
   const { theme, isLight } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'jee' | 'class10' | 'class9' | 'class8'
+  const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
+
+  const handleNav = (screen) => {
+    if (screen === 'dashboard') {
+      if (onGoToDashboard) onGoToDashboard();
+    } else if (screen === 'curriculum') {
+      if (onGoToCurriculum) onGoToCurriculum();
+    } else if (screen === 'admin') {
+      if (onGoToAdmin) onGoToAdmin();
+    }
+  };
 
   // Combine platform tests from backend and backwards-compatible customTests
   const allPlatformTests = Object.values({ ...platformTests, ...customTests });
@@ -254,193 +270,162 @@ export default function ChapterTestsPage({
   const totalNeet = 7 + neetImportedTests.length;
   const totalJee = 1 + jeeImportedTests.length;
 
+  const totalClass10 = class10ImportedTests.length;
+  const totalClass9 = class9ImportedTests.length;
+  const totalClass8 = class8ImportedTests.length;
+
   const categories = [
     {
       id: 'neet',
       label: 'NEET 2027',
       badge: `${totalNeet} Active Tests`,
+      isActiveExam: true,
       icon: Zap,
     },
     {
       id: 'jee',
       label: 'JEE 2027',
       badge: `${totalJee} Active Test${totalJee > 1 ? 's' : ''}`,
+      isActiveExam: true,
       icon: Target,
     },
     {
       id: 'class10',
       label: 'Class 10',
-      badge: class10ImportedTests.length > 0 ? `${class10ImportedTests.length} Active Tests` : 'Upcoming in future',
+      badge: totalClass10 > 0 ? `${totalClass10} Active Tests` : 'Upcoming',
+      isActiveExam: totalClass10 > 0,
       icon: GraduationCap,
     },
     {
       id: 'class9',
       label: 'Class 9',
-      badge: class9ImportedTests.length > 0 ? `${class9ImportedTests.length} Active Tests` : 'Upcoming in future',
+      badge: totalClass9 > 0 ? `${totalClass9} Active Tests` : 'Upcoming',
+      isActiveExam: totalClass9 > 0,
       icon: Layers,
     },
     {
       id: 'class8',
       label: 'Class 8',
-      badge: class8ImportedTests.length > 0 ? `${class8ImportedTests.length} Active Tests` : 'Upcoming in future',
+      badge: totalClass8 > 0 ? `${totalClass8} Active Tests` : 'Upcoming',
+      isActiveExam: totalClass8 > 0,
       icon: BookOpen,
     },
   ];
 
   return (
     <main
-      className={`min-h-screen px-4 py-4 sm:py-8 relative overflow-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200 ${
+      className={`min-h-screen px-4 py-4 sm:py-6 relative overflow-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200 ${
         isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'
       }`}
     >
       {/* Background Ambient Radial Glow */}
       <div
-        className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[480px] blur-2xl ${
+        className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[420px] blur-3xl ${
           isLight
             ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-indigo-500/5 to-transparent'
             : 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-blue-900/5 to-transparent'
         }`}
       />
 
-      <div className="mx-auto max-w-5xl space-y-10 relative z-10 animate-fade-in">
-        {/* Floating Pill Navigation Bar */}
-        <header
-          className={`rounded-full border backdrop-blur-md px-4 sm:px-6 py-2.5 shadow-2xl flex items-center justify-between gap-3 transition-colors ${
-            isLight
-              ? 'bg-white/95 border-slate-200 text-slate-900 shadow-sm'
-              : 'bg-[#0D121F]/90 border-white/10 text-white'
-          }`}
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-black text-xs shadow-glow">
-              <Zap size={15} className="fill-white text-white" />
+      <div className="mx-auto max-w-5xl space-y-8 relative z-10 animate-fade-in">
+        {/* Unified Navigation Bar */}
+        <Navbar
+          currentScreen="tests"
+          user={user}
+          onNavigate={handleNav}
+          onOpenLeaderboard={() => setLeaderboardModalOpen(true)}
+          onLogout={onLogout}
+        />
+
+        {/* Streamlined Catalog Section Header */}
+        <section className={`rounded-3xl border p-6 sm:p-7 shadow-xl relative overflow-hidden transition ${
+          isLight
+            ? 'bg-white border-slate-200 text-slate-900 shadow-slate-200/50'
+            : 'bg-gradient-to-r from-[#0C1222] via-[#090D18] to-[#0C1222] border-white/10 text-white shadow-2xl'
+        }`}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+                <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-blue-700' : 'text-blue-400'}`}>
+                  Standardized Examination Catalog
+                </span>
+              </div>
+              <h1 className={`font-sans text-2xl sm:text-3xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                Target Exams &amp; Mock Tests
+              </h1>
+              <p className={`text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                Select an exam standard below to launch full-length timed CBT drills with instant KaTeX step-by-step solutions.
+              </p>
             </div>
-            <span
-              className={`truncate font-sans text-sm sm:text-base font-bold tracking-tight ${
-                isLight ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              NEET<span className="text-blue-500">2027</span>
-            </span>
+            <div className="shrink-0">
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold border ${
+                isLight ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-blue-500/20 border-blue-500/30 text-blue-300'
+              }`}>
+                <CheckCircle2 size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
+                <span>{totalNeet + totalJee + totalClass10 + totalClass9 + totalClass8} Total Published Tests</span>
+              </span>
+            </div>
           </div>
-
-          <nav
-            className={`hidden md:flex items-center gap-6 text-xs font-semibold ${
-              isLight ? 'text-slate-600' : 'text-slate-300'
-            }`}
-          >
-            {onGoToDashboard && (
-              <button
-                type="button"
-                onClick={onGoToDashboard}
-                className={`transition flex items-center gap-1.5 ${
-                  isLight ? 'text-slate-600 hover:text-slate-900' : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <BarChart3 size={14} /> Dashboard
-              </button>
-            )}
-            <span className={`flex items-center gap-1.5 cursor-pointer font-bold ${isLight ? 'text-blue-600' : 'text-white'}`}>
-              <Layers size={14} className="text-blue-500" /> Standard Tests
-            </span>
-            <span className={`text-[11px] font-medium border rounded-full px-2.5 py-0.5 ${
-              isLight ? 'border-slate-200 bg-slate-50 text-slate-600' : 'border-white/10 text-slate-400'
-            }`}>
-              Curriculum Drills
-            </span>
-          </nav>
-
-          <div className="flex items-center gap-2 sm:gap-3">
-
-            {onGoToDashboard && (
-              <button
-                type="button"
-                onClick={onGoToDashboard}
-                className="rounded-full bg-blue-600 hover:bg-blue-500 text-white px-4 sm:px-5 py-2 text-xs font-semibold shadow-lg shadow-blue-600/30 transition active:scale-95 flex items-center gap-1.5"
-              >
-                <span>My Dashboard</span>
-                <ChevronRight size={14} />
-              </button>
-            )}
-            {onLogout && (
-              <button
-                type="button"
-                onClick={onLogout}
-                title="Sign Out"
-                className={`rounded-full border p-2 transition ${
-                  isLight
-                    ? 'border-slate-200 bg-slate-100 hover:bg-rose-50 text-slate-500 hover:text-rose-600'
-                    : 'border-white/10 bg-white/5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
-                }`}
-              >
-                <LogOut size={14} />
-              </button>
-            )}
-          </div>
-        </header>
-
-        {/* Hero Section */}
-        <section className="text-center pt-2 sm:pt-4 max-w-3xl mx-auto space-y-3">
-          <p className={`font-serif italic text-2xl sm:text-3xl font-normal ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
-            National Standard Practice &amp; Assessment
-          </p>
-          <h1 className={`font-sans text-3xl sm:text-4xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            Target Exam &amp; Standard Catalog
-          </h1>
-          <p className={`text-sm max-w-xl mx-auto leading-relaxed font-normal ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-            Select your target standard below to access dedicated full-length chapter examinations and timed assessments.
-          </p>
         </section>
 
-        {/* Section / Category Tabs */}
+        {/* 5-Column Category Tabs */}
         <div>
           <p className={`mb-3 text-xs font-semibold uppercase tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-            Select Your Target Standard / Exam :
+            Select Exam Standard:
           </p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = selectedCategory === cat.id;
+              const isAvailable = cat.isActiveExam;
+
               return (
                 <button
                   key={cat.id}
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex flex-col items-start justify-between rounded-2xl border p-4 sm:p-5 text-left transition-all ${
+                  className={`flex flex-col items-start justify-between rounded-2xl border p-4 text-left transition-all ${
                     isActive
                       ? isLight
-                        ? 'border-blue-500 bg-blue-50/70 text-slate-900 shadow-md ring-2 ring-blue-500/20'
+                        ? 'border-blue-500 bg-blue-50/80 text-slate-900 shadow-md ring-2 ring-blue-500/20'
                         : 'border-blue-500 bg-gradient-to-b from-[#0D1528] to-[#0B0F19] text-white shadow-lg shadow-blue-500/10 ring-1 ring-blue-500'
-                      : isLight
+                      : isAvailable
+                      ? isLight
                         ? 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 shadow-xs'
                         : 'border-white/10 bg-[#0B0F19] text-slate-300 hover:border-white/20 hover:bg-[#0D121F]'
+                      : isLight
+                      ? 'border-slate-200/60 bg-slate-50/60 text-slate-400 hover:bg-slate-100'
+                      : 'border-white/5 bg-[#090C14]/60 text-slate-500 hover:bg-white/[0.02]'
                   }`}
                 >
-                  <div className="flex w-full items-center justify-between gap-2">
+                  <div className="flex w-full items-center justify-between gap-1.5">
                     <div className={`p-2 rounded-xl ${
                       isActive
                         ? 'bg-blue-600 text-white'
-                        : isLight
-                        ? 'bg-slate-100 text-slate-600'
-                        : 'bg-white/5 text-slate-400'
+                        : isAvailable
+                        ? isLight ? 'bg-slate-100 text-slate-600' : 'bg-white/5 text-slate-400'
+                        : isLight ? 'bg-slate-200/50 text-slate-400' : 'bg-white/5 text-slate-600'
                     }`}>
-                      <Icon size={18} />
+                      <Icon size={17} />
                     </div>
                     <span
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                         isActive
-                          ? cat.id === 'neet'
-                            ? isLight ? 'bg-emerald-100 border border-emerald-200 text-emerald-800' : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                            : isLight ? 'bg-blue-100 border border-blue-200 text-blue-800' : 'bg-blue-500/20 border border-blue-500/30 text-blue-300'
-                          : cat.id === 'neet'
-                            ? isLight ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                            : isLight ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-white/5 text-slate-500 border border-white/5'
+                          ? isLight ? 'bg-blue-100 border border-blue-200 text-blue-900' : 'bg-blue-500/25 border border-blue-500/40 text-blue-200'
+                          : isAvailable
+                          ? isLight ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-white/5 text-slate-400 border border-white/10'
+                          : isLight ? 'bg-slate-100 text-slate-400 border border-slate-200' : 'bg-white/5 text-slate-600 border border-white/5'
                       }`}
                     >
                       {cat.badge}
                     </span>
                   </div>
-                  <span className={`mt-4 font-sans text-base sm:text-lg font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>{cat.label}</span>
+                  <span className={`mt-3 font-sans text-sm sm:text-base font-bold ${
+                    isActive ? (isLight ? 'text-slate-900' : 'text-white') : isAvailable ? (isLight ? 'text-slate-800' : 'text-slate-200') : (isLight ? 'text-slate-400' : 'text-slate-500')
+                  }`}>
+                    {cat.label}
+                  </span>
                 </button>
               );
             })}
@@ -1341,6 +1326,13 @@ export default function ChapterTestsPage({
             </div>
           </div>
         )}
+
+        {/* Global Leaderboard Modal */}
+        <GlobalLeaderboardModal
+          open={leaderboardModalOpen}
+          onClose={() => setLeaderboardModalOpen(false)}
+          currentUserEmail={user?.email}
+        />
       </div>
     </main>
   );
