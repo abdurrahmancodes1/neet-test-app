@@ -331,6 +331,9 @@ export function getUserAttempts(email) {
 export async function fetchServerAttempts(email) {
   const cleanEmail = (email || '').toLowerCase().trim();
   if (!cleanEmail) return [];
+
+  const localAttempts = getUserAttempts(cleanEmail);
+
   try {
     const currentUser = getCurrentUser();
     const res = await fetch(`${API_BASE}/results/student/${encodeURIComponent(cleanEmail)}`, {
@@ -342,9 +345,10 @@ export async function fetchServerAttempts(email) {
     if (res.ok) {
       const data = await res.json();
       if (data?.data && Array.isArray(data.data)) {
-        const normalized = data.data.map((a, idx) => ({
+        const serverAttempts = data.data.map((a, idx) => ({
           ...a,
           id: a.id || a.attemptId || `attempt_${idx}`,
+          attemptId: a.attemptId || a.id,
           timestamp: a.timestamp || a.submittedAt || a.createdAt || new Date().toISOString(),
           score: a.score ?? a.rawScore ?? 0,
           maxScore: a.maxScore || 240,
@@ -356,16 +360,108 @@ export async function fetchServerAttempts(email) {
           totalQuestions: a.totalQuestions || 60,
           testTitle: a.testTitle || 'NEET Assessment',
         }));
+
+        // Identify local attempts that are not yet on the server
+        const serverIds = new Set(serverAttempts.map((s) => s.attemptId || s.id));
+        const unsyncedLocal = localAttempts.filter((loc) => {
+          const id = loc.attemptId || loc.id;
+          return id && !serverIds.has(id);
+        });
+
+        // Automatically sync unsynced attempts up to the server
+        if (unsyncedLocal.length > 0) {
+          for (const unsynced of unsyncedLocal) {
+            syncAttemptToBackend(cleanEmail, unsynced).catch(() => {});
+          }
+        }
+
+        const merged = [...serverAttempts, ...unsyncedLocal];
         try {
-          window.localStorage.setItem(getAttemptsKey(cleanEmail), JSON.stringify(normalized));
+          window.localStorage.setItem(getAttemptsKey(cleanEmail), JSON.stringify(merged));
         } catch {}
-        return normalized;
+        return merged;
       }
     }
   } catch (err) {
     console.warn('Failed to fetch attempts from server:', err.message);
   }
   return getUserAttempts(cleanEmail);
+}
+
+/**
+ * Scan client localStorage for any unsynced or guest test sessions and sync them
+ */
+export async function syncOrphanedLocalAttempts(user) {
+  if (!user?.email) return;
+  const cleanEmail = user.email.toLowerCase().trim();
+
+  try {
+    // 1. Recover any guest attempts
+    const guestAttempts = getUserAttempts('guest');
+    if (guestAttempts && guestAttempts.length > 0) {
+      for (const att of guestAttempts) {
+        saveUserAttempt(cleanEmail, {
+          ...att,
+          studentEmail: cleanEmail,
+          studentName: user.name,
+        });
+      }
+      try {
+        window.localStorage.removeItem(getAttemptsKey('guest'));
+      } catch {}
+    }
+
+    // 2. Scan localStorage for any in-progress or submitted sessions with answers
+    const keys = Object.keys(window.localStorage);
+    const sessionKeys = keys.filter((k) => k.startsWith('neet-session-') && k.endsWith('-v1'));
+
+    for (const key of sessionKeys) {
+      try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) continue;
+        const session = JSON.parse(raw);
+        if (session && session.answers && Object.keys(session.answers).length > 0) {
+          const currentAttempts = getUserAttempts(cleanEmail);
+          const alreadySaved = currentAttempts.some(
+            (a) =>
+              a.testId === session.testId &&
+              (a.id === session.attemptId ||
+                Math.abs(new Date(a.timestamp).getTime() - (session.submittedAt || session.startTime || 0)) < 120000)
+          );
+          if (!alreadySaved) {
+            const testTitle =
+              session.testTitle ||
+              (session.testId === 'jee-2027-periodic-properties-mastery-drill'
+                ? 'JEE Main 2027: Classification of Elements & Periodicity in Properties'
+                : 'Practice Test');
+
+            saveUserAttempt(cleanEmail, {
+              testId: session.testId,
+              testTitle,
+              score: session.score ?? 0,
+              rawScore: session.rawScore ?? session.score ?? 0,
+              maxScore: session.maxScore ?? 240,
+              accuracy: session.accuracy ?? 0,
+              percentage: session.percentage ?? 0,
+              correct: session.correct ?? 0,
+              wrong: session.wrong ?? 0,
+              unattempted: session.unattempted ?? 0,
+              totalQuestions: session.totalQuestions ?? 60,
+              answers: session.answers,
+              markedForReview: session.markedForReview || [],
+              timeTakenMs: session.timeTakenMs || 0,
+              timeSpentSeconds: Math.round((session.timeTakenMs || 0) / 1000),
+              submittedAt: session.submittedAt ? new Date(session.submittedAt).toISOString() : new Date().toISOString(),
+              timestamp: session.submittedAt ? new Date(session.submittedAt).toISOString() : new Date().toISOString(),
+              autoSubmitted: Boolean(session.autoSubmitted),
+            });
+          }
+        }
+      } catch (_) {}
+    }
+  } catch (err) {
+    console.warn('Orphaned attempt sync check skipped:', err);
+  }
 }
 
 /**

@@ -20,8 +20,7 @@ import {
   ArrowUpRight,
   HelpCircle,
 } from 'lucide-react';
-import { useTheme } from '../utils/themeContext.jsx';
-import { getUserAnalytics, getGlobalPlatformStats, fetchServerAttempts } from '../utils/auth.js';
+import { getUserAnalytics, getGlobalPlatformStats, fetchServerAttempts, syncOrphanedLocalAttempts } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
 import { AttemptComparisonChart, AttemptAccuracyChart } from '../components/AttemptComparisonChart.jsx';
 import AttemptComparisonModal from '../components/AttemptComparisonModal.jsx';
@@ -50,14 +49,17 @@ export default function DashboardPage({
   const [globalStats, setGlobalStats] = useState(null);
   const [refreshCounter, setRefreshCounter] = useState(0);
 
-  // Sync latest user attempts directly from server on mount
+  // Sync latest user attempts and recover any unsynced local sessions on mount
   useEffect(() => {
     if (user?.email) {
-      fetchServerAttempts(user.email).then((attempts) => {
-        if (attempts && attempts.length > 0) {
-          setRefreshCounter((prev) => prev + 1);
-        }
-      });
+      syncOrphanedLocalAttempts(user)
+        .then(() => fetchServerAttempts(user.email))
+        .then((attempts) => {
+          if (attempts && attempts.length > 0) {
+            setRefreshCounter((prev) => prev + 1);
+          }
+        })
+        .catch(() => {});
     }
   }, [user?.email]);
 
