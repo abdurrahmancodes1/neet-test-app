@@ -2,6 +2,7 @@ import React from 'react';
 import { Bookmark, BookmarkCheck, RotateCcw, ImageIcon } from 'lucide-react';
 import OptionButton from './OptionButton.jsx';
 import MathRenderer from './MathRenderer.jsx';
+import SafeSvgRenderer from './SafeSvgRenderer.jsx';
 import { useTheme } from '../utils/themeContext.jsx';
 
 export default function QuestionCard({
@@ -117,8 +118,13 @@ export default function QuestionCard({
         <MathRenderer text={qText} />
       </div>
 
-      {/* Question Diagram / Image */}
-      {question.image && (
+      {/* Question Diagram / Inline SVG or Legacy Image */}
+      {question.questionImage?.data ? (
+        <SafeSvgRenderer
+          svgData={question.questionImage.data}
+          title={`Diagram for Question ${index + 1}`}
+        />
+      ) : question.image ? (
         <div className="my-6 flex flex-col items-center">
           <div
             className={`relative w-full max-w-lg overflow-hidden rounded-2xl border p-4 shadow-xl ${
@@ -140,7 +146,7 @@ export default function QuestionCard({
             />
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Options Radio Group */}
       <div

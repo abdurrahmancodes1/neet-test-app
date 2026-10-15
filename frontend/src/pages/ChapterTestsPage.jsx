@@ -18,6 +18,7 @@ import {
   Scale,
   Flame,
   ShieldAlert,
+  FileCode,
 } from 'lucide-react';
 import { useTheme } from '../utils/themeContext.jsx';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
@@ -29,13 +30,25 @@ import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
 import { JEE_2027_PERIODIC_TEST } from '../data/jee2027PeriodicTableTest.js';
 
-export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard }) {
+export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard, customTests = {} }) {
   const { theme, isLight } = useTheme();
-  const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'jee' | 'class10' | 'class9' | 'class8'
+  const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'jee' | 'custom' | 'class10' | 'class9' | 'class8'
+
+  const customList = Object.values(customTests || {});
 
   const categories = [
     { id: 'neet', label: 'NEET 2027', badge: 'Active Test Series', icon: Zap },
     { id: 'jee', label: 'JEE 2027', badge: 'Active Test Series', icon: Target },
+    ...(customList.length > 0
+      ? [
+          {
+            id: 'custom',
+            label: 'Imported Tests',
+            badge: `${customList.length} Active Paper${customList.length > 1 ? 's' : ''}`,
+            icon: FileCode,
+          },
+        ]
+      : []),
     { id: 'class10', label: 'Class 10', badge: 'Upcoming in future', icon: GraduationCap },
     { id: 'class9', label: 'Class 9', badge: 'Upcoming in future', icon: Layers },
     { id: 'class8', label: 'Class 8', badge: 'Upcoming in future', icon: BookOpen },
@@ -925,6 +938,95 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* CONTENT FOR CUSTOM IMPORTED TESTS */}
+        {selectedCategory === 'custom' && (
+          <div className="animate-fade-in space-y-6">
+            <div className="grid grid-cols-1 gap-6">
+              {customList.map((test, index) => {
+                const totalQ = test.totalQuestions || test.questions?.length || 0;
+                const duration = test.durationMinutes || 60;
+                const totalMarks = test.totalMarks || totalQ * 4;
+                const testKey = test.slug || test.id || `custom-${index}`;
+
+                return (
+                  <div
+                    key={testKey}
+                    className={`rounded-3xl border p-6 sm:p-8 transition shadow-xl ${
+                      isLight ? 'border-slate-200 bg-white text-slate-900 shadow-sm' : 'border-white/10 bg-[#0B0F19] text-white'
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-slate-200 dark:border-white/10">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/30 px-3 py-1 font-mono text-xs font-bold uppercase">
+                          {test.examType || 'CBT EXAM'}
+                        </span>
+                        <span className="rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-3 py-1 text-xs font-bold">
+                          {test.type || 'Custom Paper'}
+                        </span>
+                        <span className="rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 px-3 py-1 text-xs font-bold">
+                          {(test.subjects || []).join(' & ') || 'General'}
+                        </span>
+                      </div>
+
+                      <span className="text-xs font-mono font-bold text-slate-400">
+                        Total {totalMarks} Marks
+                      </span>
+                    </div>
+
+                    <h3 className={`mt-4 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
+                      {test.title}
+                    </h3>
+                    <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+                      {test.description || test.subtitle || 'Custom exam paper imported with verified KaTeX equations & vector SVG diagrams.'}
+                    </p>
+
+                    {test.syllabus && (
+                      <div className={`mt-4 rounded-2xl border p-4 text-xs leading-relaxed ${
+                        isLight ? 'border-slate-200 bg-blue-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-300'
+                      }`}>
+                        <strong className={isLight ? 'text-blue-900' : 'text-white'}>Syllabus: </strong>
+                        {test.syllabus}
+                      </div>
+                    )}
+
+                    <div className="mt-5 flex flex-wrap items-center justify-between gap-4 pt-3">
+                      <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
+                        <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
+                          isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
+                        }`}>
+                          <Clock size={14} className="text-amber-500" />
+                          <span>{duration} Minutes</span>
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
+                          isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
+                        }`}>
+                          <BookOpen size={14} className="text-blue-500" />
+                          <span>{totalQ} Questions</span>
+                        </span>
+                        <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
+                          isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
+                        }`}>
+                          <Award size={14} className="text-emerald-500" />
+                          <span>+{test.markingScheme?.correct || 4} / {test.markingScheme?.wrong || -1} Scheme</span>
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => onSelect(test.slug || test.id)}
+                        className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs px-6 py-3 transition shadow-lg shadow-blue-600/30 active:scale-95 flex items-center gap-2"
+                      >
+                        <span>Start Test</span>
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

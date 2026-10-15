@@ -2,8 +2,47 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { TestService } from '../services/testService.js';
 import { QuestionService } from '../services/questionService.js';
+import { TestImportService } from '../services/testImportService.js';
+import { SAMPLE_IMPORT_TEMPLATE } from '../fixtures/sampleImportTemplate.js';
 
 export class AdminTestController {
+  /**
+   * POST /api/admin/tests/import-preview - Dry-run validation and visual preview of JSON test payload
+   */
+  static previewImport = asyncHandler(async (req, res) => {
+    const preview = await TestImportService.validateAndPreview(req.body);
+    if (!preview.isValid) {
+      return ApiResponse.error(res, preview.summary, 400, preview.errors);
+    }
+    return ApiResponse.success(res, 'Test import validated and ready for review', preview);
+  });
+
+  /**
+   * POST /api/admin/tests/import - Validate and persist test & questions into MongoDB
+   */
+  static importTest = asyncHandler(async (req, res) => {
+    const { publishImmediately, overrideExisting } = req.query;
+    const result = await TestImportService.importTest(req.body, {
+      publishImmediately:
+        publishImmediately === 'true' ||
+        publishImmediately === true ||
+        req.body.status === 'published',
+      overrideExisting: overrideExisting !== 'false',
+    });
+    return ApiResponse.success(res, 'Test successfully imported and created', result, 201);
+  });
+
+  /**
+   * GET /api/admin/tests/sample-template - Get standard JSON import schema template with inline SVG
+   */
+  static getSampleTemplate = asyncHandler(async (req, res) => {
+    return ApiResponse.success(
+      res,
+      'Sample test import template retrieved',
+      SAMPLE_IMPORT_TEMPLATE
+    );
+  });
+
   /**
    * GET /api/admin/tests - List all tests (including drafts and archived)
    */

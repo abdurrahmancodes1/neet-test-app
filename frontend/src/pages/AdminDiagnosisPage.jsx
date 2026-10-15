@@ -24,6 +24,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import MathRenderer from '../components/MathRenderer.jsx';
+import SafeSvgRenderer from '../components/SafeSvgRenderer.jsx';
 import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
 import JeeScorePredictorCard from '../components/JeeScorePredictorCard.jsx';
 import { formatDuration } from '../utils/scoring.js';
@@ -408,6 +409,7 @@ export default function AdminDiagnosisPage({
         question: mq.text || mq.question || '',
         options: mq.options || {},
         image: mq.image || null,
+        questionImage: mq.questionImage || null,
         selected: selectedLetter,
         correctAnswer: cleanCorrect,
         explanation: mq.explanation || 'Detailed step-by-step NCERT explanation.',
@@ -1191,8 +1193,13 @@ export default function AdminDiagnosisPage({
                         <MathRenderer text={q.question} />
                       </div>
 
-                      {/* Optional Diagram / Image */}
-                      {q.image && (
+                      {/* Optional Diagram / Inline SVG or Legacy Image */}
+                      {q.questionImage?.data ? (
+                        <SafeSvgRenderer
+                          svgData={q.questionImage.data}
+                          title={`Diagram for Question #${q.questionNumber}`}
+                        />
+                      ) : q.image ? (
                         <div className="mt-4 flex justify-center">
                           <img
                             src={q.image}
@@ -1202,7 +1209,7 @@ export default function AdminDiagnosisPage({
                             }`}
                           />
                         </div>
-                      )}
+                      ) : null}
 
                       {/* Four Options Grid */}
                       <div className="mt-6 space-y-3">

@@ -38,6 +38,20 @@ const testSchema = new mongoose.Schema(
       default: [],
       select: false, // CRITICAL SECURITY: Excluded from public/student queries
     },
+    schemaVersion: {
+      type: String,
+      default: '1.0',
+    },
+    examType: {
+      type: String,
+      enum: ['NEET', 'JEE_MAIN', 'JEE_ADVANCED', 'FOUNDATION', 'GENERAL'],
+      default: 'NEET',
+      index: true,
+    },
+    warnings: {
+      type: [String],
+      default: [],
+    },
     type: {
       type: String,
       enum: {

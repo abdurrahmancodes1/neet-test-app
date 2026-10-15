@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "1.0",
+  "title": "JEE Main 2027 Physics & Mechanics Benchmark Drill",
+  "slug": "jee-2027-physics-mechanics-drill",
+  "subtitle": "High-yield kinematics, forces with inline vector SVG diagrams & KaTeX equations",
+  "description": "Standard NTA-formatted CBT test demonstrating LaTeX equations, vector diagrams, circuits, and detailed explanations.",
+  "examType": "JEE_MAIN",
+  "type": "chapter",
+  "subjects": ["Physics"],
+  "chapters": ["Laws of Motion", "Work Power & Energy"],
+  "syllabus": "Newton's Laws, Friction, Inclined Planes, Pulley Systems, Kinetic Theory",
+  "difficulty": "Hard",
+  "durationMinutes": 60,
+  "markingScheme": {
+    "correct": 4,
+    "wrong": -1,
+    "unattempted": 0
+  },
+  "status": "published",
+  "questions": [
+    {
+      "id": "q1",
+      "order": 1,
+      "subject": "Physics",
+      "chapter": "Laws of Motion",
+      "topic": "Inclined Plane & Friction",
+      "difficulty": "Hard",
+      "type": "mcq",
+      "question": "A block of mass $m = 2\\text{ kg}$ is resting on an inclined plane of angle $\\theta = 30^\\circ$ as illustrated below. If the coefficient of static friction is $\\mu_s = 0.6$, determine the minimum external horizontal force $F$ required to initiate upward motion along the incline. (Take $g = 10\\text{ m/s}^2$).",
+      "questionImage": {
+        "type": "svg",
+        "data": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 500 320\" preserveAspectRatio=\"xMidYMid meet\"><rect width=\"500\" height=\"320\" fill=\"#F8FAFC\" rx=\"16\"/><polygon points=\"60,260 440,260 440,80\" fill=\"#E2E8F0\" stroke=\"#475569\" stroke-width=\"2\"/><path d=\"M 140,260 A 80 80 0 0 0 130,225\" fill=\"none\" stroke=\"#2563EB\" stroke-width=\"2\"/><text x=\"150\" y=\"248\" font-family=\"sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#1E40AF\">&theta; = 30&deg;</text><g transform=\"translate(250, 165) rotate(-26.5)\"><rect x=\"-40\" y=\"-40\" width=\"80\" height=\"40\" fill=\"#3B82F6\" stroke=\"#1D4ED8\" stroke-width=\"2\" rx=\"4\"/><text x=\"-8\" y=\"-15\" font-family=\"sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#FFFFFF\">m</text><line x1=\"40\" y1=\"-20\" x2=\"100\" y2=\"-20\" stroke=\"#EF4444\" stroke-width=\"3\" marker-end=\"url(#arrow)\"/><text x=\"108\" y=\"-15\" font-family=\"sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#DC2626\">F</text></g><defs><marker id=\"arrow\" viewBox=\"0 0 10 10\" refX=\"8\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M 0 1 L 10 5 L 0 9 z\" fill=\"#EF4444\"/></marker></defs></svg>"
+      },
+      "options": {
+        "A": "$F \\approx 23.4\\text{ N}$",
+        "B": "$F \\approx 38.6\\text{ N}$",
+        "C": "$F \\approx 15.2\\text{ N}$",
+        "D": "$F \\approx 42.1\\text{ N}$"
+      },
+      "correctAnswer": "A",
+      "explanation": "Resolving forces along and perpendicular to the incline:\n$$N = mg\\cos\\theta + F\\sin\\theta$$\nTo move up: $F\\cos\\theta = mg\\sin\\theta + f_s^{\\max} = mg\\sin\\theta + \\mu_s N$.\nSubstituting $\\theta = 30^\\circ$ and $\\mu_s = 0.6$ yields $F \\approx 23.4\\text{ N}$.",
+      "marks": 4,
+      "negativeMarks": -1
+    },
+    {
+      "id": "q2",
+      "order": 2,
+      "subject": "Physics",
+      "chapter": "Work Power & Energy",
+      "topic": "Potential Energy & Conservative Forces",
+      "difficulty": "Hard",
+      "type": "mcq",
+      "question": "A conservative particle moves along the x-axis with potential energy function $U(x) = \\alpha x^4 - \\beta x^2$, where $\\alpha = 1\\text{ J/m}^4$ and $\\beta = 8\\text{ J/m}^2$. The non-zero stable equilibrium positions of the particle are located at:",
+      "questionImage": null,
+      "options": {
+        "A": "$x = \\pm 1\\text{ m}$",
+        "B": "$x = \\pm 2\\text{ m}$",
+        "C": "$x = \\pm 4\\text{ m}$",
+        "D": "$x = 0\\text{ m}$ only"
+      },
+      "correctAnswer": "B",
+      "explanation": "For equilibrium, $\\frac{dU}{dx} = 0 \\implies 4\\alpha x^3 - 2\\beta x = 0$.\n$x(4x^2 - 16) = 0 \\implies x = 0$ or $x = \\pm 2\\text{ m}$.\nEvaluating $\\frac{d^2U}{dx^2} = 12x^2 - 16$ at $x = \\pm 2$: $12(4) - 16 = 32 > 0$ (Stable minimum).",
+      "marks": 4,
+      "negativeMarks": -1
+    },
+    {
+      "id": "q3",
+      "order": 3,
+      "subject": "Physics",
+      "chapter": "Laws of Motion",
+      "topic": "Wheatstone Bridge Circuit",
+      "difficulty": "Medium",
+      "type": "mcq",
+      "question": "In the bridge network shown below, calculate the equivalent resistance $R_{AB}$ across terminals A and B if all five resistors have identical resistance $R = 10\\,\\Omega$.",
+      "questionImage": {
+        "type": "svg",
+        "data": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 460 260\" preserveAspectRatio=\"xMidYMid meet\"><rect width=\"460\" height=\"260\" fill=\"#F8FAFC\" rx=\"14\"/><circle cx=\"40\" cy=\"130\" r=\"6\" fill=\"#2563EB\"/><text x=\"20\" y=\"135\" font-family=\"sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#1E40AF\">A</text><circle cx=\"420\" cy=\"130\" r=\"6\" fill=\"#2563EB\"/><text x=\"432\" y=\"135\" font-family=\"sans-serif\" font-size=\"14\" font-weight=\"bold\" fill=\"#1E40AF\">B</text><line x1=\"40\" y1=\"130\" x2=\"100\" y2=\"130\" stroke=\"#334155\" stroke-width=\"2.5\"/><polygon points=\"100,130 230,40 360,130 230,220\" fill=\"none\" stroke=\"#334155\" stroke-width=\"2.5\"/><line x1=\"230\" y1=\"40\" x2=\"230\" y2=\"220\" stroke=\"#E11D48\" stroke-width=\"2.5\"/><line x1=\"360\" y1=\"130\" x2=\"420\" y2=\"130\" stroke=\"#334155\" stroke-width=\"2.5\"/><text x=\"145\" y=\"75\" font-family=\"sans-serif\" font-size=\"13\" font-weight=\"bold\" fill=\"#0F172A\">10 &Omega;</text><text x=\"295\" y=\"75\" font-family=\"sans-serif\" font-size=\"13\" font-weight=\"bold\" fill=\"#0F172A\">10 &Omega;</text><text x=\"145\" y=\"195\" font-family=\"sans-serif\" font-size=\"13\" font-weight=\"bold\" fill=\"#0F172A\">10 &Omega;</text><text x=\"295\" y=\"195\" font-family=\"sans-serif\" font-size=\"13\" font-weight=\"bold\" fill=\"#0F172A\">10 &Omega;</text><text x=\"238\" y=\"135\" font-family=\"sans-serif\" font-size=\"13\" font-weight=\"bold\" fill=\"#BE123C\">10 &Omega;</text></svg>"
+      },
+      "options": {
+        "A": "$R_{AB} = 5\\,\\Omega$",
+        "B": "$R_{AB} = 10\\,\\Omega$",
+        "C": "$R_{AB} = 20\\,\\Omega$",
+        "D": "$R_{AB} = 25\\,\\Omega$"
+      },
+      "correctAnswer": "B",
+      "explanation": "Because $\\frac{R_1}{R_2} = \\frac{R_3}{R_4} = \\frac{10}{10} = 1$, the bridge is balanced.\nNo current flows through the central branch.\n$R_{AB} = (10 + 10) \\parallel (10 + 10) = 20 \\parallel 20 = 10\\,\\Omega$.",
+      "marks": 4,
+      "negativeMarks": -1
+    }
+  ]
+}

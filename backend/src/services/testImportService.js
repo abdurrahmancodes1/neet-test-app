@@ -1,154 +1,283 @@
 import crypto from 'node:crypto';
+import mongoose from 'mongoose';
 import { Test, Question } from '../models/index.js';
 import { importTestPayloadSchema } from '../validators/testImportValidator.js';
+import { sanitizeSvg } from '../utils/svgSanitizer.js';
 import { AppError } from '../utils/AppError.js';
 
 export class TestImportService {
   /**
-   * Validates and imports structured test data into MongoDB.
-   * @param {Object} rawPayload - test metadata and questions array
-   * @param {Object} options - { publishImmediately: true, overrideExisting: true }
+   * Previews and dry-runs validation of an import payload without writing to the database.
+   * @param {Object} rawPayload - Parsed JSON import object
+   * @returns {Object} Structured preview data with validation feedback and sanitized assets
    */
-  static async importTest(rawPayload, options = { publishImmediately: true, overrideExisting: true }) {
-    // 1. Zod Schema Validation
+  static async validateAndPreview(rawPayload) {
+    if (!rawPayload || typeof rawPayload !== 'object') {
+      throw new AppError('Import payload must be a valid JSON object', 400);
+    }
+
     const validationResult = importTestPayloadSchema.safeParse(rawPayload);
     if (!validationResult.success) {
       const formattedErrors = validationResult.error.errors.map((err) => ({
         field: err.path.join('.'),
         message: err.message,
       }));
-      throw new AppError('Test payload validation failed', 400, formattedErrors);
+      return {
+        isValid: false,
+        errors: formattedErrors,
+        summary: `Validation failed with ${formattedErrors.length} issue(s)`,
+      };
     }
 
     const payload = validationResult.data;
     const inferred = [];
+    const collectedWarnings = [...(payload.warnings || [])];
 
-    // 2. Auto-infer Metadata if not explicitly provided
-    const questionCount = payload.questions.length;
-
-    // Inferred Subjects
+    // Infer subjects if omitted
     if (!payload.subjects || payload.subjects.length === 0) {
-      const extractedSubjects = Array.from(new Set(payload.questions.map((q) => q.subject))).filter(Boolean);
-      payload.subjects = extractedSubjects.length > 0 ? extractedSubjects : ['NEET'];
+      const extractedSubjects = Array.from(
+        new Set(payload.questions.map((q) => q.subject))
+      ).filter(Boolean);
+      payload.subjects = extractedSubjects.length > 0 ? extractedSubjects : ['General'];
       inferred.push(`Subjects inferred from questions: [${payload.subjects.join(', ')}]`);
     }
 
-    // Inferred Chapters
+    // Infer chapters if omitted
     if (!payload.chapters || payload.chapters.length === 0) {
-      const extractedChapters = Array.from(new Set(payload.questions.map((q) => q.chapter))).filter(Boolean);
-      payload.chapters = extractedChapters;
+      const extractedChapters = Array.from(
+        new Set(payload.questions.map((q) => q.chapter))
+      ).filter(Boolean);
+      payload.chapters = extractedChapters.length > 0 ? extractedChapters : ['General'];
       inferred.push(`Chapters extracted: [${payload.chapters.join(', ')}]`);
     }
 
-    // Inferred Duration (Standard NEET strategy: 1 min per question)
+    // Infer duration if omitted (default standard: 1 min per question for speed, or 60m min)
     if (!payload.durationMinutes) {
-      payload.durationMinutes = Math.max(15, questionCount);
-      inferred.push(`Duration set to ${payload.durationMinutes} minutes (1 min/question NEET standard)`);
+      payload.durationMinutes = Math.max(30, Math.min(180, payload.questions.length * 1.5));
+      inferred.push(`Duration set to ${payload.durationMinutes} minutes`);
     }
 
-    // Inferred Slug
-    if (!payload.slug) {
-      payload.slug = payload.title
+    // Generate slug preview if omitted
+    const effectiveSlug =
+      payload.slug ||
+      payload.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/(^-|-$)+/g, '');
-      inferred.push(`Slug generated: "${payload.slug}"`);
-    }
 
-    // Inferred Test Code (Private access passcode)
-    if (!payload.testCode) {
-      const randomSuffix = crypto.randomBytes(2).toString('hex').toUpperCase();
-      payload.testCode = `NEET-${randomSuffix}`;
-      inferred.push(`Private test code auto-generated: "${payload.testCode}"`);
-    }
+    // Check if slug already exists in database
+    let slugCollision = false;
+    try {
+      if (mongoose.connection.readyState === 1) {
+        const existing = await Test.findOne({ slug: effectiveSlug }).lean();
+        if (existing) {
+          slugCollision = true;
+          collectedWarnings.push(
+            `A test with slug "${effectiveSlug}" already exists. Confirming import will update this test.`
+          );
+        }
+      }
+    } catch {}
 
-    const allowedCodes = Array.from(
-      new Set([payload.testCode, ...(payload.allowedCodes || [])].filter(Boolean))
-    );
-
-    // 3. Question Data Integrity Checks
-    const malformedQuestions = [];
-    payload.questions.forEach((q, idx) => {
+    // Process and sanitize SVG diagrams for all questions
+    const processedQuestions = payload.questions.map((q, idx) => {
       const order = q.order || idx + 1;
-      const optionKeys = Object.keys(q.options || {});
-      if (optionKeys.length < 2) {
-        malformedQuestions.push(`Question ${order}: has less than 2 options (${optionKeys.length} provided)`);
+      const qWarnings = [...(q.warnings || [])];
+      let sanitizedQuestionImage = null;
+      let sanitizedExplanationImage = null;
+
+      if (q.questionImage && q.questionImage.type === 'svg') {
+        try {
+          const { sanitizedSvg, warnings: svgWarns } = sanitizeSvg(
+            q.questionImage.data,
+            `Question #${order}`
+          );
+          sanitizedQuestionImage = { type: 'svg', data: sanitizedSvg };
+          qWarnings.push(...svgWarns);
+        } catch (err) {
+          collectedWarnings.push(`Question #${order}: ${err.message}`);
+        }
       }
-      if (!optionKeys.includes(q.correctAnswer)) {
-        malformedQuestions.push(
-          `Question ${order}: correctAnswer "${q.correctAnswer}" is not in options [${optionKeys.join(', ')}]`
-        );
+
+      if (q.explanationImage && q.explanationImage.type === 'svg') {
+        try {
+          const { sanitizedSvg, warnings: svgWarns } = sanitizeSvg(
+            q.explanationImage.data,
+            `Question #${order} explanation`
+          );
+          sanitizedExplanationImage = { type: 'svg', data: sanitizedSvg };
+          qWarnings.push(...svgWarns);
+        } catch (err) {
+          collectedWarnings.push(`Question #${order} explanation: ${err.message}`);
+        }
       }
+
+      return {
+        id: q.id || `q${order}`,
+        order,
+        sourceQuestionNumber: q.sourceQuestionNumber || order,
+        subject: q.subject || payload.subjects[0] || 'General',
+        chapter: q.chapter || 'General',
+        topic: q.topic || 'General',
+        difficulty: q.difficulty || payload.difficulty || 'Hard',
+        type: q.type || 'mcq',
+        question: q.question,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation || null,
+        image: q.image || null,
+        questionImage: sanitizedQuestionImage,
+        explanationImage: sanitizedExplanationImage,
+        marks: q.marks || payload.markingScheme?.correct || 4,
+        negativeMarks: q.negativeMarks || payload.markingScheme?.wrong || -1,
+        warnings: qWarnings,
+      };
     });
 
-    if (malformedQuestions.length > 0) {
-      throw new AppError('Malformed question data detected in import payload', 400, malformedQuestions);
-    }
+    const totalQuestions = processedQuestions.length;
+    const totalMarks = processedQuestions.reduce((acc, q) => acc + (q.marks || 4), 0);
 
-    // 4. Upsert Test Document into MongoDB
-    const testDoc = await Test.findOneAndUpdate(
-      { slug: payload.slug },
-      {
+    return {
+      isValid: true,
+      errors: [],
+      inferred,
+      warnings: collectedWarnings,
+      test: {
+        schemaVersion: payload.schemaVersion || '1.0',
         title: payload.title,
-        slug: payload.slug,
+        slug: effectiveSlug,
+        slugCollision,
         subtitle: payload.subtitle || '',
         description: payload.description || payload.syllabus || '',
-        testCode: payload.testCode,
-        allowedCodes,
-        type: payload.type || (questionCount > 45 ? 'aits' : 'chapter'),
+        examType: payload.examType || 'NEET',
+        type: payload.type || 'chapter',
         subjects: payload.subjects,
         chapters: payload.chapters,
         syllabus: payload.syllabus || '',
         difficulty: payload.difficulty || 'Hard',
         durationMinutes: payload.durationMinutes,
-        totalQuestions: questionCount,
-        totalMarks: questionCount * (payload.markingScheme?.correct || 4),
-        markingScheme: payload.markingScheme || { correct: 4, wrong: -1, unattempted: 0 },
-        status: options.publishImmediately ? 'published' : (payload.status || 'draft'),
-        publishedAt: options.publishImmediately ? new Date() : null,
+        markingScheme: payload.markingScheme,
+        status: payload.status || 'published',
+        totalQuestions,
+        totalMarks,
       },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      questions: processedQuestions,
+    };
+  }
+
+  /**
+   * Validates and imports structured test data into MongoDB with atomic rollback on failure.
+   * @param {Object} rawPayload - test metadata and questions array
+   * @param {Object} options - { publishImmediately: true, overrideExisting: true }
+   */
+  static async importTest(
+    rawPayload,
+    options = { publishImmediately: true, overrideExisting: true }
+  ) {
+    // 1. Run full preview validation
+    const preview = await this.validateAndPreview(rawPayload);
+    if (!preview.isValid) {
+      throw new AppError('Test payload validation failed', 400, preview.errors);
+    }
+
+    const { test: testMeta, questions: parsedQuestions, inferred, warnings } = preview;
+    const testCode =
+      rawPayload.testCode ||
+      `${testMeta.examType || 'TEST'}-${crypto.randomBytes(2).toString('hex').toUpperCase()}`;
+    const allowedCodes = Array.from(
+      new Set([testCode, ...(rawPayload.allowedCodes || [])].filter(Boolean))
     );
 
-    // 5. Clean & Re-insert Question Documents for this Test (Idempotent)
-    await Question.deleteMany({ testId: testDoc._id });
+    let createdOrUpdatedTest = null;
+    let questionsInserted = [];
 
-    const questionDocs = payload.questions.map((q, idx) => ({
-      testId: testDoc._id,
-      order: q.order || idx + 1,
-      sourceQuestionNumber: q.sourceQuestionNumber || q.order || idx + 1,
-      subject: q.subject || payload.subjects[0] || 'General',
-      chapter: q.chapter || 'General',
-      topic: q.topic || 'General',
-      difficulty: q.difficulty || payload.difficulty || 'Hard',
-      type: q.type || 'mcq',
-      question: q.question,
-      options: q.options,
-      correctAnswer: q.correctAnswer,
-      explanation: q.explanation || null,
-      image: q.image || null,
-      marks: q.marks || payload.markingScheme?.correct || 4,
-      negativeMarks: q.negativeMarks || payload.markingScheme?.wrong || -1,
-      status: 'active',
-    }));
+    try {
+      // 2. Create or Upsert Test document
+      createdOrUpdatedTest = await Test.findOneAndUpdate(
+        { slug: testMeta.slug },
+        {
+          schemaVersion: testMeta.schemaVersion || '1.0',
+          title: testMeta.title,
+          slug: testMeta.slug,
+          subtitle: testMeta.subtitle,
+          description: testMeta.description,
+          examType: testMeta.examType,
+          testCode,
+          allowedCodes,
+          type: testMeta.type,
+          subjects: testMeta.subjects,
+          chapters: testMeta.chapters,
+          syllabus: testMeta.syllabus,
+          difficulty: testMeta.difficulty,
+          durationMinutes: testMeta.durationMinutes,
+          totalQuestions: testMeta.totalQuestions,
+          totalMarks: testMeta.totalMarks,
+          markingScheme: testMeta.markingScheme,
+          status: options.publishImmediately ? 'published' : testMeta.status,
+          publishedAt: options.publishImmediately ? new Date() : null,
+          warnings,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
 
-    const insertedQuestions = await Question.insertMany(questionDocs);
+      // 3. Remove existing questions for this test to ensure idempotent replace
+      await Question.deleteMany({ testId: createdOrUpdatedTest._id });
 
-    return {
-      success: true,
-      test: {
-        id: testDoc._id,
-        slug: testDoc.slug,
-        title: testDoc.title,
-        testCode: payload.testCode, // Displayed in CLI import summary
-        subjects: testDoc.subjects,
-        durationMinutes: testDoc.durationMinutes,
-        totalQuestions: insertedQuestions.length,
-        totalMarks: testDoc.totalMarks,
-        status: testDoc.status,
-      },
-      inferred,
-      insertedCount: insertedQuestions.length,
-    };
+      // 4. Prepare Question documents for bulk insertion
+      const questionDocs = parsedQuestions.map((q) => ({
+        testId: createdOrUpdatedTest._id,
+        clientQuestionId: q.id,
+        order: q.order,
+        sourceQuestionNumber: q.sourceQuestionNumber,
+        subject: q.subject,
+        chapter: q.chapter,
+        topic: q.topic,
+        difficulty: q.difficulty,
+        type: q.type,
+        question: q.question,
+        options: q.options,
+        correctAnswer: q.correctAnswer,
+        explanation: q.explanation,
+        image: q.image,
+        questionImage: q.questionImage,
+        explanationImage: q.explanationImage,
+        warnings: q.warnings,
+        marks: q.marks,
+        negativeMarks: q.negativeMarks,
+        status: 'active',
+      }));
+
+      questionsInserted = await Question.insertMany(questionDocs);
+
+      return {
+        success: true,
+        test: {
+          id: createdOrUpdatedTest._id,
+          slug: createdOrUpdatedTest.slug,
+          title: createdOrUpdatedTest.title,
+          testCode,
+          examType: createdOrUpdatedTest.examType,
+          subjects: createdOrUpdatedTest.subjects,
+          durationMinutes: createdOrUpdatedTest.durationMinutes,
+          totalQuestions: questionsInserted.length,
+          totalMarks: createdOrUpdatedTest.totalMarks,
+          status: createdOrUpdatedTest.status,
+        },
+        inferred,
+        warnings,
+        insertedCount: questionsInserted.length,
+      };
+    } catch (err) {
+      // Rollback protection: If question insertion fails, do not leave an empty or broken test
+      if (createdOrUpdatedTest && questionsInserted.length === 0) {
+        try {
+          await Question.deleteMany({ testId: createdOrUpdatedTest._id });
+          await Test.findByIdAndDelete(createdOrUpdatedTest._id);
+        } catch (cleanupErr) {
+          console.error('Failed to cleanup partial test after error:', cleanupErr);
+        }
+      }
+      throw new AppError(`Test import failed during persistence: ${err.message}`, 500);
+    }
   }
 }

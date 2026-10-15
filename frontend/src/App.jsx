@@ -87,6 +87,28 @@ export default function App() {
   const [adminDiagnosisAttempt, setAdminDiagnosisAttempt] = useState(null);
   const [adminDiagnosisStudent, setAdminDiagnosisStudent] = useState(null);
 
+  // Custom dynamically imported tests from Admin JSON import workflow
+  const [customTests, setCustomTests] = useState(() => {
+    try {
+      const stored = window.localStorage.getItem('neet_custom_imported_tests');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const handleCustomTestCreated = useCallback((testPayload) => {
+    if (!testPayload) return;
+    const key = testPayload.slug || testPayload.id;
+    setCustomTests((prev) => {
+      const updated = { ...prev, [key]: testPayload };
+      try {
+        window.localStorage.setItem('neet_custom_imported_tests', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+  }, []);
+
   // Live role check on mount / user change (syncs if role was changed in MongoDB)
   useEffect(() => {
     if (currentUser?.email) {
@@ -115,8 +137,8 @@ export default function App() {
 
   // Dynamically resolve active test configuration
   const activeTest = useMemo(() => {
-    return ALL_TESTS[testId] || ALL_TESTS[JEE_2027_PERIODIC_TEST.id];
-  }, [testId]);
+    return ALL_TESTS[testId] || customTests[testId] || ALL_TESTS[JEE_2027_PERIODIC_TEST.id];
+  }, [testId, customTests]);
 
   const durationMs = useMemo(() => {
     if (session?.endTime && session?.startTime) {
@@ -239,6 +261,26 @@ export default function App() {
         window.localStorage.setItem(ACTIVE_TEST_KEY, selectedId);
       } catch {}
 
+      // If test not present in ALL_TESTS or customTests, dynamically fetch from MongoDB API
+      if (!ALL_TESTS[selectedId] && !customTests[selectedId]) {
+        try {
+          const [tRes, qRes] = await Promise.all([
+            fetch(`${API_BASE}/tests/${selectedId}`).then((r) => r.json()),
+            fetch(`${API_BASE}/tests/${selectedId}/questions`).then((r) => r.json()),
+          ]);
+          if (tRes?.data) {
+            const fullTest = {
+              ...tRes.data,
+              id: tRes.data.slug || tRes.data._id,
+              questions: qRes?.data || [],
+            };
+            handleCustomTestCreated(fullTest);
+          }
+        } catch (e) {
+          console.warn('Could not fetch custom test from backend:', e);
+        }
+      }
+
       let s = loadSession(selectedId);
 
       // Check backend for active live session if user is logged in
@@ -259,7 +301,7 @@ export default function App() {
         setScreen('instructions');
       }
     },
-    [currentUser]
+    [currentUser, customTests, handleCustomTestCreated]
   );
 
   const startTest = useCallback(
@@ -395,6 +437,8 @@ export default function App() {
         onGoToStudentDashboard={handleGoToDashboard}
         onLogout={handleLogout}
         onDiagnoseAttempt={handleDiagnoseAttempt}
+        onTestCreated={handleCustomTestCreated}
+        onStartTest={handleSelectTest}
       />
     );
   }
@@ -421,6 +465,7 @@ export default function App() {
         onLogout={handleLogout}
         user={currentUser}
         onGoToDashboard={handleGoToDashboard}
+        customTests={customTests}
       />
     );
   }

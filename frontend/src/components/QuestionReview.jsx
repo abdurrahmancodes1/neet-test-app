@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { CheckCircle2, XCircle, MinusCircle, BookOpen } from 'lucide-react';
 import MathRenderer from './MathRenderer.jsx';
+import SafeSvgRenderer from './SafeSvgRenderer.jsx';
 import { useTheme } from '../utils/themeContext.jsx';
 
 const FILTERS = [
@@ -55,6 +56,8 @@ export default function QuestionReview({
           question: r.question || matchingQ.question,
           options: r.options || matchingQ.options || {},
           image: r.image || matchingQ.image || null,
+          questionImage: r.questionImage || matchingQ.questionImage || null,
+          explanationImage: r.explanationImage || matchingQ.explanationImage || null,
           subject: r.subject || matchingQ.subject,
           selected: r.selectedOption || r.selected,
         };
@@ -179,7 +182,13 @@ export default function QuestionReview({
                   <MathRenderer text={r.question} />
                 </div>
 
-                {r.image && (
+                {/* Question Diagram / Inline SVG or Legacy Image */}
+                {r.questionImage?.data ? (
+                  <SafeSvgRenderer
+                    svgData={r.questionImage.data}
+                    title={`Diagram for Question #${r.id}`}
+                  />
+                ) : r.image ? (
                   <div className="my-3 flex justify-center">
                     <img
                       src={r.image}
@@ -187,7 +196,7 @@ export default function QuestionReview({
                       className="max-h-64 rounded-xl border border-slate-200 bg-white object-contain p-2"
                     />
                   </div>
-                )}
+                ) : null}
 
                 <div className="grid gap-2 text-xs sm:grid-cols-2">
                   <div
@@ -250,6 +259,13 @@ export default function QuestionReview({
                       💡 Step-by-Step Solution &amp; Concept:
                     </p>
                     <MathRenderer text={r.explanation} />
+                    {r.explanationImage?.data && (
+                      <SafeSvgRenderer
+                        svgData={r.explanationImage.data}
+                        title={`Solution Diagram #${r.id}`}
+                        maxHeight="max-h-56"
+                      />
+                    )}
                   </div>
                 )}
               </div>

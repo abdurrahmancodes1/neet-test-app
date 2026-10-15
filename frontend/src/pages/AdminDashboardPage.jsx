@@ -20,22 +20,27 @@ import {
   Layers,
   CheckCircle2,
   AlertTriangle,
+  FileCode,
 } from 'lucide-react';
 import { getAdminOverview } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
 import { useTheme } from '../utils/themeContext.jsx';
 import AdminAttemptDetailModal from '../components/AdminAttemptDetailModal.jsx';
+import AdminJsonImportSection from '../components/AdminJsonImportSection.jsx';
 
 export default function AdminDashboardPage({
   user,
   onGoToStudentDashboard,
   onLogout,
   onDiagnoseAttempt,
+  onTestCreated,
+  onStartTest,
 }) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all'); // 'all' | 'active' | 'inactive'
+  const [activeAdminTab, setActiveAdminTab] = useState('candidates'); // 'candidates' | 'import'
   const [expandedStudentId, setExpandedStudentId] = useState(null);
 
   // Selected attempt for detailed diagnostics modal
@@ -280,7 +285,44 @@ export default function AdminDashboardPage({
           </div>
         </section>
 
-        {/* Students Directory & Progress Section */}
+        {/* Navigation Tabs: Candidates Directory vs JSON Test Import */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-slate-200 dark:border-white/10">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveAdminTab('candidates')}
+              className={`rounded-full px-4 sm:px-5 py-2 text-xs font-bold transition flex items-center gap-2 shadow-xs ${
+                activeAdminTab === 'candidates'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : isLight
+                  ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+                  : 'border border-white/10 bg-[#0B0F19] text-slate-300 hover:bg-white/5'
+              }`}
+            >
+              <Users size={14} />
+              <span>Candidate Directory ({students.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveAdminTab('import')}
+              className={`rounded-full px-4 sm:px-5 py-2 text-xs font-bold transition flex items-center gap-2 shadow-xs ${
+                activeAdminTab === 'import'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : isLight
+                  ? 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-100'
+                  : 'border border-white/10 bg-[#0B0F19] text-slate-300 hover:bg-white/5'
+              }`}
+            >
+              <FileCode size={14} className={activeAdminTab === 'import' ? 'text-white' : 'text-blue-500'} />
+              <span>Import Test via JSON (Inline SVG)</span>
+            </button>
+          </div>
+        </div>
+
+        {/* TAB CONTENT: Candidate Directory vs JSON Import */}
+        {activeAdminTab === 'candidates' ? (
+        /* Students Directory & Progress Section */
         <section className={`rounded-3xl border p-4 sm:p-7 shadow-xl space-y-5 transition-colors ${
           isLight ? 'border-slate-200 bg-white shadow-sm' : 'border-white/10 bg-[#0B0F19]'
         }`}>
@@ -603,6 +645,16 @@ export default function AdminDashboardPage({
             </div>
           )}
         </section>
+        ) : (
+          <AdminJsonImportSection
+            user={user}
+            onTestCreated={(newTest) => {
+              if (onTestCreated) onTestCreated(newTest);
+              fetchOverview();
+            }}
+            onLaunchTest={onStartTest}
+          />
+        )}
       </div>
 
       {/* Admin Attempt Detail Diagnostics Modal */}

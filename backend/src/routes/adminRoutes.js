@@ -6,6 +6,11 @@ import { updateQuestionSchema } from '../validators/questionValidators.js';
 
 const router = Router();
 
+// Automated Test Import via JSON & Preview
+router.get('/tests/sample-template', AdminTestController.getSampleTemplate);
+router.post('/tests/import-preview', AdminTestController.previewImport);
+router.post('/tests/import', AdminTestController.importTest);
+
 // Test Management
 router.get('/tests', validate(queryTestsSchema, 'query'), AdminTestController.listAllTests);
 router.post('/tests', validate(createTestSchema, 'body'), AdminTestController.createTest);

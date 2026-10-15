@@ -24,7 +24,7 @@ export class QuestionService {
     }
 
     const questions = await Question.find({ testId, status: 'active' })
-      .select('order sourceQuestionNumber subject chapter topic difficulty type question options image marks negativeMarks')
+      .select('order sourceQuestionNumber subject chapter topic difficulty type question options image questionImage marks negativeMarks')
       .sort({ order: 1 })
       .lean();
 
@@ -40,7 +40,7 @@ export class QuestionService {
     }
 
     const questions = await Question.find({ testId })
-      .select('+correctAnswer +explanation')
+      .select('+correctAnswer +explanation +explanationImage')
       .sort({ order: 1 })
       .lean();
 

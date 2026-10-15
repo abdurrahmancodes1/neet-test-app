@@ -1,5 +1,20 @@
 import mongoose from 'mongoose';
 
+const svgImageSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ['svg', 'none'],
+      default: 'svg',
+    },
+    data: {
+      type: String,
+      default: null,
+    },
+  },
+  { _id: false }
+);
+
 const questionSchema = new mongoose.Schema(
   {
     testId: {
@@ -21,7 +36,7 @@ const questionSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Subject is required'],
       enum: {
-        values: ['Physics', 'Chemistry', 'Botany', 'Zoology', 'Biology', 'General'],
+        values: ['Physics', 'Chemistry', 'Mathematics', 'Maths', 'Botany', 'Zoology', 'Biology', 'General'],
         message: '{VALUE} is not a valid subject',
       },
       index: true,
@@ -40,7 +55,7 @@ const questionSchema = new mongoose.Schema(
     },
     difficulty: {
       type: String,
-      enum: ['Easy', 'Medium', 'Hard'],
+      enum: ['Easy', 'Medium', 'Hard', 'Dropper (NEET)'],
       default: 'Hard',
     },
     type: {
@@ -75,6 +90,23 @@ const questionSchema = new mongoose.Schema(
       select: false, // Excluded from active exam queries by default
     },
     image: {
+      type: String,
+      default: null,
+    },
+    questionImage: {
+      type: svgImageSchema,
+      default: null,
+    },
+    explanationImage: {
+      type: svgImageSchema,
+      default: null,
+      select: false,
+    },
+    warnings: {
+      type: [String],
+      default: [],
+    },
+    clientQuestionId: {
       type: String,
       default: null,
     },
