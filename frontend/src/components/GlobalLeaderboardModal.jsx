@@ -21,6 +21,7 @@ export default function GlobalLeaderboardModal({
   onClose,
   stats,
   currentUserEmail,
+  isAdmin = false,
 }) {
   const { isLight } = useTheme();
   const [activeTab, setActiveTab] = useState('leaderboard'); // 'leaderboard' | 'candidates'
@@ -49,12 +50,12 @@ export default function GlobalLeaderboardModal({
 
   const filteredLeaderboard = leaderboard.filter((item) =>
     (item.studentName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (isAdmin && (item.email || '').toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const filteredCandidates = allCandidates.filter((c) =>
     (c.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (isAdmin && (c.email || '').toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -281,7 +282,7 @@ export default function GlobalLeaderboardModal({
                                 </span>
                               )}
                             </div>
-                            {item.email && (
+                            {isAdmin && item.email && (
                               <p className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>{item.email}</p>
                             )}
                           </td>
@@ -352,7 +353,9 @@ export default function GlobalLeaderboardModal({
                               </span>
                             )}
                           </div>
-                          <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{cand.email}</p>
+                          {isAdmin && cand.email && (
+                            <p className={`text-xs mt-0.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{cand.email}</p>
+                          )}
                         </div>
                         <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${
                           isLight ? 'border-slate-200 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'
@@ -363,8 +366,8 @@ export default function GlobalLeaderboardModal({
                       <div className={`mt-3 flex items-center justify-between border-t pt-2.5 text-[11px] ${
                         isLight ? 'border-slate-100 text-slate-500' : 'border-white/5 text-slate-500'
                       }`}>
-                        <span>Joined: {cand.registeredAt ? formatDateSafe(cand.registeredAt) : 'Active'}</span>
-                        <span className={`font-semibold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>● Registered Candidate</span>
+                        <span>{isAdmin && cand.registeredAt ? `Joined: ${formatDateSafe(cand.registeredAt)}` : 'Verified Student'}</span>
+                        <span className={`font-semibold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>● Active</span>
                       </div>
                     </div>
                   );

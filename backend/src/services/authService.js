@@ -189,8 +189,8 @@ export class AuthService {
   /**
    * Get platform-wide statistics, total registered candidates, and global leaderboard
    */
-  static async getPlatformStats() {
-    const storeStats = SyncStore.getStats();
+  static async getPlatformStats(isAdmin = false) {
+    const storeStats = SyncStore.getStats(isAdmin);
     const isMongoConnected = mongoose.connection.readyState === 1;
 
     if (!isMongoConnected) {
@@ -269,14 +269,37 @@ export class AuthService {
         registeredAt: u.createdAt,
       }));
 
+      // Non-admins see names only; sensitive emails, roll numbers, and timestamps are masked
+      const sanitizedLeaderboard = (leaderboard.length > 0 ? leaderboard : storeStats.leaderboard).map((item) => ({
+        ...item,
+        email: isAdmin ? item.email : null,
+        rollNumber: isAdmin ? item.rollNumber : null,
+      }));
+
+      const sanitizedRecentSubmissions = (recentSubmissions.length > 0 ? recentSubmissions : storeStats.recentSubmissions).map((s) => ({
+        ...s,
+        email: isAdmin ? s.email : null,
+        rollNumber: isAdmin ? s.rollNumber : null,
+      }));
+
+      const sanitizedCandidates = (allCandidates.length > 0 ? allCandidates : storeStats.allCandidates).map((c) => ({
+        id: c.id,
+        name: c.name,
+        email: isAdmin ? c.email : null,
+        rollNumber: isAdmin ? c.rollNumber : null,
+        role: isAdmin ? c.role : 'student',
+        targetExam: c.targetExam || 'NEET 2027',
+        registeredAt: isAdmin ? c.registeredAt : null,
+      }));
+
       return {
         totalUsers: Math.max(totalUsersDb, allCandidates.length, storeStats.totalUsers),
         totalAttempts: Math.max(totalAttemptsDb, storeStats.totalAttempts),
         averageScore: averageScore || storeStats.averageScore,
         highestScore: Math.max(highestScore, storeStats.highestScore),
-        leaderboard: leaderboard.length > 0 ? leaderboard : storeStats.leaderboard,
-        recentSubmissions: recentSubmissions.length > 0 ? recentSubmissions : storeStats.recentSubmissions,
-        allCandidates: allCandidates.length > 0 ? allCandidates : storeStats.allCandidates,
+        leaderboard: sanitizedLeaderboard,
+        recentSubmissions: sanitizedRecentSubmissions,
+        allCandidates: sanitizedCandidates,
         isLiveDb: true,
       };
     } catch (err) {

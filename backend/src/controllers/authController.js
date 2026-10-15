@@ -108,7 +108,8 @@ export class AuthController {
    * GET /api/auth/stats - Get platform global stats, user count, and leaderboard
    */
   static getStats = asyncHandler(async (req, res) => {
-    const stats = await AuthService.getPlatformStats();
+    const isAdmin = req.user?.role?.toLowerCase() === 'admin';
+    const stats = await AuthService.getPlatformStats(isAdmin);
     return ApiResponse.success(res, 'Platform statistics retrieved successfully', stats);
   });
 
@@ -116,7 +117,8 @@ export class AuthController {
    * GET /api/auth/leaderboard - Get global student leaderboard
    */
   static getLeaderboard = asyncHandler(async (req, res) => {
-    const stats = await AuthService.getPlatformStats();
+    const isAdmin = req.user?.role?.toLowerCase() === 'admin';
+    const stats = await AuthService.getPlatformStats(isAdmin);
     return ApiResponse.success(res, 'Leaderboard retrieved successfully', {
       totalUsers: stats.totalUsers,
       totalAttempts: stats.totalAttempts,
@@ -128,7 +130,8 @@ export class AuthController {
    * GET /api/auth/candidates - Get list of all registered candidates
    */
   static getCandidates = asyncHandler(async (req, res) => {
-    const stats = await AuthService.getPlatformStats();
+    const isAdmin = req.user?.role?.toLowerCase() === 'admin';
+    const stats = await AuthService.getPlatformStats(isAdmin);
     return ApiResponse.success(res, 'All registered candidates retrieved', {
       total: stats.allCandidates.length,
       candidates: stats.allCandidates,

@@ -260,10 +260,12 @@ export class ResultController {
   });
 
   /**
-   * GET /api/results/all - List all submitted results across all students
+   * GET /api/results/all - List all submitted results across all students (Sanitized for non-admin callers)
    */
   static getAllResults = asyncHandler(async (req, res) => {
     const isMongoConnected = mongoose.connection.readyState === 1;
+    const isAdmin = req.user?.role?.toLowerCase() === 'admin';
+    const requesterEmail = (req.user?.email || '').toLowerCase().trim();
     let results = [];
 
     if (isMongoConnected) {
@@ -274,54 +276,64 @@ export class ResultController {
           .limit(100)
           .lean();
 
-        results = dbResults.map((r) => ({
-          id: r._id.toString(),
-          attemptId: r.attemptId,
-          studentName: r.studentName || r.userId?.name || 'Anonymous Student',
-          studentEmail: r.studentEmail || r.userId?.email || null,
-          rollNumber: r.studentRollNumber || r.userId?.rollNumber || null,
-          testId: r.testId,
-          testTitle: r.testTitle || r.metadata?.testTitle || 'NEET Practice Test',
-          score: r.score,
-          maxScore: r.maxScore || 240,
-          accuracy: Math.round(r.accuracy || 0),
-          correct: r.correctCount || 0,
-          wrong: r.wrongCount || 0,
-          unattempted: r.unattemptedCount || 0,
-          totalQuestions: r.totalQuestions || 60,
-          timeTakenMs: r.timeTakenMs || r.metadata?.timeTakenMs || 0,
-          answers: r.answers || r.metadata?.answers || {},
-          perQuestion: r.perQuestion || r.metadata?.perQuestion || [],
-          topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
-          submittedAt: r.submittedAt || r.createdAt,
-        }));
+        results = dbResults.map((r) => {
+          const effectiveEmail = (r.studentEmail || r.userId?.email || '').toLowerCase().trim();
+          const isOwner = requesterEmail && effectiveEmail === requesterEmail;
+          const canSeeSensitive = isAdmin || isOwner;
+
+          return {
+            id: r._id.toString(),
+            attemptId: r.attemptId,
+            studentName: r.studentName || r.userId?.name || 'Anonymous Student',
+            studentEmail: canSeeSensitive ? (r.studentEmail || r.userId?.email || null) : null,
+            rollNumber: canSeeSensitive ? (r.studentRollNumber || r.userId?.rollNumber || null) : null,
+            testId: r.testId,
+            testTitle: r.testTitle || r.metadata?.testTitle || 'NEET Practice Test',
+            score: r.score,
+            maxScore: r.maxScore || 240,
+            accuracy: Math.round(r.accuracy || 0),
+            correct: r.correctCount || 0,
+            wrong: r.wrongCount || 0,
+            unattempted: r.unattemptedCount || 0,
+            totalQuestions: r.totalQuestions || 60,
+            timeTakenMs: r.timeTakenMs || r.metadata?.timeTakenMs || 0,
+            answers: canSeeSensitive ? (r.answers || r.metadata?.answers || {}) : {},
+            perQuestion: canSeeSensitive ? (r.perQuestion || r.metadata?.perQuestion || []) : [],
+            topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
+            submittedAt: r.submittedAt || r.createdAt,
+          };
+        });
       } catch (err) {
         console.error('Failed to query all results from MongoDB:', err);
       }
     }
 
     if (results.length === 0) {
-      results = SyncStore.getResults().map((r) => ({
-        id: r.id,
-        attemptId: r.attemptId,
-        studentName: r.studentName || 'Anonymous Student',
-        studentEmail: r.studentEmail || null,
-        rollNumber: r.studentRollNumber || null,
-        testId: r.testId,
-        testTitle: r.testTitle || 'NEET Practice Test',
-        score: r.score,
-        maxScore: r.maxScore || 240,
-        accuracy: Math.round(r.accuracy || 0),
-        correct: r.correct || r.correctCount || 0,
-        wrong: r.wrong || r.wrongCount || 0,
-        unattempted: r.unattempted || r.unattemptedCount || 0,
-        totalQuestions: r.totalQuestions || 60,
-        timeTakenMs: r.timeTakenMs || 0,
-        answers: r.answers || {},
-        perQuestion: r.perQuestion || [],
-        topicPerformance: r.topicPerformance || [],
-        submittedAt: r.timestamp || r.submittedAt,
-      }));
+      results = SyncStore.getResults().map((r) => {
+        const isOwner = requesterEmail && (r.studentEmail || '').toLowerCase().trim() === requesterEmail;
+        const canSeeSensitive = isAdmin || isOwner;
+        return {
+          id: r.id,
+          attemptId: r.attemptId,
+          studentName: r.studentName || 'Anonymous Student',
+          studentEmail: canSeeSensitive ? (r.studentEmail || null) : null,
+          rollNumber: canSeeSensitive ? (r.studentRollNumber || null) : null,
+          testId: r.testId,
+          testTitle: r.testTitle || 'NEET Practice Test',
+          score: r.score,
+          maxScore: r.maxScore || 240,
+          accuracy: Math.round(r.accuracy || 0),
+          correct: r.correct || r.correctCount || 0,
+          wrong: r.wrong || r.wrongCount || 0,
+          unattempted: r.unattempted || r.unattemptedCount || 0,
+          totalQuestions: r.totalQuestions || 60,
+          timeTakenMs: r.timeTakenMs || 0,
+          answers: canSeeSensitive ? (r.answers || {}) : {},
+          perQuestion: canSeeSensitive ? (r.perQuestion || []) : [],
+          topicPerformance: r.topicPerformance || [],
+          submittedAt: r.timestamp || r.submittedAt,
+        };
+      });
     }
 
     return ApiResponse.success(res, 'All submitted results retrieved', results, 200, {
@@ -358,6 +370,15 @@ export class ResultController {
     const cleanEmail = (email || req.user?.email || '').toLowerCase().trim();
     if (!cleanEmail) {
       return ApiResponse.success(res, 'No email specified', []);
+    }
+
+    const requesterEmail = (req.user?.email || '').toLowerCase().trim();
+    const isAdmin = req.user?.role?.toLowerCase() === 'admin';
+    const isOwner = requesterEmail && requesterEmail === cleanEmail;
+
+    // Enforce privacy: only the student themselves or an admin can access personal test history
+    if (!isAdmin && !isOwner) {
+      throw new AppError('Access denied: You do not have permission to view another student\'s test history', 403);
     }
 
     let results = [];

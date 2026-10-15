@@ -821,6 +821,7 @@ export default function DashboardPage({
           onClose={() => setLeaderboardModalOpen(false)}
           stats={globalStats}
           currentUserEmail={user?.email}
+          isAdmin={user?.role === 'admin'}
         />
       </div>
     </main>

@@ -498,6 +498,7 @@ export default function CurriculumPage({
           open={leaderboardModalOpen}
           onClose={() => setLeaderboardModalOpen(false)}
           currentUserEmail={user?.email}
+          isAdmin={user?.role === 'admin'}
         />
       </div>
     </main>

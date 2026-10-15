@@ -159,7 +159,7 @@ export class SyncStore {
     persistStore(data);
   }
 
-  static getStats() {
+  static getStats(isAdmin = false) {
     const users = this.getUsers();
     const results = this.getResults();
 
@@ -209,20 +209,33 @@ export class SyncStore {
         submittedAt: r.timestamp || r.submittedAt,
       }));
 
+    const finalLeaderboard = leaderboard.map((item) => ({
+      ...item,
+      email: isAdmin ? item.email : null,
+      rollNumber: isAdmin ? item.rollNumber : null,
+    }));
+
+    const finalRecentSubmissions = recentSubmissions.map((r) => ({
+      ...r,
+      email: isAdmin ? r.email : null,
+    }));
+
+    const finalCandidates = users.map((u) => ({
+      id: u.id,
+      name: u.name,
+      email: isAdmin ? u.email : null,
+      targetExam: u.targetExam || 'NEET 2027',
+      registeredAt: isAdmin ? u.createdAt : null,
+    }));
+
     return {
       totalUsers,
       totalAttempts,
       averageScore: avgScore,
       highestScore,
-      leaderboard,
-      recentSubmissions,
-      allCandidates: users.map((u) => ({
-        id: u.id,
-        name: u.name,
-        email: u.email,
-        targetExam: u.targetExam || 'NEET 2027',
-        registeredAt: u.createdAt,
-      })),
+      leaderboard: finalLeaderboard,
+      recentSubmissions: finalRecentSubmissions,
+      allCandidates: finalCandidates,
     };
   }
 }
