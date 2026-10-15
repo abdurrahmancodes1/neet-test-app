@@ -152,7 +152,7 @@ async function runAuthTests() {
 
     // 8. Test Private Result Ownership Protection
     console.log('\n[8] Testing Cross-User Result Privacy Protection');
-    const testDoc = await Test.findOne({ slug: 'laws-of-motion' }).lean();
+    const testDoc = await Test.findOne({ status: 'published' }).lean();
 
     // Student 1 submits exam with their authenticated session
     const submitRes = await request(

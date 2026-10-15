@@ -48,6 +48,18 @@ const testSchema = new mongoose.Schema(
       default: 'NEET',
       index: true,
     },
+    category: {
+      type: String,
+      trim: true,
+      lowercase: true,
+      index: true,
+      default: 'neet',
+    },
+    isPublic: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
     warnings: {
       type: [String],
       default: [],
@@ -151,6 +163,9 @@ testSchema.virtual('questions', {
 
 // Indexes for fast lookup & filtering
 testSchema.index({ status: 1, type: 1 });
+testSchema.index({ status: 1, examType: 1 });
+testSchema.index({ status: 1, category: 1 });
+testSchema.index({ status: 1, isPublic: 1 });
 testSchema.index({ subjects: 1, status: 1 });
 testSchema.index({ createdAt: -1 });
 

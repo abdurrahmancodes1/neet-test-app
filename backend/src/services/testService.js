@@ -8,9 +8,11 @@ export class TestService {
    */
   static async listTests({
     page = 1,
-    limit = 20,
+    limit = 50,
     subject,
     type,
+    examType,
+    category,
     status = 'published',
     search,
   } = {}) {
@@ -19,8 +21,39 @@ export class TestService {
     if (status) {
       filter.status = status;
     }
+
+    // Platform-wide visibility for student queries: published and public
+    if (status === 'published') {
+      filter.$and = filter.$and || [];
+      filter.$and.push({
+        $or: [{ isPublic: true }, { isPublic: { $exists: false } }],
+      });
+    }
+
     if (type) {
       filter.type = type;
+    }
+    if (examType) {
+      filter.examType = examType.toUpperCase();
+    }
+    if (category) {
+      const cleanCat = category.toLowerCase().trim();
+      if (cleanCat === 'neet') {
+        filter.$and = filter.$and || [];
+        filter.$and.push({
+          $or: [{ category: 'neet' }, { examType: 'NEET' }],
+        });
+      } else if (cleanCat === 'jee') {
+        filter.$and = filter.$and || [];
+        filter.$and.push({
+          $or: [
+            { category: 'jee' },
+            { examType: { $in: ['JEE_MAIN', 'JEE_ADVANCED'] } },
+          ],
+        });
+      } else {
+        filter.category = cleanCat;
+      }
     }
     if (subject) {
       filter.subjects = subject;

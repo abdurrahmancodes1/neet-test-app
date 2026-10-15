@@ -22,12 +22,14 @@ export class AdminTestController {
    */
   static importTest = asyncHandler(async (req, res) => {
     const { publishImmediately, overrideExisting } = req.query;
+    const adminUserId = req.user?._id || null;
     const result = await TestImportService.importTest(req.body, {
       publishImmediately:
         publishImmediately === 'true' ||
         publishImmediately === true ||
         req.body.status === 'published',
       overrideExisting: overrideExisting !== 'false',
+      adminUserId,
     });
     return ApiResponse.success(res, 'Test successfully imported and created', result, 201);
   });

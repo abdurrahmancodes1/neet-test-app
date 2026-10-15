@@ -30,28 +30,261 @@ import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
 import { JEE_2027_PERIODIC_TEST } from '../data/jee2027PeriodicTableTest.js';
 
-export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashboard, customTests = {} }) {
-  const { theme, isLight } = useTheme();
-  const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'jee' | 'custom' | 'class10' | 'class9' | 'class8'
+function PlatformTestCard({ test, isLight, onSelect, isJee = false }) {
+  const totalQ = test.totalQuestions || test.questions?.length || 60;
+  const duration = test.durationMinutes || 60;
+  const totalMarks = test.totalMarks || totalQ * (test.markingScheme?.correct || 4);
+  const testKey = test.slug || test.id || test._id;
+  const subjectsStr = Array.isArray(test.subjects)
+    ? test.subjects.join(' & ')
+    : test.subject || 'Comprehensive';
 
-  const customList = Object.values(customTests || {});
+  return (
+    <article
+      key={testKey}
+      className={`overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-xl relative transition ${
+        isJee
+          ? isLight
+            ? 'bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 border-amber-300 shadow-amber-900/5 ring-1 ring-amber-200 text-slate-900'
+            : 'bg-gradient-to-b from-[#1F160A] via-[#140E06] to-[#0B0F19] border-amber-500/60 ring-1 ring-amber-500/30 text-white'
+          : isLight
+          ? 'bg-white border-blue-200 shadow-blue-900/5 ring-1 ring-blue-100 text-slate-900'
+          : 'bg-gradient-to-b from-[#0A192F] via-[#071324] to-[#0B0F19] border-blue-500/60 shadow-2xl ring-1 ring-blue-500/30 text-white'
+      }`}
+    >
+      <div
+        className={`pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full blur-3xl ${
+          isJee ? 'bg-amber-600/15' : 'bg-blue-600/10'
+        }`}
+      />
+
+      <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
+        <div className="max-w-2xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`rounded-full px-3 py-0.5 text-xs font-bold ${
+                isJee
+                  ? isLight
+                    ? 'bg-amber-100 border border-amber-300 text-amber-900'
+                    : 'bg-amber-500/20 border border-amber-500/40 text-amber-300'
+                  : isLight
+                  ? 'bg-blue-50 border border-blue-200 text-blue-700'
+                  : 'bg-blue-500/20 border border-blue-500/40 text-blue-300'
+              }`}
+            >
+              {isJee ? '🎯 JEE MAIN 2027' : '⚡ NEET 2027'} · {subjectsStr.toUpperCase()}
+            </span>
+            <span
+              className={`rounded-full px-3 py-0.5 text-xs font-bold ${
+                isJee
+                  ? isLight
+                    ? 'bg-amber-200/80 border border-amber-300 text-amber-950'
+                    : 'bg-amber-600/20 border border-amber-500/30 text-amber-300'
+                  : isLight
+                  ? 'bg-blue-100 border border-blue-200 text-blue-800'
+                  : 'bg-blue-600/20 border border-blue-500/30 text-blue-300'
+              }`}
+            >
+              {totalQ} Questions · {duration} Minutes
+            </span>
+            <span
+              className={`rounded-full px-3 py-0.5 text-xs font-bold ${
+                isLight
+                  ? 'bg-emerald-100 border border-emerald-300 text-emerald-900'
+                  : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
+              }`}
+            >
+              {totalMarks} Marks (+{test.markingScheme?.correct || 4} / {test.markingScheme?.wrong || -1})
+            </span>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                isLight
+                  ? 'bg-purple-100 border border-purple-200 text-purple-900'
+                  : 'bg-purple-500/20 border border-purple-500/30 text-purple-300'
+              }`}
+            >
+              Platform Test
+            </span>
+          </div>
+
+          <h3 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            {test.title}
+          </h3>
+          <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
+            {test.description || test.subtitle || 'High-yield examination curated with verified equations and SVG vector diagrams.'}
+          </p>
+
+          {test.syllabus && (
+            <div
+              className={`mt-5 rounded-2xl border p-4 text-xs leading-relaxed ${
+                isJee
+                  ? isLight
+                    ? 'border-amber-200 bg-amber-50/60 text-slate-700'
+                    : 'border-white/10 bg-[#070A12] text-slate-300'
+                  : isLight
+                  ? 'border-slate-200 bg-blue-50/40 text-slate-700'
+                  : 'border-white/10 bg-[#070A12] text-slate-300'
+              }`}
+            >
+              <span className={`font-bold ${isJee ? (isLight ? 'text-amber-800' : 'text-amber-400') : (isLight ? 'text-blue-900' : 'text-white')}`}>
+                Syllabus Covered:{' '}
+              </span>
+              {test.syllabus}
+            </div>
+          )}
+
+          <div className={`mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
+                isJee
+                  ? isLight ? 'border-amber-200 bg-white' : 'border-white/10 bg-white/5'
+                  : isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
+              }`}
+            >
+              <Clock size={14} className={isJee ? (isLight ? 'text-amber-700' : 'text-amber-400') : (isLight ? 'text-amber-600' : 'text-amber-400')} />
+              <strong className={isLight ? 'text-slate-900' : 'text-white'}>{duration} Minutes</strong>
+            </span>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
+                isJee
+                  ? isLight ? 'border-amber-200 bg-white' : 'border-white/10 bg-white/5'
+                  : isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
+              }`}
+            >
+              <BookOpen size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
+              <strong className={isLight ? 'text-slate-900' : 'text-white'}>{totalQ} Questions</strong>
+            </span>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
+                isJee
+                  ? isLight ? 'border-amber-200 bg-white' : 'border-white/10 bg-white/5'
+                  : isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
+              }`}
+            >
+              <Award size={14} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
+              <strong className={isLight ? 'text-slate-900' : 'text-white'}>{totalMarks} Marks</strong> (+{test.markingScheme?.correct || 4} / {test.markingScheme?.wrong || -1} Marking Scheme)
+            </span>
+          </div>
+        </div>
+
+        <div className="shrink-0">
+          <button
+            type="button"
+            onClick={() => onSelect(test.slug || test.id || test._id)}
+            className={`flex w-full items-center justify-center gap-2 rounded-full px-8 py-4 text-sm font-bold text-white shadow-xl transition active:scale-95 lg:w-auto ${
+              isJee
+                ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-600/30'
+                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/30'
+            }`}
+          >
+            Start Examination <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default function ChapterTestsPage({
+  onSelect,
+  onLogout,
+  user,
+  onGoToDashboard,
+  platformTests = {},
+  customTests = {},
+}) {
+  const { theme, isLight } = useTheme();
+  const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'jee' | 'class10' | 'class9' | 'class8'
+
+  // Combine platform tests from backend and backwards-compatible customTests
+  const allPlatformTests = Object.values({ ...platformTests, ...customTests });
+
+  // Filter out any built-in duplicate test slugs to avoid double-rendering
+  const builtInSlugs = new Set([
+    NEET_ROUND_1_TEST.id,
+    NEET_ROUND_2_TEST.id,
+    NEET_GRAND_MEGA_TEST.id,
+    NEET_MECHANICS_BONDING_TEST.id,
+    NEET_BIOLOGY_TEST.id,
+    NEET_2026_CORE_TEST.id,
+    NEET_CALCULUS_TEST.id,
+    JEE_2027_PERIODIC_TEST.id,
+  ]);
+
+  const uniquePlatformTests = allPlatformTests.filter(
+    (t) => !builtInSlugs.has(t.slug) && !builtInSlugs.has(t.id)
+  );
+
+  // Group platform tests into their natural exam categories
+  const neetImportedTests = uniquePlatformTests.filter((t) => {
+    const cat = (t.category || '').toLowerCase();
+    const exam = (t.examType || '').toUpperCase();
+    const sub = Array.isArray(t.subjects) ? t.subjects.join(' ').toLowerCase() : '';
+    if (cat === 'jee' || exam.includes('JEE') || (sub.includes('math') && !sub.includes('bio'))) {
+      return false;
+    }
+    if (cat.includes('class') || exam === 'FOUNDATION') {
+      return false;
+    }
+    return true;
+  });
+
+  const jeeImportedTests = uniquePlatformTests.filter((t) => {
+    const cat = (t.category || '').toLowerCase();
+    const exam = (t.examType || '').toUpperCase();
+    const sub = Array.isArray(t.subjects) ? t.subjects.join(' ').toLowerCase() : '';
+    return cat === 'jee' || exam.includes('JEE') || sub.includes('math');
+  });
+
+  const class10ImportedTests = uniquePlatformTests.filter((t) => {
+    const cat = (t.category || '').toLowerCase();
+    return cat === 'class10' || cat.includes('10');
+  });
+
+  const class9ImportedTests = uniquePlatformTests.filter((t) => {
+    const cat = (t.category || '').toLowerCase();
+    return cat === 'class9' || cat.includes('9');
+  });
+
+  const class8ImportedTests = uniquePlatformTests.filter((t) => {
+    const cat = (t.category || '').toLowerCase();
+    return cat === 'class8' || cat.includes('8');
+  });
+
+  const totalNeet = 7 + neetImportedTests.length;
+  const totalJee = 1 + jeeImportedTests.length;
 
   const categories = [
-    { id: 'neet', label: 'NEET 2027', badge: 'Active Test Series', icon: Zap },
-    { id: 'jee', label: 'JEE 2027', badge: 'Active Test Series', icon: Target },
-    ...(customList.length > 0
-      ? [
-          {
-            id: 'custom',
-            label: 'Imported Tests',
-            badge: `${customList.length} Active Paper${customList.length > 1 ? 's' : ''}`,
-            icon: FileCode,
-          },
-        ]
-      : []),
-    { id: 'class10', label: 'Class 10', badge: 'Upcoming in future', icon: GraduationCap },
-    { id: 'class9', label: 'Class 9', badge: 'Upcoming in future', icon: Layers },
-    { id: 'class8', label: 'Class 8', badge: 'Upcoming in future', icon: BookOpen },
+    {
+      id: 'neet',
+      label: 'NEET 2027',
+      badge: `${totalNeet} Active Tests`,
+      icon: Zap,
+    },
+    {
+      id: 'jee',
+      label: 'JEE 2027',
+      badge: `${totalJee} Active Test${totalJee > 1 ? 's' : ''}`,
+      icon: Target,
+    },
+    {
+      id: 'class10',
+      label: 'Class 10',
+      badge: class10ImportedTests.length > 0 ? `${class10ImportedTests.length} Active Tests` : 'Upcoming in future',
+      icon: GraduationCap,
+    },
+    {
+      id: 'class9',
+      label: 'Class 9',
+      badge: class9ImportedTests.length > 0 ? `${class9ImportedTests.length} Active Tests` : 'Upcoming in future',
+      icon: Layers,
+    },
+    {
+      id: 'class8',
+      label: 'Class 8',
+      badge: class8ImportedTests.length > 0 ? `${class8ImportedTests.length} Active Tests` : 'Upcoming in future',
+      icon: BookOpen,
+    },
   ];
 
   return (
@@ -234,7 +467,7 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
               <div className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold ${
                 isLight ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
               }`}>
-                <CheckCircle2 size={16} className={isLight ? 'text-amber-600' : 'text-amber-400'} /> 6 Tests Available
+                <CheckCircle2 size={16} className={isLight ? 'text-amber-600' : 'text-amber-400'} /> {totalNeet} Tests Available
               </div>
             </div>
 
@@ -693,6 +926,17 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                 </div>
               </div>
             </article>
+
+            {/* Platform-wide Imported NEET Examinations */}
+            {neetImportedTests.map((test) => (
+              <PlatformTestCard
+                key={test.slug || test.id || test._id}
+                test={test}
+                isLight={isLight}
+                onSelect={onSelect}
+                isJee={false}
+              />
+            ))}
           </div>
         )}
 
@@ -716,7 +960,7 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
               <div className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold ${
                 isLight ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
               }`}>
-                <CheckCircle2 size={16} /> 1 Test Available (90 Mins · Adjustable)
+                <CheckCircle2 size={16} /> {totalJee} Test{totalJee > 1 ? 's' : ''} Available
               </div>
             </div>
 
@@ -795,6 +1039,17 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
                 </div>
               </div>
             </article>
+
+            {/* Platform-wide Imported JEE Examinations */}
+            {jeeImportedTests.map((test) => (
+              <PlatformTestCard
+                key={test.slug || test.id || test._id}
+                test={test}
+                isLight={isLight}
+                onSelect={onSelect}
+                isJee={true}
+              />
+            ))}
 
             {/* Strict JEE Rules & Paper Hardness Matrix */}
             <div className={`rounded-3xl border p-6 sm:p-8 shadow-2xl relative overflow-hidden space-y-6 ${
@@ -942,98 +1197,22 @@ export default function ChapterTestsPage({ onSelect, onLogout, user, onGoToDashb
           </div>
         )}
 
-        {/* CONTENT FOR CUSTOM IMPORTED TESTS */}
-        {selectedCategory === 'custom' && (
-          <div className="animate-fade-in space-y-6">
-            <div className="grid grid-cols-1 gap-6">
-              {customList.map((test, index) => {
-                const totalQ = test.totalQuestions || test.questions?.length || 0;
-                const duration = test.durationMinutes || 60;
-                const totalMarks = test.totalMarks || totalQ * 4;
-                const testKey = test.slug || test.id || `custom-${index}`;
-
-                return (
-                  <div
-                    key={testKey}
-                    className={`rounded-3xl border p-6 sm:p-8 transition shadow-xl ${
-                      isLight ? 'border-slate-200 bg-white text-slate-900 shadow-sm' : 'border-white/10 bg-[#0B0F19] text-white'
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-slate-200 dark:border-white/10">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/30 px-3 py-1 font-mono text-xs font-bold uppercase">
-                          {test.examType || 'CBT EXAM'}
-                        </span>
-                        <span className="rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-3 py-1 text-xs font-bold">
-                          {test.type || 'Custom Paper'}
-                        </span>
-                        <span className="rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 px-3 py-1 text-xs font-bold">
-                          {(test.subjects || []).join(' & ') || 'General'}
-                        </span>
-                      </div>
-
-                      <span className="text-xs font-mono font-bold text-slate-400">
-                        Total {totalMarks} Marks
-                      </span>
-                    </div>
-
-                    <h3 className={`mt-4 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                      {test.title}
-                    </h3>
-                    <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                      {test.description || test.subtitle || 'Custom exam paper imported with verified KaTeX equations & vector SVG diagrams.'}
-                    </p>
-
-                    {test.syllabus && (
-                      <div className={`mt-4 rounded-2xl border p-4 text-xs leading-relaxed ${
-                        isLight ? 'border-slate-200 bg-blue-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-300'
-                      }`}>
-                        <strong className={isLight ? 'text-blue-900' : 'text-white'}>Syllabus: </strong>
-                        {test.syllabus}
-                      </div>
-                    )}
-
-                    <div className="mt-5 flex flex-wrap items-center justify-between gap-4 pt-3">
-                      <div className="flex flex-wrap items-center gap-3 text-xs font-semibold">
-                        <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                          isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                        }`}>
-                          <Clock size={14} className="text-amber-500" />
-                          <span>{duration} Minutes</span>
-                        </span>
-                        <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                          isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                        }`}>
-                          <BookOpen size={14} className="text-blue-500" />
-                          <span>{totalQ} Questions</span>
-                        </span>
-                        <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                          isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                        }`}>
-                          <Award size={14} className="text-emerald-500" />
-                          <span>+{test.markingScheme?.correct || 4} / {test.markingScheme?.wrong || -1} Scheme</span>
-                        </span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => onSelect(test.slug || test.id)}
-                        className="rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs px-6 py-3 transition shadow-lg shadow-blue-600/30 active:scale-95 flex items-center gap-2"
-                      >
-                        <span>Start Test</span>
-                        <ArrowRight size={14} />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
         {/* CONTENT FOR CLASS 10 SECTION */}
         {selectedCategory === 'class10' && (
           <div className="animate-fade-in space-y-6">
+            {class10ImportedTests.length > 0 && (
+              <div className="space-y-6">
+                {class10ImportedTests.map((test) => (
+                  <PlatformTestCard
+                    key={test.slug || test.id || test._id}
+                    test={test}
+                    isLight={isLight}
+                    onSelect={onSelect}
+                    isJee={false}
+                  />
+                ))}
+              </div>
+            )}
             <div className={`rounded-3xl border p-8 text-center sm:p-12 ${
               isLight ? 'border-slate-200 bg-white text-slate-800 shadow-sm' : 'border-white/10 bg-[#0B0F19] text-white shadow-xl'
             }`}>

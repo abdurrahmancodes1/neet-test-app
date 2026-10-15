@@ -823,8 +823,11 @@ JSON SCHEMA:
               Question Paper Successfully Created!
             </h3>
             <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-              The test and all its questions with inline SVG diagrams have been validated, sanitized,
-              and stored in MongoDB.
+              The test has been published as a platform-wide examination and is immediately available to all candidates in the{' '}
+              <strong className="text-blue-500 font-bold">
+                {createdTestResult.test?.category === 'jee' ? 'JEE 2027' : 'NEET 2027'}
+              </strong>{' '}
+              category.
             </p>
           </div>
 
@@ -856,6 +859,18 @@ JSON SCHEMA:
               <span className="text-slate-500">Status:</span>
               <span className="rounded-full bg-emerald-500/20 text-emerald-500 px-2 py-0.5 font-bold uppercase text-[10px]">
                 {createdTestResult.test?.status}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Category &amp; Target:</span>
+              <span className="rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/30 px-2 py-0.5 font-bold uppercase text-[10px]">
+                {createdTestResult.test?.category === 'jee' ? 'JEE 2027' : 'NEET 2027'} ({createdTestResult.test?.examType || 'CBT'})
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Visibility:</span>
+              <span className="rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 font-bold text-[10px]">
+                Global Platform Test (All Students)
               </span>
             </div>
           </div>

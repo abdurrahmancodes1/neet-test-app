@@ -61,8 +61,17 @@ export const importTestPayloadSchema = z
     description: z.string().optional(),
     category: z.string().optional(),
     examType: z
-      .enum(['NEET', 'JEE_MAIN', 'JEE_ADVANCED', 'FOUNDATION', 'GENERAL'])
-      .default('NEET'),
+      .string()
+      .optional()
+      .default('NEET')
+      .transform((val) => {
+        const u = (val || 'NEET').toUpperCase().trim().replace(/[-\s]/g, '_');
+        if (u === 'JEE' || u === 'JEE_MAIN') return 'JEE_MAIN';
+        if (u === 'JEE_ADVANCED' || u === 'ADVANCED') return 'JEE_ADVANCED';
+        if (['NEET', 'JEE_MAIN', 'JEE_ADVANCED', 'FOUNDATION', 'GENERAL'].includes(u)) return u;
+        return 'NEET';
+      }),
+    isPublic: z.boolean().default(true),
     testCode: z.string().min(2, 'Test code must be at least 2 characters').toUpperCase().optional(),
     allowedCodes: z.array(z.string()).optional(),
     type: z.enum(['chapter', 'full_mock', 'aits', 'quiz']).default('chapter'),

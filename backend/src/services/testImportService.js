@@ -57,13 +57,60 @@ export class TestImportService {
       inferred.push(`Duration set to ${payload.durationMinutes} minutes`);
     }
 
+    // Synchronize and normalize category and examType
+    let examType = (payload.examType || 'NEET').toUpperCase();
+    if (examType === 'JEE') examType = 'JEE_MAIN';
+
+    let category = (payload.category || '').toLowerCase().trim();
+    if (!category) {
+      if (examType === 'JEE_MAIN' || examType === 'JEE_ADVANCED') {
+        category = 'jee';
+      } else if (examType === 'FOUNDATION') {
+        category = 'class10';
+      } else {
+        category = 'neet';
+      }
+      inferred.push(`Category inferred as "${category}" based on exam type "${examType}"`);
+    } else {
+      if (category.includes('jee')) {
+        category = 'jee';
+        if (examType !== 'JEE_ADVANCED') examType = 'JEE_MAIN';
+      } else if (category.includes('neet')) {
+        category = 'neet';
+        examType = 'NEET';
+      } else if (category.includes('10')) {
+        category = 'class10';
+        examType = 'FOUNDATION';
+      } else if (category.includes('9')) {
+        category = 'class9';
+        examType = 'FOUNDATION';
+      } else if (category.includes('8')) {
+        category = 'class8';
+        examType = 'FOUNDATION';
+      }
+    }
+
+    // Sanitize any restricted coaching batch names (Arjuna, Lakshya, Prayas, Yakeen, PW)
+    const sanitizeBatchNames = (txt) => {
+      if (!txt || typeof txt !== 'string') return txt;
+      return txt
+        .replace(/\b(arjuna|lakshya|prayas|yakeen|physics\s*wallah|pw)\b/gi, '')
+        .replace(/\s{2,}/g, ' ')
+        .replace(/^[\s\-_:]+|[\s\-_:]+$/g, '')
+        .trim();
+    };
+
+    const cleanTitle = sanitizeBatchNames(payload.title) || 'National Practice Mock Test';
+    const cleanSubtitle = sanitizeBatchNames(payload.subtitle);
+    const cleanDescription = sanitizeBatchNames(payload.description);
+
     // Generate slug preview if omitted
-    const effectiveSlug =
-      payload.slug ||
-      payload.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)+/g, '');
+    const baseSlug = payload.slug || cleanTitle;
+    const effectiveSlug = baseSlug
+      .toLowerCase()
+      .replace(/\b(arjuna|lakshya|prayas|yakeen|pw)\b/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
 
     // Check if slug already exists in database
     let slugCollision = false;
@@ -144,12 +191,14 @@ export class TestImportService {
       warnings: collectedWarnings,
       test: {
         schemaVersion: payload.schemaVersion || '1.0',
-        title: payload.title,
+        title: cleanTitle,
         slug: effectiveSlug,
         slugCollision,
-        subtitle: payload.subtitle || '',
-        description: payload.description || payload.syllabus || '',
-        examType: payload.examType || 'NEET',
+        subtitle: cleanSubtitle || '',
+        description: cleanDescription || payload.syllabus || '',
+        examType,
+        category,
+        isPublic: true,
         type: payload.type || 'chapter',
         subjects: payload.subjects,
         chapters: payload.chapters,
@@ -172,7 +221,7 @@ export class TestImportService {
    */
   static async importTest(
     rawPayload,
-    options = { publishImmediately: true, overrideExisting: true }
+    options = { publishImmediately: true, overrideExisting: true, adminUserId: null }
   ) {
     // 1. Run full preview validation
     const preview = await this.validateAndPreview(rawPayload);
@@ -202,6 +251,9 @@ export class TestImportService {
           subtitle: testMeta.subtitle,
           description: testMeta.description,
           examType: testMeta.examType,
+          category: testMeta.category,
+          isPublic: true,
+          createdBy: options.adminUserId || null,
           testCode,
           allowedCodes,
           type: testMeta.type,
@@ -214,7 +266,11 @@ export class TestImportService {
           totalMarks: testMeta.totalMarks,
           markingScheme: testMeta.markingScheme,
           status: options.publishImmediately ? 'published' : testMeta.status,
-          publishedAt: options.publishImmediately ? new Date() : null,
+          publishedAt: options.publishImmediately
+            ? new Date()
+            : testMeta.status === 'published'
+            ? new Date()
+            : null,
           warnings,
         },
         { upsert: true, new: true, setDefaultsOnInsert: true }
@@ -257,6 +313,8 @@ export class TestImportService {
           title: createdOrUpdatedTest.title,
           testCode,
           examType: createdOrUpdatedTest.examType,
+          category: createdOrUpdatedTest.category,
+          isPublic: createdOrUpdatedTest.isPublic,
           subjects: createdOrUpdatedTest.subjects,
           durationMinutes: createdOrUpdatedTest.durationMinutes,
           totalQuestions: questionsInserted.length,

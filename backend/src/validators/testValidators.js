@@ -20,6 +20,9 @@ export const createTestSchema = z.object({
       unattempted: z.number().default(0),
     })
     .default({ correct: 4, wrong: -1, unattempted: 0 }),
+  examType: z.enum(['NEET', 'JEE_MAIN', 'JEE_ADVANCED', 'FOUNDATION', 'GENERAL']).default('NEET'),
+  category: z.string().optional(),
+  isPublic: z.boolean().default(true),
   status: z.enum(['draft', 'published', 'archived']).default('draft'),
 });
 
@@ -27,9 +30,11 @@ export const updateTestSchema = createTestSchema.partial();
 
 export const queryTestsSchema = z.object({
   page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().positive().max(100).default(20),
+  limit: z.coerce.number().int().positive().max(500).default(50),
   subject: z.string().optional(),
   type: z.enum(['chapter', 'full_mock', 'aits', 'quiz']).optional(),
+  examType: z.string().optional(),
+  category: z.string().optional(),
   status: z.enum(['draft', 'published', 'archived']).optional(),
   search: z.string().optional(),
 });

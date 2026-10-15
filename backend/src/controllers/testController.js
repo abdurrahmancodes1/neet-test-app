@@ -9,12 +9,14 @@ export class TestController {
    * GET /api/tests - List all published tests (student view: private codes hidden)
    */
   static listTests = asyncHandler(async (req, res) => {
-    const { page, limit, subject, type, search } = req.query;
+    const { page, limit, subject, type, examType, category, search } = req.query;
     const result = await TestService.listTests({
       page: page ? parseInt(page, 10) : 1,
-      limit: limit ? parseInt(limit, 10) : 20,
+      limit: limit ? parseInt(limit, 10) : 50,
       subject,
       type,
+      examType,
+      category,
       status: 'published',
       search,
     });

@@ -87,27 +87,69 @@ export default function App() {
   const [adminDiagnosisAttempt, setAdminDiagnosisAttempt] = useState(null);
   const [adminDiagnosisStudent, setAdminDiagnosisStudent] = useState(null);
 
-  // Custom dynamically imported tests from Admin JSON import workflow
-  const [customTests, setCustomTests] = useState(() => {
-    try {
-      const stored = window.localStorage.getItem('neet_custom_imported_tests');
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
-  });
+  // Platform-wide published tests fetched from backend MongoDB API
+  const [platformTests, setPlatformTests] = useState({});
 
-  const handleCustomTestCreated = useCallback((testPayload) => {
-    if (!testPayload) return;
-    const key = testPayload.slug || testPayload.id;
-    setCustomTests((prev) => {
-      const updated = { ...prev, [key]: testPayload };
-      try {
-        window.localStorage.setItem('neet_custom_imported_tests', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
+  const fetchPlatformTests = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/tests?limit=100`, {
+        credentials: 'include',
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json?.data && Array.isArray(json.data)) {
+          const map = {};
+          json.data.forEach((t) => {
+            const key = t.slug || t._id;
+            map[key] = {
+              ...t,
+              id: key,
+              examType: t.examType || (t.category === 'jee' ? 'JEE_MAIN' : 'NEET'),
+              category: t.category || (t.examType?.includes('JEE') ? 'jee' : 'neet'),
+            };
+          });
+          setPlatformTests((prev) => {
+            const merged = { ...prev };
+            Object.keys(map).forEach((k) => {
+              merged[k] = {
+                ...map[k],
+                questions: prev[k]?.questions || map[k].questions || [],
+              };
+            });
+            return merged;
+          });
+          return map;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch platform tests from server:', err);
+    }
+    return {};
   }, []);
+
+  // Fetch platform tests on mount and whenever user changes
+  useEffect(() => {
+    fetchPlatformTests();
+  }, [fetchPlatformTests, currentUser?.email]);
+
+  const handleCustomTestCreated = useCallback(
+    (testPayload) => {
+      if (!testPayload) return;
+      const key = testPayload.slug || testPayload.id;
+      setPlatformTests((prev) => ({
+        ...prev,
+        [key]: {
+          ...testPayload,
+          id: key,
+          examType: testPayload.examType || (testPayload.category === 'jee' ? 'JEE_MAIN' : 'NEET'),
+          category: testPayload.category || (testPayload.examType?.includes('JEE') ? 'jee' : 'neet'),
+        },
+      }));
+      // Immediately refresh all platform tests from server
+      fetchPlatformTests();
+    },
+    [fetchPlatformTests]
+  );
 
   // Live role check on mount / user change (syncs if role was changed in MongoDB)
   useEffect(() => {
@@ -137,8 +179,8 @@ export default function App() {
 
   // Dynamically resolve active test configuration
   const activeTest = useMemo(() => {
-    return ALL_TESTS[testId] || customTests[testId] || ALL_TESTS[JEE_2027_PERIODIC_TEST.id];
-  }, [testId, customTests]);
+    return platformTests[testId] || ALL_TESTS[testId] || ALL_TESTS[JEE_2027_PERIODIC_TEST.id];
+  }, [testId, platformTests]);
 
   const durationMs = useMemo(() => {
     if (session?.endTime && session?.startTime) {
@@ -261,23 +303,35 @@ export default function App() {
         window.localStorage.setItem(ACTIVE_TEST_KEY, selectedId);
       } catch {}
 
-      // If test not present in ALL_TESTS or customTests, dynamically fetch from MongoDB API
-      if (!ALL_TESTS[selectedId] && !customTests[selectedId]) {
+      // If test questions are not yet loaded in memory, dynamically fetch from MongoDB API
+      const existing = platformTests[selectedId] || ALL_TESTS[selectedId];
+      if (!existing?.questions || existing.questions.length === 0) {
         try {
           const [tRes, qRes] = await Promise.all([
             fetch(`${API_BASE}/tests/${selectedId}`).then((r) => r.json()),
             fetch(`${API_BASE}/tests/${selectedId}/questions`).then((r) => r.json()),
           ]);
           if (tRes?.data) {
+            const rawQuestions = qRes?.data || [];
+            const questions = rawQuestions.map((q, idx) => ({
+              ...q,
+              id: q.order || q._id || idx + 1,
+              order: q.order || idx + 1,
+              number: q.order || idx + 1,
+            }));
             const fullTest = {
               ...tRes.data,
               id: tRes.data.slug || tRes.data._id,
-              questions: qRes?.data || [],
+              questions,
             };
-            handleCustomTestCreated(fullTest);
+            setPlatformTests((prev) => ({
+              ...prev,
+              [selectedId]: fullTest,
+              [fullTest.id]: fullTest,
+            }));
           }
         } catch (e) {
-          console.warn('Could not fetch custom test from backend:', e);
+          console.warn('Could not fetch test from backend:', e);
         }
       }
 
@@ -301,7 +355,7 @@ export default function App() {
         setScreen('instructions');
       }
     },
-    [currentUser, customTests, handleCustomTestCreated]
+    [currentUser, platformTests]
   );
 
   const startTest = useCallback(
@@ -337,7 +391,7 @@ export default function App() {
   );
 
   const submitTest = useCallback(
-    (auto = false) => {
+    async (auto = false) => {
       const submittedAt = Math.min(Date.now(), session.endTime ?? Date.now());
       const updatedSession = {
         ...session,
@@ -349,24 +403,59 @@ export default function App() {
 
       // Record snapshot to user attempt history and backend
       if (currentUser?.email) {
-        const computed = computeResult(updatedSession.answers || {}, activeTest.questions);
+        let serverResult = null;
         const timeTakenMs = session.startTime ? Math.max(0, submittedAt - session.startTime) : 0;
+        const timeSpentSeconds = Math.round(timeTakenMs / 1000);
+
+        // Try server-side grading if it is a platform MongoDB test
+        try {
+          const res = await fetch(`${API_BASE}/tests/${testId}/submit`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              attemptId: `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+              userId: currentUser._id || null,
+              studentName: currentUser.name || 'Anonymous Student',
+              studentRollNumber: currentUser.rollNumber || null,
+              answers: updatedSession.answers || {},
+              markedForReview: updatedSession.markedForReview || [],
+              timeSpentSeconds,
+              startTime: session.startTime ? new Date(session.startTime).toISOString() : null,
+              autoSubmitted: auto,
+            }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.data) {
+              serverResult = data.data;
+            }
+          }
+        } catch (submitErr) {
+          console.warn('Server grading request error:', submitErr);
+        }
+
+        const computed = computeResult(updatedSession.answers || {}, activeTest.questions);
+
         saveUserAttempt(currentUser.email, {
           testId: activeTest.id,
           testTitle: activeTest.title,
-          score: computed.score,
-          rawScore: computed.rawScore,
-          maxScore: computed.maxScore,
-          percentage: computed.percentage,
-          accuracy: computed.accuracy,
-          correct: computed.correct,
-          wrong: computed.wrong,
-          unattempted: computed.unattempted,
-          totalQuestions: computed.totalQuestions,
-          topicPerformance: computed.topicPerformance,
-          weakestTopics: computed.weakestTopics,
-          strongestTopics: computed.strongestTopics,
-          perQuestion: computed.perQuestion,
+          score: serverResult ? serverResult.score : computed.score,
+          rawScore: serverResult ? serverResult.rawScore : computed.rawScore,
+          maxScore: serverResult ? serverResult.maxScore : computed.maxScore,
+          percentage: serverResult ? serverResult.percentage : computed.percentage,
+          accuracy: serverResult ? serverResult.accuracy : computed.accuracy,
+          correct: serverResult ? serverResult.correctCount : computed.correct,
+          wrong: serverResult ? serverResult.wrongCount : computed.wrong,
+          unattempted: serverResult ? serverResult.unattemptedCount : computed.unattempted,
+          totalQuestions: serverResult ? serverResult.totalQuestions : computed.totalQuestions,
+          topicPerformance: serverResult ? serverResult.topicPerformance : computed.topicPerformance,
+          weakestTopics: serverResult ? serverResult.weakestTopics : computed.weakestTopics,
+          strongestTopics: serverResult ? serverResult.strongestTopics : computed.strongestTopics,
+          perQuestion: serverResult ? serverResult.answers : computed.perQuestion,
           answers: updatedSession.answers || {},
           timeTakenMs,
           autoSubmitted: auto,
@@ -376,7 +465,7 @@ export default function App() {
       setReviewedAttempt(null);
       setScreen('result');
     },
-    [session, updateSession, currentUser, activeTest]
+    [session, updateSession, currentUser, activeTest, testId]
   );
 
   const retake = useCallback(() => {
@@ -465,7 +554,8 @@ export default function App() {
         onLogout={handleLogout}
         user={currentUser}
         onGoToDashboard={handleGoToDashboard}
-        customTests={customTests}
+        platformTests={platformTests}
+        customTests={platformTests}
       />
     );
   }
