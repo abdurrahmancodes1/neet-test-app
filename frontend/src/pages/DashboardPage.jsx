@@ -20,6 +20,7 @@ import {
   ArrowUpRight,
   HelpCircle,
 } from 'lucide-react';
+import { useTheme } from '../utils/themeContext.jsx';
 import { getUserAnalytics, getGlobalPlatformStats, fetchServerAttempts, syncOrphanedLocalAttempts } from '../utils/auth.js';
 import { formatDuration } from '../utils/scoring.js';
 import { AttemptComparisonChart, AttemptAccuracyChart } from '../components/AttemptComparisonChart.jsx';
