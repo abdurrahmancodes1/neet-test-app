@@ -265,7 +265,7 @@ resultSchema.index({ testId: 1, userId: 1, status: 1 });
 resultSchema.index({ testId: 1, score: -1 });
 resultSchema.index({ userId: 1, createdAt: -1 });
 resultSchema.index({ studentEmail: 1, createdAt: -1 });
-resultSchema.index({ attemptId: 1 }, { sparse: true });
+resultSchema.index({ attemptId: 1 }, { unique: true, sparse: true });
 resultSchema.index({ createdAt: -1 });
 
 export const Result = mongoose.model('Result', resultSchema);

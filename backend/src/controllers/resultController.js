@@ -4,6 +4,7 @@ import { ResultService } from '../services/resultService.js';
 import { SyncStore } from '../services/syncStore.js';
 import { AppError } from '../utils/AppError.js';
 import { User, Result, LiveSession } from '../models/index.js';
+import { filterBurstDuplicates } from '../utils/burstDeduplicator.js';
 import mongoose from 'mongoose';
 
 export class ResultController {
@@ -200,48 +201,110 @@ export class ResultController {
           }
         }
 
-        // Upsert Result document atomically
-        savedDoc = await Result.findOneAndUpdate(
-          { attemptId: finalAttemptId },
-          {
+        // 1. Primary Idempotency Check: if attemptId already recorded, return existing result
+        const existingByAttempt = await Result.findOne({ attemptId: finalAttemptId }).lean();
+        if (existingByAttempt) {
+          if (
+            effectiveUserId &&
+            existingByAttempt.userId &&
+            existingByAttempt.userId.toString() !== effectiveUserId.toString()
+          ) {
+            throw new AppError('Access denied: attempt ID belongs to another student', 403);
+          }
+          return ApiResponse.success(res, 'Attempt already synchronized', existingByAttempt, 200);
+        }
+
+        // 2. Burst Duplicate Guard: check for recent duplicate submission within 5 minutes
+        if (effectiveUserId || cleanAttempt.studentEmail) {
+          const recentFilter = {
             testId: cleanAttempt.testId,
-            testTitle: cleanAttempt.testTitle,
-            userId: effectiveUserId,
-            attemptId: finalAttemptId,
-            studentName: cleanAttempt.studentName,
-            studentEmail: cleanAttempt.studentEmail,
-            studentRollNumber: cleanAttempt.studentRollNumber,
             status: 'submitted',
-            score: cleanAttempt.score,
-            rawScore: cleanAttempt.rawScore,
-            maxScore: cleanAttempt.maxScore,
-            percentage: cleanAttempt.percentage,
-            accuracy: cleanAttempt.accuracy,
-            correctCount: cleanAttempt.correct,
-            wrongCount: cleanAttempt.wrong,
-            unattemptedCount: cleanAttempt.unattempted,
-            totalQuestions: cleanAttempt.totalQuestions,
-            answers: cleanAttempt.answers,
-            perQuestion: cleanAttempt.perQuestion,
-            topicPerformance: cleanAttempt.topicPerformance,
-            weakestTopics: cleanAttempt.weakestTopics,
-            strongestTopics: cleanAttempt.strongestTopics,
-            timeTakenMs: cleanAttempt.timeTakenMs,
-            timeSpentSeconds: cleanAttempt.timeSpentSeconds,
-            startTime: new Date(Date.now() - (cleanAttempt.timeTakenMs || 0)),
-            endTime: new Date(),
-            submittedAt: new Date(cleanAttempt.timestamp),
-            autoSubmitted: cleanAttempt.autoSubmitted,
-            metadata: {
+            createdAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) },
+          };
+          if (effectiveUserId) {
+            recentFilter.userId = effectiveUserId;
+          } else {
+            recentFilter.studentEmail = cleanAttempt.studentEmail;
+          }
+
+          const recentMatches = await Result.find(recentFilter).sort({ createdAt: -1 }).limit(5).lean();
+          for (const rm of recentMatches) {
+            if (rm.score === cleanAttempt.score && (rm.correctCount ?? 0) === (cleanAttempt.correct ?? 0)) {
+              const rmAnswers = rm.answers;
+              const cleanAnswers = cleanAttempt.answers || {};
+              let matched = false;
+
+              if (Array.isArray(rmAnswers)) {
+                matched = rmAnswers.every((item) => {
+                  const candidateSel = cleanAnswers[item.questionId] ?? cleanAnswers[item.order] ?? cleanAnswers[String(item.order)];
+                  return (candidateSel || null) === (item.selectedOption || null);
+                });
+              } else if (rmAnswers && typeof rmAnswers === 'object') {
+                const rmKeys = Object.keys(rmAnswers);
+                const cleanKeys = Object.keys(cleanAnswers);
+                matched = rmKeys.length === cleanKeys.length && cleanKeys.every((k) => cleanAnswers[k] === rmAnswers[k]);
+              }
+
+              if (matched) {
+                console.warn(`Idempotency guard in syncResult: duplicate detected for attempt ${finalAttemptId}, returning existing result ${rm._id}`);
+                return ApiResponse.success(res, 'Duplicate attempt ignored (already synchronized)', rm, 200);
+              }
+            }
+          }
+        }
+
+        // 3. Upsert Result document atomically with race error handling
+        try {
+          savedDoc = await Result.findOneAndUpdate(
+            { attemptId: finalAttemptId },
+            {
+              testId: cleanAttempt.testId,
               testTitle: cleanAttempt.testTitle,
+              userId: effectiveUserId,
+              attemptId: finalAttemptId,
+              studentName: cleanAttempt.studentName,
+              studentEmail: cleanAttempt.studentEmail,
+              studentRollNumber: cleanAttempt.studentRollNumber,
+              status: 'submitted',
+              score: cleanAttempt.score,
+              rawScore: cleanAttempt.rawScore,
+              maxScore: cleanAttempt.maxScore,
+              percentage: cleanAttempt.percentage,
+              accuracy: cleanAttempt.accuracy,
+              correctCount: cleanAttempt.correct,
+              wrongCount: cleanAttempt.wrong,
+              unattemptedCount: cleanAttempt.unattempted,
+              totalQuestions: cleanAttempt.totalQuestions,
               answers: cleanAttempt.answers,
               perQuestion: cleanAttempt.perQuestion,
               topicPerformance: cleanAttempt.topicPerformance,
+              weakestTopics: cleanAttempt.weakestTopics,
+              strongestTopics: cleanAttempt.strongestTopics,
               timeTakenMs: cleanAttempt.timeTakenMs,
+              timeSpentSeconds: cleanAttempt.timeSpentSeconds,
+              startTime: new Date(Date.now() - (cleanAttempt.timeTakenMs || 0)),
+              endTime: new Date(),
+              submittedAt: new Date(cleanAttempt.timestamp),
+              autoSubmitted: cleanAttempt.autoSubmitted,
+              metadata: {
+                testTitle: cleanAttempt.testTitle,
+                answers: cleanAttempt.answers,
+                perQuestion: cleanAttempt.perQuestion,
+                topicPerformance: cleanAttempt.topicPerformance,
+                timeTakenMs: cleanAttempt.timeTakenMs,
+              },
             },
-          },
-          { upsert: true, new: true, setDefaultsOnInsert: true }
-        );
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+          );
+        } catch (dbErr) {
+          if (dbErr.code === 11000 && (dbErr.keyPattern?.attemptId || dbErr.message?.includes('attemptId'))) {
+            const existingCollided = await Result.findOne({ attemptId: finalAttemptId }).lean();
+            if (existingCollided) {
+              return ApiResponse.success(res, 'Attempt already synchronized', existingCollided, 200);
+            }
+          }
+          throw dbErr;
+        }
 
         // Remove live session from MongoDB
         if (cleanEmail && cleanAttempt.testId) {
@@ -251,6 +314,7 @@ export class ResultController {
           });
         }
       } catch (err) {
+        if (err instanceof AppError) throw err;
         console.error('CRITICAL: Error syncing result to MongoDB:', err);
         throw new AppError(`Failed to persist test result to database: ${err.message}`, 500);
       }
@@ -336,8 +400,9 @@ export class ResultController {
       });
     }
 
-    return ApiResponse.success(res, 'All submitted results retrieved', results, 200, {
-      total: results.length,
+    const sanitizedResults = filterBurstDuplicates(results);
+    return ApiResponse.success(res, 'All submitted results retrieved', sanitizedResults, 200, {
+      total: sanitizedResults.length,
     });
   });
 
@@ -450,6 +515,7 @@ export class ResultController {
         }));
     }
 
-    return ApiResponse.success(res, 'Student attempts retrieved', results);
+    const sanitizedResults = filterBurstDuplicates(results);
+    return ApiResponse.success(res, 'Student attempts retrieved', sanitizedResults);
   });
 }

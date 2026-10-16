@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import {
   loadSession,
   saveSession,
@@ -87,6 +87,7 @@ export default function App() {
   const [reviewedAttempt, setReviewedAttempt] = useState(null);
   const [adminDiagnosisAttempt, setAdminDiagnosisAttempt] = useState(null);
   const [adminDiagnosisStudent, setAdminDiagnosisStudent] = useState(null);
+  const submittingRef = useRef(false);
 
   // Platform-wide published tests fetched from backend MongoDB API
   const [platformTests, setPlatformTests] = useState({});
@@ -190,44 +191,7 @@ export default function App() {
     return (activeTest.durationMinutes || 120) * 60 * 1000;
   }, [session?.endTime, session?.startTime, activeTest.durationMinutes]);
 
-  // Auto-submission when timer expires
-  useEffect(() => {
-    if (session.state === 'IN_PROGRESS' && session.endTime && Date.now() >= session.endTime) {
-      const submittedAt = session.endTime;
-      const next = { ...session, state: 'SUBMITTED', submittedAt, autoSubmitted: true };
-      saveSession(next, testId);
-      setSession(next);
 
-      // Save to user history and backend
-      if (currentUser?.email) {
-        const computed = computeResult(next.answers || {}, activeTest.questions);
-        const timeTakenMs = next.startTime ? Math.max(0, submittedAt - next.startTime) : durationMs;
-        saveUserAttempt(currentUser.email, {
-          testId: activeTest.id,
-          testTitle: activeTest.title,
-          score: computed.score,
-          rawScore: computed.rawScore,
-          maxScore: computed.maxScore,
-          percentage: computed.percentage,
-          accuracy: computed.accuracy,
-          correct: computed.correct,
-          wrong: computed.wrong,
-          unattempted: computed.unattempted,
-          totalQuestions: computed.totalQuestions,
-          topicPerformance: computed.topicPerformance,
-          weakestTopics: computed.weakestTopics,
-          strongestTopics: computed.strongestTopics,
-          perQuestion: computed.perQuestion,
-          answers: next.answers || {},
-          timeTakenMs,
-          autoSubmitted: true,
-        });
-      }
-
-      setReviewedAttempt(null);
-      setScreen('result');
-    }
-  }, [session, testId, currentUser, activeTest, durationMs]);
 
   // Persistent live session auto-sync during test taking
   const updateSession = useCallback(
@@ -307,6 +271,7 @@ export default function App() {
 
   const handleSelectTest = useCallback(
     async (selectedId) => {
+      submittingRef.current = false;
       setTestId(selectedId);
       setReviewedAttempt(null);
       try {
@@ -370,6 +335,7 @@ export default function App() {
 
   const startTest = useCallback(
     async (customDurationMinutes) => {
+      submittingRef.current = false;
       setReviewedAttempt(null);
       let effectiveMinutes = activeTest.durationMinutes || 120;
       if (customDurationMinutes && !isNaN(Number(customDurationMinutes))) {
@@ -402,9 +368,14 @@ export default function App() {
 
   const submitTest = useCallback(
     async (auto = false) => {
+      if (submittingRef.current) return;
+      submittingRef.current = true;
+
       const submittedAt = Math.min(Date.now(), session.endTime ?? Date.now());
+      const attemptId = session.attemptId || `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const updatedSession = {
         ...session,
+        attemptId,
         state: 'SUBMITTED',
         submittedAt,
         autoSubmitted: auto,
@@ -416,7 +387,6 @@ export default function App() {
         const timeTakenMs = session.startTime ? Math.max(0, submittedAt - session.startTime) : 0;
         const timeSpentSeconds = Math.round(timeTakenMs / 1000);
         const computed = computeResult(updatedSession.answers || {}, activeTest.questions);
-        const attemptId = `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
         const submitPayload = {
           attemptId,
@@ -534,7 +504,17 @@ export default function App() {
     [session, updateSession, currentUser, activeTest, testId]
   );
 
+  // Fallback auto-submission when timer expires (e.g. background tab or timer unmount)
+  useEffect(() => {
+    if (session.state === 'IN_PROGRESS' && session.endTime && Date.now() >= session.endTime) {
+      if (!submittingRef.current) {
+        submitTest(true);
+      }
+    }
+  }, [session.state, session.endTime, submitTest]);
+
   const retake = useCallback(() => {
+    submittingRef.current = false;
     setReviewedAttempt(null);
     clearSession(testId);
     if (currentUser?.email) {

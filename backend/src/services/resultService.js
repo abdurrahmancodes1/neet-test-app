@@ -57,10 +57,18 @@ export class ResultService {
     const effectiveAttemptId =
       attemptId || `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
-    // Check for duplicate submission if attemptId is present
+    // 1. Primary Idempotency Check: if attemptId is already recorded, return the existing result
     if (attemptId) {
       const existing = await Result.findOne({ attemptId }).lean();
       if (existing) {
+        // Ownership guard: prevent student hijacking another student's attempt
+        if (
+          effectiveUserId &&
+          existing.userId &&
+          existing.userId.toString() !== effectiveUserId.toString()
+        ) {
+          throw new AppError('Access denied: attempt ID belongs to another student', 403);
+        }
         return this.formatResultResponse(existing, test);
       }
     }
@@ -82,49 +90,106 @@ export class ResultService {
       test.markingScheme || { correct: 4, wrong: -1, unattempted: 0 }
     );
 
+    // 2. Burst Duplicate Guard: check for an identical recent submission (same student, test, answers, and score within last 5 minutes)
+    if (effectiveUserId || effectiveStudentEmail) {
+      const recentFilter = {
+        testId: { $in: [test.slug, test._id, testIdOrSlug] },
+        status: 'submitted',
+        createdAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) },
+      };
+      if (effectiveUserId) {
+        recentFilter.userId = effectiveUserId;
+      } else {
+        recentFilter.studentEmail = effectiveStudentEmail;
+      }
+
+      const recentMatches = await Result.find(recentFilter).sort({ createdAt: -1 }).limit(5).lean();
+      for (const rm of recentMatches) {
+        if (rm.attemptId === effectiveAttemptId) {
+          return this.formatResultResponse(rm, test);
+        }
+        if (rm.score === evaluation.score && (rm.correctCount ?? 0) === evaluation.correctCount) {
+          const rmAnswers = rm.answers;
+          const evalAnswers = evaluation.evaluatedAnswers;
+          let matched = false;
+
+          if (Array.isArray(rmAnswers) && Array.isArray(evalAnswers)) {
+            if (rmAnswers.length === evalAnswers.length) {
+              matched = evalAnswers.every((item, idx) => {
+                const rmItem = rmAnswers[idx];
+                return (item.selectedOption || null) === (rmItem?.selectedOption || null);
+              });
+            }
+          } else if (rmAnswers && evalAnswers && typeof rmAnswers === 'object' && typeof evalAnswers === 'object') {
+            const rmKeys = Object.keys(rmAnswers);
+            const evalKeys = Object.keys(evalAnswers);
+            matched = rmKeys.length === evalKeys.length && evalKeys.every((k) => evalAnswers[k] === rmAnswers[k]);
+          }
+
+          if (matched) {
+            console.warn(`Idempotency guard: duplicate submission detected for attempt ${effectiveAttemptId}, returning existing result ${rm._id}`);
+            return this.formatResultResponse(rm, test);
+          }
+        }
+      }
+    }
+
     const now = new Date();
     const start = startTime ? new Date(startTime) : new Date(now.getTime() - (timeSpentSeconds || 0) * 1000);
     const end = new Date(start.getTime() + (test.durationMinutes || 60) * 60 * 1000);
     const resolvedTitle = testTitle || test.title || 'NEET Practice Test';
 
-    // Persist verified result record in database
-    const resultDoc = await Result.create({
-      testId: test.slug || test._id,
-      testTitle: resolvedTitle,
-      userId: effectiveUserId,
-      attemptId: effectiveAttemptId,
-      studentName: studentName || 'Anonymous Student',
-      studentEmail: effectiveStudentEmail,
-      studentRollNumber: studentRollNumber || null,
-      status: 'submitted',
-      answers: evaluation.evaluatedAnswers,
-      markedForReview: markedForReview || [],
-      score: evaluation.score,
-      rawScore: evaluation.rawScore,
-      maxScore: evaluation.maxScore,
-      percentage: evaluation.percentage,
-      accuracy: evaluation.accuracy,
-      correctCount: evaluation.correctCount,
-      wrongCount: evaluation.wrongCount,
-      unattemptedCount: evaluation.unattemptedCount,
-      totalQuestions: evaluation.totalQuestions,
-      subjectPerformance: evaluation.subjectPerformance,
-      chapterPerformance: evaluation.chapterPerformance,
-      topicPerformance: evaluation.topicPerformance,
-      weakestTopics: evaluation.weakestTopics,
-      strongestTopics: evaluation.strongestTopics,
-      startTime: start,
-      endTime: end,
-      submittedAt: now,
-      autoSubmitted: Boolean(autoSubmitted),
-      timeSpentSeconds: timeSpentSeconds || Math.round((now.getTime() - start.getTime()) / 1000),
-      timeTakenMs: (timeSpentSeconds || 0) * 1000,
-      metadata: {
+    // 3. Persist verified result record with concurrency race protection
+    let resultDoc;
+    try {
+      resultDoc = await Result.create({
+        testId: test.slug || test._id,
         testTitle: resolvedTitle,
-        examType: test.examType,
-        category: test.category,
-      },
-    });
+        userId: effectiveUserId,
+        attemptId: effectiveAttemptId,
+        studentName: studentName || 'Anonymous Student',
+        studentEmail: effectiveStudentEmail,
+        studentRollNumber: studentRollNumber || null,
+        status: 'submitted',
+        answers: evaluation.evaluatedAnswers,
+        markedForReview: markedForReview || [],
+        score: evaluation.score,
+        rawScore: evaluation.rawScore,
+        maxScore: evaluation.maxScore,
+        percentage: evaluation.percentage,
+        accuracy: evaluation.accuracy,
+        correctCount: evaluation.correctCount,
+        wrongCount: evaluation.wrongCount,
+        unattemptedCount: evaluation.unattemptedCount,
+        totalQuestions: evaluation.totalQuestions,
+        subjectPerformance: evaluation.subjectPerformance,
+        chapterPerformance: evaluation.chapterPerformance,
+        topicPerformance: evaluation.topicPerformance,
+        weakestTopics: evaluation.weakestTopics,
+        strongestTopics: evaluation.strongestTopics,
+        startTime: start,
+        endTime: end,
+        submittedAt: now,
+        autoSubmitted: Boolean(autoSubmitted),
+        timeSpentSeconds: timeSpentSeconds || Math.round((now.getTime() - start.getTime()) / 1000),
+        timeTakenMs: (timeSpentSeconds || 0) * 1000,
+        metadata: {
+          testTitle: resolvedTitle,
+          examType: test.examType,
+          category: test.category,
+        },
+      });
+    } catch (err) {
+      // 4. Handle MongoDB duplicate key collision on attemptId gracefully
+      if (err.code === 11000 && (err.keyPattern?.attemptId || err.message?.includes('attemptId'))) {
+        console.warn(`Concurrent race detected on attemptId ${effectiveAttemptId}. Returning existing result.`);
+        const existing = await Result.findOne({ attemptId: effectiveAttemptId }).lean();
+        if (existing) {
+          return this.formatResultResponse(existing, test);
+        }
+      }
+      throw err;
+    }
 
     // Clean up corresponding live session if any exists
     if (effectiveStudentEmail) {

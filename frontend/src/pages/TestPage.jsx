@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState, useEffect } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import TestHeader from '../components/TestHeader.jsx';
 import QuestionCard from '../components/QuestionCard.jsx';
@@ -15,6 +15,7 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [autoSubmitNotice, setAutoSubmitNotice] = useState(false);
+  const submittingRef = useRef(false);
 
   const questions = test?.questions || [];
   const testTitle = test?.title || 'NEET Practice Test';
@@ -97,6 +98,8 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
   );
 
   const handleExpire = useCallback(() => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setAutoSubmitNotice(true);
     onSubmit(true);
   }, [onSubmit]);
@@ -199,6 +202,8 @@ export default function TestPage({ session, updateSession, onSubmit, test }) {
         open={modalOpen}
         onCancel={() => setModalOpen(false)}
         onConfirm={() => {
+          if (submittingRef.current) return;
+          submittingRef.current = true;
           setModalOpen(false);
           onSubmit(false);
         }}

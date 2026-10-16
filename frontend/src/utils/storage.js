@@ -11,6 +11,7 @@ const getStorageKey = (testId) => {
 const defaultSession = (testId = 'laws-of-motion') => ({
   testId,
   state: 'NOT_STARTED', // NOT_STARTED | IN_PROGRESS | SUBMITTED
+  attemptId: null,
   answers: {}, // { [questionId]: 'A' | 'B' | 'C' | 'D' }
   markedForReview: [], // [questionId]
   visited: [], // [questionId]
@@ -26,7 +27,12 @@ export function loadSession(testId) {
     const raw = window.localStorage.getItem(getStorageKey(testId));
     if (!raw) return defaultSession(testId);
     const parsed = JSON.parse(raw);
-    return { ...defaultSession(testId), ...parsed };
+    const session = { ...defaultSession(testId), ...parsed };
+    if (session.state === 'IN_PROGRESS' && !session.attemptId) {
+      session.attemptId = `attempt_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      saveSession(session, testId);
+    }
+    return session;
   } catch (err) {
     console.error('Failed to load test session from localStorage:', err);
     return defaultSession(testId);
@@ -56,9 +62,11 @@ export function clearSession(testId) {
 
 export function freshSession(durationMs, testId = 'laws-of-motion') {
   const now = Date.now();
+  const attemptId = `attempt_${now}_${Math.random().toString(36).substring(2, 8)}`;
   return {
     ...defaultSession(testId),
     testId,
+    attemptId,
     state: 'IN_PROGRESS',
     startTime: now,
     endTime: now + durationMs,
@@ -94,6 +102,7 @@ function buildLiveSessionPayload(session, testId, user, questions = []) {
   return {
     sessionId: `live_${(user?.email || 'guest').toLowerCase()}_${testId}`,
     testId,
+    attemptId: session.attemptId || null,
     studentEmail: (user?.email || '').toLowerCase().trim(),
     studentName: user?.name || 'Candidate',
     studentRollNumber: user?.rollNumber || null,
@@ -179,6 +188,7 @@ export async function fetchLiveSessionFromBackend(testId, email, token) {
         if (ls.endTime && Date.now() < ls.endTime + 60000) {
           return {
             testId: ls.testId,
+            attemptId: ls.attemptId || null,
             state: 'IN_PROGRESS',
             answers: ls.answers || {},
             markedForReview: ls.markedForReview || [],

@@ -497,43 +497,43 @@ export default function AdminAttemptDetailModal({
 
       {/* Modal Dialog */}
       <div
-        className={`relative w-full max-w-5xl h-[96vh] sm:h-auto sm:max-h-[92vh] flex flex-col rounded-2xl sm:rounded-3xl border shadow-2xl overflow-hidden z-10 animate-rise-in transition-colors ${
+        className={`relative w-full max-w-5xl h-[96vh] sm:h-auto sm:max-h-[92vh] flex flex-col rounded-xl border shadow-2xl overflow-hidden z-10 animate-rise-in transition-colors ${
           isLight
             ? 'border-slate-200 bg-white text-slate-900'
-            : 'border-white/10 bg-[#0B0F19] text-slate-100'
+            : 'border-blue-900/40 bg-[#060A14] bg-cyber-grid text-slate-100'
         }`}
       >
         {/* Header Bar */}
         <div
           className={`flex items-center justify-between border-b px-3 sm:px-6 py-2.5 sm:py-3.5 shrink-0 gap-2 transition-colors ${
-            isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#0D121F]'
+            isLight ? 'border-slate-200 bg-slate-50' : 'border-blue-900/40 bg-[#080D1A]'
           }`}
         >
           <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div
-              className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl border font-bold text-xs sm:text-sm ${
-                isLight ? 'bg-blue-100 border-blue-200 text-blue-800' : 'bg-blue-600/20 border-blue-500/30 text-blue-400'
+              className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-md border font-mono font-bold text-xs sm:text-sm ${
+                isLight ? 'bg-blue-100 border-blue-200 text-blue-800' : 'bg-blue-950/60 border-blue-500/30 text-blue-400'
               }`}
             >
               <User size={16} className="sm:w-5 sm:h-5" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <h2 className={`font-sans text-xs sm:text-base font-black truncate max-w-[180px] sm:max-w-md ${
+                <h2 className={`font-mono text-xs sm:text-base font-bold truncate max-w-[180px] sm:max-w-md ${
                   isLight ? 'text-slate-900' : 'text-white'
                 }`}>
                   {candidateName}'s Test Diagnostics
                 </h2>
-                <span className={`rounded-full px-2 py-0.5 text-[9px] sm:text-[10px] font-bold shrink-0 ${
-                  isLight ? 'bg-blue-100 border border-blue-300 text-blue-800' : 'bg-blue-500/20 border border-blue-500/30 text-blue-300'
+                <span className={`rounded px-2 py-0.5 text-[9px] sm:text-[10px] font-mono font-bold shrink-0 border ${
+                  isLight ? 'bg-blue-100 border-blue-300 text-blue-800' : 'bg-blue-950/60 border-blue-800/40 text-blue-300'
                 }`}>
                   Attempt #{attempt.attemptNumber || 1}
                 </span>
               </div>
-              <p className={`text-[11px] sm:text-xs truncate max-w-[220px] sm:max-w-lg ${
+              <p className={`font-mono text-[11px] sm:text-xs truncate max-w-[220px] sm:max-w-lg mt-0.5 ${
                 isLight ? 'text-slate-500' : 'text-slate-400'
               }`}>
-                {candidateEmail} · <strong className={isLight ? 'text-slate-800' : 'text-slate-200'}>{testTitle}</strong>
+                {candidateEmail} · <strong className={isLight ? 'text-slate-800' : 'text-blue-400'}>{testTitle}</strong>
               </p>
             </div>
           </div>
@@ -542,10 +542,10 @@ export default function AdminAttemptDetailModal({
             type="button"
             onClick={onClose}
             title="Close Modal"
-            className={`rounded-full border p-1.5 sm:p-2 transition shrink-0 ${
+            className={`rounded-md border p-1.5 sm:p-2 transition shrink-0 ${
               isLight
                 ? 'border-slate-200 bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200'
-                : 'border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
+                : 'border-blue-900/40 bg-[#0A1020] text-slate-400 hover:text-white hover:bg-blue-900/20'
             }`}
           >
             <X size={16} className="sm:w-5 sm:h-5" />
@@ -554,78 +554,78 @@ export default function AdminAttemptDetailModal({
 
         {/* Quick Diagnostic Metrics Bar */}
         <div
-          className={`border-b px-3 sm:px-6 py-2 sm:py-3 grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-3 text-center shrink-0 transition-colors ${
-            isLight ? 'border-slate-200 bg-slate-100/70' : 'border-white/10 bg-[#080C16]'
+          className={`border-b px-3 sm:px-6 py-2 sm:py-3 grid grid-cols-2 sm:grid-cols-5 gap-1.5 sm:gap-2.5 text-center shrink-0 transition-colors ${
+            isLight ? 'border-slate-200 bg-slate-100/70' : 'border-blue-900/40 bg-[#060A14]'
           }`}
         >
-          <div className={`rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
-            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0D121F]'
+          <div className={`rounded-md border p-2 sm:p-2.5 font-mono ${
+            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-blue-900/40 bg-[#080D1A]'
           }`}>
             <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Final Score</span>
-            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            <p className={`mt-0.5 text-base sm:text-xl font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {score} <span className="text-[10px] sm:text-xs font-normal text-slate-500">/ {maxScore}</span>
             </p>
             <span className={`text-[9px] sm:text-[10px] font-semibold ${isLight ? 'text-blue-600' : 'text-blue-400'}`}>{percentage}% Total</span>
           </div>
 
-          <div className={`rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
-            isLight ? 'border-rose-200 bg-rose-50' : 'border-rose-500/30 bg-rose-950/30'
+          <div className={`rounded-md border p-2 sm:p-2.5 font-mono ${
+            isLight ? 'border-rose-200 bg-rose-50' : 'border-rose-500/30 bg-rose-950/20'
           }`}>
             <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-rose-700' : 'text-rose-400'}`}>Wrong Qs</span>
-            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-rose-700' : 'text-rose-400'}`}>
+            <p className={`mt-0.5 text-base sm:text-xl font-bold ${isLight ? 'text-rose-700' : 'text-rose-400'}`}>
               −{wrong}
             </p>
             <span className={`text-[9px] sm:text-[10px] font-semibold ${isLight ? 'text-rose-600' : 'text-rose-300'}`}>−{wrong} Negative</span>
           </div>
 
-          <div className={`rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
-            isLight ? 'border-emerald-200 bg-emerald-50' : 'border-emerald-500/20 bg-emerald-950/20'
+          <div className={`rounded-md border p-2 sm:p-2.5 font-mono ${
+            isLight ? 'border-emerald-200 bg-emerald-50' : 'border-emerald-500/30 bg-emerald-950/20'
           }`}>
             <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>Correct Qs</span>
-            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
+            <p className={`mt-0.5 text-base sm:text-xl font-bold ${isLight ? 'text-emerald-700' : 'text-emerald-400'}`}>
               +{correct}
             </p>
             <span className={`text-[9px] sm:text-[10px] font-semibold ${isLight ? 'text-emerald-600' : 'text-emerald-300'}`}>+{correct * 4} Marks</span>
           </div>
 
-          <div className={`rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
-            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0D121F]'
+          <div className={`rounded-md border p-2 sm:p-2.5 font-mono ${
+            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-blue-900/40 bg-[#080D1A]'
           }`}>
             <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Skipped Qs</span>
-            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-slate-800' : 'text-slate-300'}`}>
+            <p className={`mt-0.5 text-base sm:text-xl font-bold ${isLight ? 'text-slate-800' : 'text-slate-300'}`}>
               {unattempted}
             </p>
             <span className={`text-[9px] sm:text-[10px] font-semibold ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>0 Marks</span>
           </div>
 
-          <div className={`col-span-2 sm:col-span-1 rounded-xl sm:rounded-2xl border p-2 sm:p-2.5 ${
-            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#0D121F]'
+          <div className={`col-span-2 sm:col-span-1 rounded-md border p-2 sm:p-2.5 font-mono ${
+            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-blue-900/40 bg-[#080D1A]'
           }`}>
             <span className={`text-[9px] sm:text-[10px] uppercase font-bold block ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>Accuracy</span>
-            <p className={`mt-0.5 font-mono text-base sm:text-xl font-black ${isLight ? 'text-amber-600' : 'text-amber-400'}`}>
+            <p className={`mt-0.5 text-base sm:text-xl font-bold ${isLight ? 'text-amber-600' : 'text-amber-400'}`}>
               {accuracy}%
             </p>
-            <span className={`text-[9px] sm:text-[10px] font-mono ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{timeTaken}</span>
+            <span className={`text-[9px] sm:text-[10px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{timeTaken}</span>
           </div>
         </div>
 
         {/* Focused Fast Tabs (Wrong Questions | Skipped Questions | Topic Diagnostics) */}
         <div
           className={`flex items-center justify-between border-b px-3 sm:px-6 py-2 overflow-x-auto scrollbar-none gap-2 shrink-0 transition-colors ${
-            isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+            isLight ? 'border-slate-200 bg-slate-50' : 'border-blue-900/40 bg-[#080D1A]'
           }`}
         >
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 font-mono">
             {/* 1. Wrong Questions Tab (Primary Target) */}
             <button
               type="button"
               onClick={() => setActiveTab('wrong')}
-              className={`rounded-full px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+              className={`rounded-md px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'wrong'
-                  ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 ring-1 ring-rose-400'
+                  ? 'bg-rose-600 text-white shadow-xs'
                   : isLight
                     ? 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
-                    : 'bg-rose-500/10 text-rose-300 border border-rose-500/20 hover:bg-rose-500/20'
+                    : 'bg-rose-950/20 text-rose-300 border border-rose-500/20 hover:bg-rose-900/30'
               }`}
             >
               <XCircle size={13} />
@@ -636,12 +636,12 @@ export default function AdminAttemptDetailModal({
             <button
               type="button"
               onClick={() => setActiveTab('unattempted')}
-              className={`rounded-full px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+              className={`rounded-md px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'unattempted'
-                  ? 'bg-slate-700 text-white shadow-md ring-1 ring-slate-400'
+                  ? 'bg-blue-600 text-white shadow-xs'
                   : isLight
                     ? 'text-slate-600 hover:text-slate-900 bg-slate-100 border border-slate-200'
-                    : 'text-slate-400 hover:text-white bg-white/5 border border-white/10'
+                    : 'text-slate-400 hover:text-white bg-[#0A1020] border border-blue-900/40'
               }`}
             >
               <MinusCircle size={13} />
@@ -652,12 +652,12 @@ export default function AdminAttemptDetailModal({
             <button
               type="button"
               onClick={() => setActiveTab('diagnostics')}
-              className={`rounded-full px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+              className={`rounded-md px-3 sm:px-4 py-1.5 text-[11px] sm:text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === 'diagnostics'
-                  ? 'bg-violet-600 text-white shadow-md shadow-violet-600/30'
+                  ? 'bg-indigo-600 text-white shadow-xs'
                   : isLight
-                    ? 'text-violet-700 hover:text-violet-900 bg-violet-50 border border-violet-200'
-                    : 'text-violet-300 hover:text-white bg-violet-500/10 border border-violet-500/20'
+                    ? 'text-indigo-700 hover:text-indigo-900 bg-indigo-50 border border-indigo-200'
+                    : 'text-indigo-300 hover:text-white bg-indigo-950/20 border border-indigo-500/30'
               }`}
             >
               <Sparkles size={13} />
@@ -665,9 +665,9 @@ export default function AdminAttemptDetailModal({
             </button>
           </div>
 
-          <div className={`hidden md:flex items-center gap-2 text-xs font-semibold shrink-0 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          <div className={`hidden md:flex items-center gap-2 text-xs font-mono font-semibold shrink-0 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             <Clock size={13} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-            <span>Time Spent: <strong className={`font-mono ${isLight ? 'text-slate-900' : 'text-white'}`}>{timeTaken}</strong></span>
+            <span>Time Spent: <strong className={isLight ? 'text-slate-900' : 'text-white'}>{timeTaken}</strong></span>
           </div>
         </div>
 
@@ -858,20 +858,28 @@ export default function AdminAttemptDetailModal({
                     return (
                       <div
                         key={q.id || idx}
-                        className={`rounded-3xl border p-4 sm:p-6 shadow-xl space-y-4 transition ${borderTone}`}
+                        className={`rounded-lg border p-4 sm:p-6 space-y-4 font-mono transition ${
+                          isLight
+                            ? isWrong
+                              ? 'border-rose-300 bg-rose-50/40'
+                              : 'border-slate-200 bg-white'
+                            : isWrong
+                              ? 'border-rose-500/40 bg-[#0c0709]'
+                              : 'border-blue-900/40 bg-[#080D1A]'
+                        }`}
                       >
                         {/* Top Info Bar: Question #, Topic, and Status Pill */}
                         <div className={`flex flex-wrap items-center justify-between gap-2 border-b pb-3 ${
-                          isLight ? 'border-slate-200' : 'border-white/10'
+                          isLight ? 'border-slate-200' : 'border-blue-900/40'
                         }`}>
                           <div className="flex flex-wrap items-center gap-2 text-xs">
-                            <span className={`font-mono font-bold px-2.5 py-0.5 rounded-lg border ${
-                              isLight ? 'text-slate-800 bg-slate-100 border-slate-200' : 'text-white bg-white/10 border-white/10'
+                            <span className={`font-mono font-bold px-2 py-0.5 rounded border ${
+                              isLight ? 'text-slate-800 bg-slate-100 border-slate-200' : 'text-blue-300 bg-blue-950/60 border-blue-800/40'
                             }`}>
-                              Q{q.questionNumber || idx + 1}
+                              Q#{q.questionNumber || idx + 1}
                             </span>
-                            <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
-                              isLight ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-blue-500/20 border-blue-500/30 text-blue-300'
+                            <span className={`rounded px-2 py-0.5 text-[11px] font-bold border ${
+                              isLight ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-blue-950/40 border-blue-800/30 text-blue-300'
                             }`}>
                               {q.topic}
                             </span>
@@ -883,32 +891,32 @@ export default function AdminAttemptDetailModal({
                           </div>
 
                           {/* Prominent Status Pill */}
-                          <div className="shrink-0">
+                          <div className="shrink-0 font-mono">
                             {isWrong && (
-                              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-black shadow-sm ${
+                              <span className={`inline-flex items-center gap-1.5 rounded px-2.5 py-0.5 text-xs font-bold border ${
                                 isLight
-                                  ? 'bg-rose-100 border border-rose-300 text-rose-800'
-                                  : 'bg-rose-500/20 border border-rose-500/50 text-rose-300 shadow-rose-500/20 animate-pulse'
+                                  ? 'bg-rose-100 border-rose-300 text-rose-800'
+                                  : 'bg-rose-950/30 border-rose-500/40 text-rose-300'
                               }`}>
-                                <XCircle size={14} className={isLight ? 'text-rose-600' : 'text-rose-400'} />
-                                <span>INCORRECT (−1 Mark)</span>
+                                <XCircle size={13} className={isLight ? 'text-rose-600' : 'text-rose-400'} />
+                                <span>[INCORRECT −1]</span>
                               </span>
                             )}
                             {isUnattempted && (
-                              <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold border ${
+                              <span className={`inline-flex items-center gap-1.5 rounded px-2.5 py-0.5 text-xs font-bold border ${
                                 isLight
                                   ? 'bg-slate-100 border-slate-300 text-slate-700'
-                                  : 'bg-slate-500/20 border-slate-500/40 text-slate-300'
+                                  : 'bg-[#0A1020] border-blue-900/40 text-slate-400'
                               }`}>
-                                <MinusCircle size={14} className={isLight ? 'text-slate-500' : 'text-slate-400'} />
-                                <span>SKIPPED / UNATTEMPTED (0 Marks)</span>
+                                <MinusCircle size={13} className={isLight ? 'text-slate-500' : 'text-slate-400'} />
+                                <span>[SKIPPED 0]</span>
                               </span>
                             )}
                           </div>
                         </div>
 
                         {/* Question Text with KaTeX */}
-                        <div className={`text-xs sm:text-sm font-medium leading-relaxed overflow-x-auto py-1 ${
+                        <div className={`text-xs sm:text-sm font-sans font-medium leading-relaxed overflow-x-auto py-1 ${
                           isLight ? 'text-slate-900' : 'text-slate-100'
                         }`}>
                           <MathRenderer text={q.question || q.text || ''} />
@@ -917,13 +925,13 @@ export default function AdminAttemptDetailModal({
                         {/* Reference Diagram (if present) */}
                         {q.image && (
                           <div className="my-3 flex flex-col items-center">
-                            <div className={`relative w-full max-w-sm overflow-hidden rounded-2xl border p-2 shadow-inner ${
-                              isLight ? 'border-slate-200 bg-slate-100' : 'border-white/10 bg-[#05070B]'
+                            <div className={`relative w-full max-w-sm overflow-hidden rounded-md border p-2 ${
+                              isLight ? 'border-slate-200 bg-slate-100' : 'border-blue-900/40 bg-[#050811]'
                             }`}>
                               <img
                                 src={q.image}
                                 alt={`Question ${q.questionNumber} Diagram`}
-                                className="mx-auto max-h-60 w-auto object-contain rounded-xl bg-white p-2"
+                                className="mx-auto max-h-60 w-auto object-contain rounded bg-white p-2"
                               />
                             </div>
                           </div>
@@ -933,52 +941,52 @@ export default function AdminAttemptDetailModal({
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                           {/* Left: Student Marked Response */}
                           <div
-                            className={`rounded-2xl border p-3.5 flex items-center justify-between gap-2 ${
+                            className={`rounded-md border p-3 flex items-center justify-between gap-2 ${
                               isLight
                                 ? isWrong
                                   ? 'border-rose-300 bg-rose-50 text-rose-900 ring-1 ring-rose-200'
                                   : 'border-slate-200 bg-slate-50 text-slate-600'
                                 : isWrong
-                                  ? 'border-rose-500/50 bg-rose-500/15 text-rose-200 ring-1 ring-rose-500/30'
-                                  : 'border-white/10 bg-white/5 text-slate-400'
+                                  ? 'border-rose-500/40 bg-rose-950/20 text-rose-200'
+                                  : 'border-blue-900/40 bg-[#060A14] text-slate-400'
                             }`}
                           >
                             <div className="min-w-0">
-                              <span className="block text-[10px] uppercase font-black opacity-75">
-                                Student's Marked Choice:
+                              <span className="block text-[10px] uppercase font-bold tracking-wider opacity-75">
+                                Student Marked Choice:
                               </span>
                               <div className="mt-0.5">
                                 {q.selected ? (
                                   <div className="flex items-center gap-1.5 font-bold text-sm">
-                                    <span className={`font-mono text-base font-black underline ${
-                                      isLight ? 'decoration-rose-500 text-rose-950' : 'decoration-rose-400 text-rose-200'
+                                    <span className={`text-base font-bold ${
+                                      isLight ? 'text-rose-950' : 'text-rose-300'
                                     }`}>
                                       Option {q.selected}
                                     </span>
                                     {selectedOptionText && (
-                                      <span className="text-xs font-normal opacity-90 truncate max-w-[200px]">
+                                      <span className="text-xs font-sans font-normal opacity-90 truncate max-w-[200px]">
                                         (<MathRenderer text={selectedOptionText} inline />)
                                       </span>
                                     )}
                                   </div>
                                 ) : (
-                                  <strong className={`font-mono text-sm ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                                  <strong className={`text-sm ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                                     Not Answered / Skipped
                                   </strong>
                                 )}
                               </div>
                             </div>
                             <div className="shrink-0">
-                              {isWrong && <XCircle size={22} className={isLight ? 'text-rose-600' : 'text-rose-400'} />}
-                              {isUnattempted && <MinusCircle size={22} className={isLight ? 'text-slate-400' : 'text-slate-500'} />}
+                              {isWrong && <XCircle size={20} className={isLight ? 'text-rose-600' : 'text-rose-400'} />}
+                              {isUnattempted && <MinusCircle size={20} className={isLight ? 'text-slate-400' : 'text-slate-500'} />}
                             </div>
                           </div>
 
                           {/* Right: Official Correct Key */}
-                          <div className={`rounded-2xl border p-3.5 flex items-center justify-between gap-2 ${
+                          <div className={`rounded-md border p-3 flex items-center justify-between gap-2 ${
                             isLight
                               ? 'border-emerald-300 bg-emerald-50 text-emerald-950'
-                              : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+                              : 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300'
                           }`}>
                             <div className="min-w-0">
                               <span className="block text-[10px] uppercase font-black opacity-75">

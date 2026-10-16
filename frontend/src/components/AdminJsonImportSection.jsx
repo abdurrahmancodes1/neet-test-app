@@ -255,25 +255,23 @@ JSON SCHEMA:
     <div className="space-y-6">
       {/* SECTION HEADER */}
       <div
-        className={`rounded-3xl border p-5 sm:p-7 shadow-xl space-y-4 transition-colors ${
-          isLight ? 'border-slate-200 bg-white shadow-sm' : 'border-white/10 bg-[#0B0F19]'
+        className={`rounded-xl border p-5 sm:p-7 shadow-xl space-y-4 relative bg-cyber-grid transition-colors ${
+          isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-blue-900/40 bg-[#060A14]'
         }`}
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/20 text-blue-500 font-bold">
-                <FileCode size={16} />
-              </span>
+            <div className="flex items-center gap-2.5">
+              <span className="w-1.5 h-5 bg-blue-500 shrink-0" />
               <h2
-                className={`font-sans text-lg sm:text-xl font-bold ${
+                className={`font-mono text-sm sm:text-base font-bold uppercase tracking-wider ${
                   isLight ? 'text-slate-900' : 'text-white'
                 }`}
               >
-                Automated Question Paper Import (JSON)
+                AUTOMATED QUESTION PAPER IMPORT (JSON)
               </h2>
             </div>
-            <p className={`text-xs mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <p className={`font-mono text-xs mt-1 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               Seamlessly import full NEET &amp; JEE question papers converted from PDFs with inline
               vector SVGs &amp; KaTeX equations.
             </p>
@@ -284,13 +282,13 @@ JSON SCHEMA:
             <a
               href="/sample-test-import.json"
               download="sample-test-import.json"
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition shadow-xs ${
+              className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-mono font-bold transition shadow-xs ${
                 isLight
                   ? 'border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900'
-                  : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white'
+                  : 'border-blue-900/40 bg-[#080D1A] text-slate-300 hover:bg-blue-950/40 hover:text-white'
               }`}
             >
-              <Download size={13} className="text-blue-500" />
+              <Download size={13} className="text-blue-400" />
               <span>Sample JSON Template</span>
             </a>
 
@@ -298,12 +296,12 @@ JSON SCHEMA:
             <button
               type="button"
               onClick={() => setShowPromptGuide((prev) => !prev)}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition shadow-xs ${
+              className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-mono font-bold transition shadow-xs ${
                 showPromptGuide
                   ? 'border-blue-500 bg-blue-600 text-white'
                   : isLight
                   ? 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100'
-                  : 'border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20'
+                  : 'border-blue-900/40 bg-[#080D1A] text-blue-300 hover:bg-blue-950/40'
               }`}
             >
               <Sparkles size={13} />
@@ -316,39 +314,39 @@ JSON SCHEMA:
         {/* AI PROMPT ACCORDION */}
         {showPromptGuide && (
           <div
-            className={`animate-fade-in rounded-2xl border p-4 sm:p-5 text-xs space-y-3 transition-colors ${
+            className={`animate-fade-in rounded-lg border p-4 sm:p-5 text-xs space-y-3 transition-colors ${
               isLight
                 ? 'border-blue-200 bg-blue-50/60 text-slate-800'
-                : 'border-blue-500/30 bg-blue-950/20 text-slate-200'
+                : 'border-blue-900/40 bg-[#080D1A] text-slate-200'
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="font-bold flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+              <span className="font-mono font-bold flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
                 <HelpCircle size={14} /> ChatGPT / Gemini Conversion Workflow Prompt
               </span>
               <button
                 type="button"
                 onClick={handleCopyPrompt}
-                className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-bold border transition ${
+                className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] font-mono font-bold border transition ${
                   copiedPrompt
                     ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
                     : isLight
                     ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
-                    : 'border-white/20 bg-white/10 text-white hover:bg-white/20'
+                    : 'border-blue-900/40 bg-[#0A1020] text-white hover:bg-blue-900/20'
                 }`}
               >
                 {copiedPrompt ? <Check size={12} /> : <Copy size={12} />}
                 <span>{copiedPrompt ? 'Copied Prompt!' : 'Copy Prompt'}</span>
               </button>
             </div>
-            <p className="text-[11px] leading-relaxed opacity-90">
+            <p className="font-mono text-[11px] leading-relaxed opacity-90">
               Attach your PDF paper to <strong>ChatGPT</strong> or <strong>Gemini</strong> and paste
               this prompt. The AI will extract all questions, format mathematical formulas in LaTeX,
               reconstruct diagrams in clean inline SVG, and output ready-to-import JSON.
             </p>
             <pre
-              className={`p-3 rounded-xl overflow-x-auto font-mono text-[11px] max-h-48 border ${
-                isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#05070B] border-white/10 text-blue-300'
+              className={`p-3 rounded-md overflow-x-auto font-mono text-[11px] max-h-48 border ${
+                isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-[#050811] border-blue-900/40 text-blue-300'
               }`}
             >
               {AI_PROMPT_TEMPLATE}
@@ -360,13 +358,13 @@ JSON SCHEMA:
       {/* ERROR BANNER */}
       {validationErrors.length > 0 && (
         <div
-          className={`animate-fade-in rounded-2xl border p-4 sm:p-5 text-xs space-y-2 ${
+          className={`animate-fade-in rounded-lg border p-4 sm:p-5 text-xs space-y-2 ${
             isLight
               ? 'border-rose-200 bg-rose-50 text-rose-900'
-              : 'border-rose-500/30 bg-rose-500/10 text-rose-300'
+              : 'border-rose-500/30 bg-rose-950/20 text-rose-300'
           }`}
         >
-          <div className="flex items-center gap-2 font-bold text-sm text-rose-600 dark:text-rose-400">
+          <div className="flex items-center gap-2 font-mono font-bold text-sm text-rose-600 dark:text-rose-400">
             <XCircle size={16} /> Validation Issues Detected ({validationErrors.length})
           </div>
           <ul className="list-disc pl-5 space-y-1 font-mono text-[11px]">
@@ -380,57 +378,55 @@ JSON SCHEMA:
       {/* STEP 1: INPUT MODE (Upload or Direct Paste) */}
       {workflowStep === 'input' && (
         <div
-          className={`rounded-3xl border p-5 sm:p-7 shadow-xl space-y-5 transition-colors ${
-            isLight ? 'border-slate-200 bg-white shadow-sm' : 'border-white/10 bg-[#0B0F19]'
+          className={`rounded-xl border p-5 sm:p-7 shadow-xl space-y-5 relative bg-cyber-grid transition-colors ${
+            isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-blue-900/40 bg-[#060A14]'
           }`}
         >
           {/* Mode Switcher Tabs */}
-          <div className="flex items-center gap-2 border-b pb-4">
-            <button
-              type="button"
-              onClick={() => setInputMode('upload')}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
-                inputMode === 'upload'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : isLight
-                  ? 'text-slate-600 hover:text-slate-900 bg-slate-100'
-                  : 'text-slate-400 hover:text-white bg-white/5'
-              }`}
-            >
-              <UploadCloud size={14} /> Upload JSON File
-            </button>
-            <button
-              type="button"
-              onClick={() => setInputMode('paste')}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition flex items-center gap-1.5 ${
-                inputMode === 'paste'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : isLight
-                  ? 'text-slate-600 hover:text-slate-900 bg-slate-100'
-                  : 'text-slate-400 hover:text-white bg-white/5'
-              }`}
-            >
-              <FileCode size={14} /> Paste JSON Text
-            </button>
+          <div className="flex items-center gap-2 border-b pb-4 border-slate-200 dark:border-blue-900/40">
+            <div className="inline-flex rounded-md border border-blue-900/40 bg-[#080D1A] overflow-hidden text-xs font-mono">
+              <button
+                type="button"
+                onClick={() => setInputMode('upload')}
+                className={`px-4 py-1.5 font-bold transition flex items-center gap-1.5 ${
+                  inputMode === 'upload'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-blue-950/30'
+                }`}
+              >
+                <UploadCloud size={14} /> Upload JSON File
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMode('paste')}
+                className={`px-4 py-1.5 font-bold transition flex items-center gap-1.5 border-l border-blue-900/40 ${
+                  inputMode === 'paste'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white hover:bg-blue-950/30'
+                }`}
+              >
+                <FileCode size={14} /> Paste JSON Text
+              </button>
+            </div>
           </div>
 
           {/* Upload Dropzone */}
           {inputMode === 'upload' ? (
             <div className="space-y-4">
               <label
-                className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition ${
+                className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-center cursor-pointer transition ${
                   isLight
                     ? 'border-slate-300 hover:border-blue-500 bg-slate-50/50 hover:bg-blue-50/20'
-                    : 'border-white/10 hover:border-blue-500/50 bg-white/[0.02] hover:bg-blue-500/[0.04]'
+                    : 'border-blue-900/40 hover:border-blue-500/50 bg-[#080D1A] hover:bg-blue-950/20'
                 }`}
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-500/10 text-blue-500 mb-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-600/20 border border-blue-500/40 text-blue-400 mb-3">
                   <UploadCloud size={24} />
                 </div>
-                <span className="text-sm font-bold">
+                <span className="font-mono text-sm font-bold text-white">
                   {fileName ? fileName : 'Choose or drop your .json test file here'}
                 </span>
-                <span className={`text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                <span className={`font-mono text-xs mt-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                   Accepts JSON files up to 10MB with embedded vector SVG diagrams
                 </span>
                 <input
@@ -443,12 +439,12 @@ JSON SCHEMA:
 
               {fileName && (
                 <div
-                  className={`flex items-center justify-between rounded-xl border px-4 py-2.5 text-xs font-medium ${
-                    isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+                  className={`flex items-center justify-between rounded-md border px-4 py-2.5 text-xs font-mono font-medium ${
+                    isLight ? 'border-slate-200 bg-slate-50' : 'border-blue-900/40 bg-[#080D1A]'
                   }`}
                 >
-                  <span className="truncate max-w-sm font-mono">{fileName}</span>
-                  <span className="text-emerald-500 font-bold flex items-center gap-1">
+                  <span className="truncate max-w-sm">{fileName}</span>
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
                     <CheckCircle2 size={13} /> Loaded
                   </span>
                 </div>
@@ -457,7 +453,7 @@ JSON SCHEMA:
           ) : (
             /* Direct Textarea Paste */
             <div className="space-y-3">
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-xs font-mono">
                 <span className={`font-semibold ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                   Paste your raw JSON content below:
                 </span>
@@ -465,7 +461,7 @@ JSON SCHEMA:
                   <button
                     type="button"
                     onClick={handleFormatJson}
-                    className="text-blue-500 hover:underline font-bold"
+                    className="text-blue-400 hover:underline font-bold"
                   >
                     Format / Beautify
                   </button>
@@ -473,7 +469,7 @@ JSON SCHEMA:
                   <button
                     type="button"
                     onClick={() => setJsonText('')}
-                    className="text-rose-500 hover:underline font-bold"
+                    className="text-rose-400 hover:underline font-bold"
                   >
                     Clear
                   </button>
@@ -485,10 +481,10 @@ JSON SCHEMA:
                 value={jsonText}
                 onChange={(e) => setJsonText(e.target.value)}
                 placeholder='{\n  "schemaVersion": "1.0",\n  "title": "My Practice Test",\n  "questions": [...]\n}'
-                className={`w-full rounded-2xl border p-4 font-mono text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-blue-500 transition ${
+                className={`w-full rounded-md border p-4 font-mono text-xs leading-relaxed focus:outline-none focus:border-blue-500 transition ${
                   isLight
                     ? 'border-slate-300 bg-slate-50 text-slate-900'
-                    : 'border-white/10 bg-[#070A12] text-slate-200'
+                    : 'border-blue-900/40 bg-[#080D1A] text-slate-200'
                 }`}
               />
             </div>
@@ -500,7 +496,7 @@ JSON SCHEMA:
               type="button"
               disabled={isValidating || !jsonText.trim()}
               onClick={handleValidateAndPreview}
-              className={`rounded-full px-6 py-2.5 text-xs font-bold transition flex items-center gap-2 shadow-md ${
+              className={`rounded-md px-6 py-2.5 text-xs font-mono font-bold transition flex items-center gap-2 shadow-xs ${
                 isValidating || !jsonText.trim()
                   ? 'opacity-50 cursor-not-allowed bg-blue-600/50 text-white'
                   : 'bg-blue-600 text-white hover:bg-blue-500 active:scale-95'
@@ -527,30 +523,30 @@ JSON SCHEMA:
         <div className="space-y-6 animate-fade-in">
           {/* Preview Navigation & Confirmation Bar */}
           <div
-            className={`rounded-3xl border p-5 sm:p-7 shadow-xl space-y-5 transition-colors ${
-              isLight ? 'border-slate-200 bg-white shadow-sm' : 'border-white/10 bg-[#0B0F19]'
+            className={`rounded-xl border p-5 sm:p-7 shadow-xl space-y-5 relative bg-cyber-grid transition-colors ${
+              isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-blue-900/40 bg-[#060A14]'
             }`}
           >
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-slate-200 dark:border-blue-900/40">
               <button
                 type="button"
                 onClick={() => setWorkflowStep('input')}
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                className={`inline-flex items-center gap-1.5 rounded-md border px-3.5 py-1.5 text-xs font-mono font-bold transition ${
                   isLight
                     ? 'border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10'
+                    : 'border-blue-900/40 bg-[#080D1A] text-slate-300 hover:bg-blue-950/40'
                 }`}
               >
                 <ArrowLeft size={13} /> Edit / Re-upload JSON
               </button>
 
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 text-xs font-bold cursor-pointer select-none">
+                <label className="flex items-center gap-2 text-xs font-mono font-bold cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={publishImmediately}
                     onChange={(e) => setPublishImmediately(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-blue-900/40 text-blue-600 focus:ring-blue-500"
                   />
                   <span>Publish Immediately (Available to Candidates)</span>
                 </label>
@@ -559,7 +555,7 @@ JSON SCHEMA:
                   type="button"
                   disabled={isSubmitting}
                   onClick={handleConfirmImport}
-                  className={`rounded-full px-6 py-2 text-xs font-extrabold transition flex items-center gap-2 shadow-lg ${
+                  className={`rounded-md px-6 py-2 text-xs font-mono font-bold transition flex items-center gap-2 shadow-xs ${
                     isSubmitting
                       ? 'bg-emerald-600/50 text-white cursor-not-allowed'
                       : 'bg-emerald-600 text-white hover:bg-emerald-500 active:scale-95'
@@ -581,51 +577,51 @@ JSON SCHEMA:
             </div>
 
             {/* Test Metadata Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
               <div
-                className={`rounded-2xl border p-3 ${
-                  isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+                className={`rounded-md border p-3 ${
+                  isLight ? 'border-slate-200 bg-slate-50' : 'border-blue-900/40 bg-[#080D1A]'
                 }`}
               >
-                <span className="text-[10px] font-semibold uppercase opacity-70">Exam Title</span>
-                <p className="mt-1 font-bold text-sm truncate">{previewData.test.title}</p>
+                <span className="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">Exam Title</span>
+                <p className="mt-1 font-bold text-sm truncate text-white">{previewData.test.title}</p>
               </div>
 
               <div
-                className={`rounded-2xl border p-3 ${
-                  isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+                className={`rounded-md border p-3 ${
+                  isLight ? 'border-slate-200 bg-slate-50' : 'border-blue-900/40 bg-[#080D1A]'
                 }`}
               >
-                <span className="text-[10px] font-semibold uppercase opacity-70">
+                <span className="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">
                   Exam Type &amp; Category
                 </span>
-                <p className="mt-1 font-bold text-sm text-blue-500">
+                <p className="mt-1 font-bold text-sm text-blue-400">
                   {previewData.test.examType} • {previewData.test.type}
                 </p>
               </div>
 
               <div
-                className={`rounded-2xl border p-3 ${
-                  isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+                className={`rounded-md border p-3 ${
+                  isLight ? 'border-slate-200 bg-slate-50' : 'border-blue-900/40 bg-[#080D1A]'
                 }`}
               >
-                <span className="text-[10px] font-semibold uppercase opacity-70">
+                <span className="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">
                   Questions &amp; Marks
                 </span>
-                <p className="mt-1 font-bold text-sm">
+                <p className="mt-1 font-bold text-sm text-white">
                   {previewData.test.totalQuestions} Qs • {previewData.test.totalMarks} Marks
                 </p>
               </div>
 
               <div
-                className={`rounded-2xl border p-3 ${
-                  isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+                className={`rounded-md border p-3 ${
+                  isLight ? 'border-slate-200 bg-slate-50' : 'border-blue-900/40 bg-[#080D1A]'
                 }`}
               >
-                <span className="text-[10px] font-semibold uppercase opacity-70">
+                <span className="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">
                   Duration &amp; Scheme
                 </span>
-                <p className="mt-1 font-bold text-sm">
+                <p className="mt-1 font-bold text-sm text-white">
                   {previewData.test.durationMinutes}m (+{previewData.test.markingScheme?.correct} / −
                   {Math.abs(previewData.test.markingScheme?.wrong)})
                 </p>
@@ -635,14 +631,14 @@ JSON SCHEMA:
             {/* Inferred or Warning notes */}
             {previewData.warnings?.length > 0 && (
               <div
-                className={`rounded-xl border p-3.5 text-xs space-y-1 ${
+                className={`rounded-md border p-3.5 text-xs font-mono space-y-1 ${
                   isLight
                     ? 'border-amber-200 bg-amber-50 text-amber-900'
                     : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
                 }`}
               >
                 <span className="font-bold flex items-center gap-1.5">
-                  <AlertTriangle size={14} className="text-amber-500" />
+                  <AlertTriangle size={14} className="text-amber-400" />
                   Notes &amp; Inferred Values ({previewData.warnings.length}):
                 </span>
                 <ul className="list-disc pl-5 text-[11px] space-y-0.5">
@@ -656,36 +652,38 @@ JSON SCHEMA:
 
           {/* Question-by-Question Interactive Review */}
           <div className="space-y-4">
-            <h3
-              className={`font-sans text-base sm:text-lg font-bold flex items-center gap-2 ${
-                isLight ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              <BookOpen size={18} className="text-blue-500" />
-              <span>Question Paper Verification ({previewData.questions.length} Items)</span>
-            </h3>
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-5 bg-blue-500 shrink-0" />
+              <h3
+                className={`font-mono text-sm sm:text-base font-bold uppercase tracking-wider ${
+                  isLight ? 'text-slate-900' : 'text-white'
+                }`}
+              >
+                QUESTION PAPER VERIFICATION ({previewData.questions.length} ITEMS)
+              </h3>
+            </div>
 
             {previewData.questions.map((q, idx) => (
               <div
                 key={q.id || idx}
-                className={`rounded-3xl border p-5 sm:p-6 space-y-4 shadow-md transition-colors ${
-                  isLight ? 'border-slate-200 bg-white' : 'border-white/10 bg-[#0B0F19]'
+                className={`rounded-lg border p-5 sm:p-6 space-y-4 shadow-md transition-colors ${
+                  isLight ? 'border-slate-200 bg-white' : 'border-blue-900/40 bg-[#080D1A]'
                 }`}
               >
                 {/* Header bar */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-3 border-slate-200 dark:border-blue-900/40">
                   <div className="flex items-center gap-2">
-                    <span className="rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/30 px-3 py-0.5 font-mono text-xs font-bold">
+                    <span className="rounded bg-blue-950/60 text-blue-300 border border-blue-800/40 px-2.5 py-0.5 font-mono text-xs font-bold">
                       Q#{q.order || idx + 1}
                     </span>
                     <span
-                      className={`rounded-full px-2.5 py-0.5 text-xs font-medium border ${
-                        isLight ? 'bg-slate-100 border-slate-200' : 'bg-white/5 border-white/10'
+                      className={`rounded px-2.5 py-0.5 text-xs font-mono font-medium border ${
+                        isLight ? 'bg-slate-100 border-slate-200' : 'bg-white/5 border-white/10 text-slate-300'
                       }`}
                     >
                       {q.subject} • {q.chapter}
                     </span>
-                    <span className="rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold">
+                    <span className="rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2 py-0.5 font-mono text-[10px] font-bold">
                       {q.difficulty}
                     </span>
                   </div>
@@ -709,24 +707,24 @@ JSON SCHEMA:
                 )}
 
                 {/* Options Grid */}
-                <div className="grid gap-2 text-xs sm:grid-cols-2 pt-1">
+                <div className="grid gap-2 text-xs sm:grid-cols-2 pt-1 font-mono">
                   {Object.entries(q.options || {}).map(([key, optText]) => {
                     const isCorrect = key.toUpperCase() === (q.correctAnswer || '').toUpperCase();
                     return (
                       <div
                         key={key}
-                        className={`rounded-xl border p-3 transition flex items-start gap-2.5 ${
+                        className={`rounded-md border p-3 transition flex items-start gap-2.5 ${
                           isCorrect
                             ? isLight
                               ? 'border-emerald-500 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-500'
-                              : 'border-emerald-500 bg-emerald-950/40 text-emerald-200 ring-1 ring-emerald-500'
+                              : 'border-emerald-500/60 bg-emerald-950/40 text-emerald-200 ring-1 ring-emerald-500/40'
                             : isLight
                             ? 'border-slate-200 bg-slate-50 text-slate-700'
-                            : 'border-white/10 bg-[#070A12] text-slate-300'
+                            : 'border-blue-900/40 bg-[#060A14] text-slate-300'
                         }`}
                       >
                         <span
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full font-mono text-xs font-bold ${
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-xs font-bold ${
                             isCorrect
                               ? 'bg-emerald-600 text-white'
                               : isLight
@@ -736,10 +734,10 @@ JSON SCHEMA:
                         >
                           {key}
                         </span>
-                        <div className="flex-1 min-w-0 pt-0.5">
+                        <div className="flex-1 min-w-0 pt-0.5 font-sans">
                           <MathRenderer text={optText} inline />
                           {isCorrect && (
-                            <span className="ml-2 font-bold text-emerald-600 dark:text-emerald-400">
+                            <span className="ml-2 font-mono font-bold text-emerald-400">
                               (Correct Answer)
                             </span>
                           )}
@@ -752,16 +750,18 @@ JSON SCHEMA:
                 {/* Explanation */}
                 {q.explanation && (
                   <div
-                    className={`rounded-2xl border p-4 text-xs space-y-2 ${
+                    className={`rounded-md border p-4 text-xs space-y-2 font-mono ${
                       isLight
                         ? 'border-blue-200 bg-blue-50/70 text-slate-800'
-                        : 'border-blue-500/20 bg-blue-950/20 text-slate-200'
+                        : 'border-blue-900/40 bg-[#060A14] text-slate-200'
                     }`}
                   >
-                    <p className="font-bold text-blue-600 dark:text-blue-400">
+                    <p className="font-bold text-blue-400">
                       💡 Verified Solution &amp; Concept:
                     </p>
-                    <MathRenderer text={q.explanation} />
+                    <div className="font-sans">
+                      <MathRenderer text={q.explanation} />
+                    </div>
                     {q.explanationImage?.data && (
                       <SafeSvgRenderer
                         svgData={q.explanationImage.data}
@@ -781,7 +781,7 @@ JSON SCHEMA:
               type="button"
               disabled={isSubmitting}
               onClick={handleConfirmImport}
-              className={`rounded-full px-8 py-3 text-sm font-extrabold transition flex items-center gap-2 shadow-xl ${
+              className={`rounded-md px-8 py-3 text-sm font-mono font-bold transition flex items-center gap-2 shadow-xs ${
                 isSubmitting
                   ? 'bg-emerald-600/50 text-white cursor-not-allowed'
                   : 'bg-emerald-600 text-white hover:bg-emerald-500 active:scale-95'
@@ -806,25 +806,25 @@ JSON SCHEMA:
       {/* STEP 3: CREATION SUCCESS */}
       {workflowStep === 'success' && createdTestResult && (
         <div
-          className={`animate-rise-in rounded-3xl border p-6 sm:p-10 shadow-2xl text-center space-y-6 max-w-2xl mx-auto transition-colors ${
-            isLight ? 'border-slate-200 bg-white' : 'border-white/10 bg-[#0B0F19]'
+          className={`animate-rise-in rounded-xl border p-6 sm:p-10 shadow-2xl text-center space-y-6 max-w-2xl mx-auto relative bg-cyber-grid transition-colors ${
+            isLight ? 'border-slate-200 bg-white' : 'border-blue-900/40 bg-[#060A14]'
           }`}
         >
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-500 shadow-glow">
-            <CheckCircle2 size={36} />
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+            <CheckCircle2 size={32} />
           </div>
 
           <div className="space-y-2">
             <h3
-              className={`font-sans text-xl sm:text-2xl font-black ${
+              className={`font-mono text-xl sm:text-2xl font-bold ${
                 isLight ? 'text-slate-900' : 'text-white'
               }`}
             >
               Question Paper Successfully Created!
             </h3>
-            <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+            <p className={`font-mono text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
               The test has been published as a platform-wide examination and is immediately available to all candidates in the{' '}
-              <strong className="text-blue-500 font-bold">
+              <strong className="text-blue-400 font-bold">
                 {createdTestResult.test?.category === 'jee' ? 'JEE 2027' : 'NEET 2027'}
               </strong>{' '}
               category.
@@ -833,8 +833,8 @@ JSON SCHEMA:
 
           {/* Test Specs Summary */}
           <div
-            className={`rounded-2xl border p-4 text-xs space-y-2 text-left ${
-              isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'
+            className={`rounded-md border p-4 text-xs font-mono space-y-2 text-left ${
+              isLight ? 'border-slate-200 bg-slate-50' : 'border-blue-900/40 bg-[#080D1A]'
             }`}
           >
             <div className="flex justify-between">
@@ -845,7 +845,7 @@ JSON SCHEMA:
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Slug Identifier:</span>
-              <code className="text-blue-500 font-bold">{createdTestResult.test?.slug}</code>
+              <code className="text-blue-400 font-bold">{createdTestResult.test?.slug}</code>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Questions Inserted:</span>
@@ -857,19 +857,19 @@ JSON SCHEMA:
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Status:</span>
-              <span className="rounded-full bg-emerald-500/20 text-emerald-500 px-2 py-0.5 font-bold uppercase text-[10px]">
+              <span className="rounded bg-emerald-500/20 text-emerald-400 px-2 py-0.5 font-bold uppercase text-[10px]">
                 {createdTestResult.test?.status}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Category &amp; Target:</span>
-              <span className="rounded-full bg-blue-500/20 text-blue-600 dark:text-blue-300 border border-blue-500/30 px-2 py-0.5 font-bold uppercase text-[10px]">
+              <span className="rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 font-bold uppercase text-[10px]">
                 {createdTestResult.test?.category === 'jee' ? 'JEE 2027' : 'NEET 2027'} ({createdTestResult.test?.examType || 'CBT'})
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">Visibility:</span>
-              <span className="rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 font-bold text-[10px]">
+              <span className="rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 font-bold text-[10px]">
                 Global Platform Test (All Students)
               </span>
             </div>
@@ -881,7 +881,7 @@ JSON SCHEMA:
               <button
                 type="button"
                 onClick={() => onLaunchTest(createdTestResult.test?.slug || createdTestResult.test?.id)}
-                className="rounded-full bg-blue-600 px-6 py-2.5 text-xs font-extrabold text-white transition hover:bg-blue-500 shadow-md active:scale-95 flex items-center gap-1.5"
+                className="rounded-md bg-blue-600 px-6 py-2.5 text-xs font-mono font-bold text-white transition hover:bg-blue-500 shadow-xs active:scale-95 flex items-center gap-1.5"
               >
                 <Zap size={14} /> Launch CBT Exam Now
               </button>
@@ -890,10 +890,10 @@ JSON SCHEMA:
             <button
               type="button"
               onClick={handleReset}
-              className={`rounded-full border px-5 py-2.5 text-xs font-bold transition ${
+              className={`rounded-md border px-5 py-2.5 text-xs font-mono font-bold transition ${
                 isLight
                   ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100'
-                  : 'border-white/20 bg-white/5 text-slate-300 hover:bg-white/10'
+                  : 'border-blue-900/40 bg-[#080D1A] text-slate-300 hover:bg-blue-950/40'
               }`}
             >
               Import Another Paper

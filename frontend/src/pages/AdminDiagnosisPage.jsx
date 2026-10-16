@@ -545,15 +545,22 @@ export default function AdminDiagnosisPage({
   return (
     <main
       className={`min-h-screen transition-colors duration-200 relative selection:bg-blue-600 selection:text-white ${
-        isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'
+        isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#050811] text-slate-100'
       }`}
     >
+      {/* Background technical cyber grid overlay */}
+      <div
+        className={`pointer-events-none fixed inset-0 z-0 ${
+          isLight ? 'bg-cyber-grid opacity-60' : 'bg-cyber-grid opacity-80'
+        }`}
+      />
+
       {/* Ambient Radial Blue Glow */}
       <div
-        className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[450px] blur-3xl ${
+        className={`pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[450px] blur-3xl z-0 ${
           isLight
             ? 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/10 via-indigo-500/5 to-transparent'
-            : 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-blue-900/5 to-transparent'
+            : 'bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-600/15 via-blue-950/20 to-transparent'
         }`}
       />
 
@@ -561,8 +568,8 @@ export default function AdminDiagnosisPage({
       <header
         className={`sticky top-0 z-40 border-b backdrop-blur-md px-4 sm:px-8 py-3 transition-colors ${
           isLight
-            ? 'bg-white/90 border-slate-200 shadow-sm'
-            : 'bg-[#0D121F]/90 border-white/10 shadow-2xl'
+            ? 'bg-white/90 border-slate-200 shadow-xs'
+            : 'bg-[#080D1A]/95 border-blue-900/40 shadow-lg'
         }`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
@@ -571,21 +578,21 @@ export default function AdminDiagnosisPage({
             <button
               type="button"
               onClick={onBack}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition flex items-center gap-1.5 shrink-0 ${
+              className={`rounded-md px-3.5 py-1.5 text-xs font-mono font-bold transition flex items-center gap-1.5 shrink-0 ${
                 isLight
                   ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'
-                  : 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
+                  : 'bg-[#0A1020] hover:bg-blue-900/20 text-slate-300 border border-blue-900/40'
               }`}
             >
               <ArrowLeft size={14} />
               <span>Back to Admin</span>
             </button>
 
-            <div className="h-4 w-px bg-slate-300 dark:bg-white/10 hidden sm:block" />
+            <div className="h-4 w-px bg-slate-300 dark:bg-blue-900/40 hidden sm:block" />
 
-            <div className="truncate min-w-0 hidden md:block">
-              <span className="text-xs font-medium text-slate-500">Diagnosing:</span>{' '}
-              <strong className="text-xs font-bold truncate text-blue-600 dark:text-blue-400">
+            <div className="truncate min-w-0 hidden md:block font-mono text-xs">
+              <span className="text-slate-500">DIAGNOSING:</span>{' '}
+              <strong className="font-bold truncate text-blue-600 dark:text-blue-400">
                 {candidateName}
               </strong>{' '}
               <span className="text-[11px] text-slate-400">({candidateEmail})</span>
@@ -594,16 +601,15 @@ export default function AdminDiagnosisPage({
 
           {/* Right: Logout */}
           <div className="flex items-center gap-2.5">
-
             {onLogout && (
               <button
                 type="button"
                 onClick={onLogout}
                 title="Sign Out"
-                className={`rounded-full p-2 text-xs transition border ${
+                className={`rounded-md p-2 text-xs transition border ${
                   isLight
                     ? 'border-slate-200 text-slate-500 hover:text-rose-600 hover:bg-rose-50'
-                    : 'border-white/10 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10'
+                    : 'border-blue-900/40 bg-[#0A1020] text-slate-400 hover:text-rose-400'
                 }`}
               >
                 <LogOut size={14} />
@@ -617,34 +623,31 @@ export default function AdminDiagnosisPage({
       <div className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-8 space-y-8 relative z-10">
         {/* Candidate Banner & High-Yield Performance Card */}
         <section
-          className={`rounded-3xl border p-6 sm:p-8 shadow-xl relative overflow-hidden transition-colors ${
+          className={`rounded-xl border p-6 sm:p-8 shadow-xl relative overflow-hidden transition-colors ${
             isLight
               ? 'bg-white border-slate-200 ring-1 ring-blue-600/10'
-              : 'bg-gradient-to-b from-[#0D1527] via-[#090F1C] to-[#060913] border-white/10 ring-1 ring-blue-500/20'
+              : 'bg-[#080D1A] border-blue-900/40 bg-cyber-grid'
           }`}
         >
-          {/* Ambient Corner Blur */}
-          <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-blue-600/15 blur-3xl" />
-
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             {/* Candidate Identity */}
             <div className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-blue-600/15 border border-blue-500/30 px-3 py-1 text-xs font-bold text-blue-600 dark:text-blue-300 flex items-center gap-1.5">
+                <span className="rounded border border-blue-800/40 bg-blue-950/60 px-2.5 py-1 text-xs font-mono font-bold text-blue-400 flex items-center gap-1.5 uppercase tracking-wider">
                   <ShieldCheck size={14} /> Comprehensive Student Diagnosis
                 </span>
                 <span
-                  className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                  className={`rounded px-2.5 py-0.5 text-xs font-mono font-bold border ${
                     isLight
-                      ? 'bg-slate-100 text-slate-700 border border-slate-200'
-                      : 'bg-white/10 text-slate-300 border border-white/10'
+                      ? 'bg-slate-100 text-slate-700 border-slate-200'
+                      : 'bg-white/5 text-slate-300 border-blue-900/40'
                   }`}
                 >
                   Attempt #{attempt.attemptNumber || 1}
                 </span>
                 {attempt.createdAt && (
-                  <span className="text-xs text-slate-500 flex items-center gap-1">
-                    <Calendar size={12} />
+                  <span className="text-xs font-mono text-slate-400 flex items-center gap-1">
+                    <Calendar size={12} className="text-blue-400" />
                     {new Date(attempt.createdAt).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -657,136 +660,136 @@ export default function AdminDiagnosisPage({
               </div>
 
               <div>
-                <h1 className="font-sans text-2xl sm:text-4xl font-black tracking-tight">
+                <h1 className="font-mono text-2xl sm:text-3xl font-bold tracking-tight text-white">
                   {candidateName}
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                  Email: <strong className="text-slate-700 dark:text-slate-200 font-mono">{candidateEmail}</strong>
-                  {' · '}Exam: <strong className="text-blue-600 dark:text-blue-400">{testTitle}</strong>
+                <p className="font-mono text-xs sm:text-sm text-slate-400 mt-1">
+                  Email: <strong className="text-slate-300">{candidateEmail}</strong>
+                  {' · '}Exam: <strong className="text-blue-400">{testTitle}</strong>
                 </p>
               </div>
             </div>
 
             {/* Primary Score Ring / Badge */}
             <div
-              className={`rounded-2xl border p-4 sm:p-5 flex items-center gap-4 shrink-0 shadow-lg ${
+              className={`rounded-lg border p-4 sm:p-5 flex items-center gap-4 shrink-0 shadow-lg font-mono ${
                 isLight
                   ? 'bg-blue-50/60 border-blue-200'
-                  : 'bg-[#0B1120] border-blue-500/30'
+                  : 'bg-[#0A1020] border-blue-900/40'
               }`}
             >
-              <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-glow shrink-0">
+              <div className="h-14 w-14 rounded-md bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xl shrink-0">
                 {percentage}%
               </div>
               <div>
-                <span className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 block tracking-wider">
+                <span className="text-[10px] uppercase font-bold text-blue-400 block tracking-wider">
                   Candidate Score
                 </span>
-                <div className="font-mono text-2xl sm:text-3xl font-black">
-                  <span className="text-blue-600 dark:text-blue-400">{score}</span>
-                  <span className="text-sm font-semibold text-slate-400"> / {maxScore}</span>
+                <div className="text-2xl sm:text-3xl font-bold">
+                  <span className="text-blue-400">{score}</span>
+                  <span className="text-sm font-normal text-slate-400"> / {maxScore}</span>
                 </div>
-                <span className="text-[11px] font-semibold text-slate-500 block">
-                  Accuracy: <strong className="text-emerald-600 dark:text-emerald-400">{accuracy}%</strong>
+                <span className="text-[11px] font-semibold text-slate-400 block">
+                  Accuracy: <strong className="text-emerald-400">{accuracy}%</strong>
                 </span>
               </div>
             </div>
           </div>
 
           {/* KPI Metrics Strip */}
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-center">
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5 text-center font-mono">
             {/* 1. Score */}
             <div
-              className={`rounded-2xl border p-3 ${
-                isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#070A12] border-white/10'
+              className={`rounded-md border p-3 ${
+                isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#060A14] border-blue-900/40'
               }`}
             >
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Score</span>
-              <strong className="font-mono text-lg font-black text-blue-600 dark:text-blue-400 block mt-0.5">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 block">Total Score</span>
+              <strong className="text-lg font-bold text-blue-400 block mt-0.5">
                 {score} / {maxScore}
               </strong>
-              <span className="text-[9px] text-slate-500 block">{percentage}% Mark</span>
+              <span className="text-[9px] text-slate-400 block">{percentage}% Mark</span>
             </div>
 
             {/* 2. Accuracy */}
             <div
-              className={`rounded-2xl border p-3 ${
-                isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#070A12] border-white/10'
+              className={`rounded-md border p-3 ${
+                isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#060A14] border-blue-900/40'
               }`}
             >
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Accuracy</span>
-              <strong className="font-mono text-lg font-black text-emerald-600 dark:text-emerald-400 block mt-0.5">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 block">Accuracy</span>
+              <strong className="text-lg font-bold text-emerald-400 block mt-0.5">
                 {accuracy}%
               </strong>
-              <span className="text-[9px] text-slate-500 block">Precision</span>
+              <span className="text-[9px] text-slate-400 block">Precision</span>
             </div>
 
             {/* 3. Correct */}
             <div
-              className={`rounded-2xl border p-3 ${
+              className={`rounded-md border p-3 ${
                 isLight
                   ? 'bg-emerald-50/50 border-emerald-200'
                   : 'bg-emerald-950/20 border-emerald-500/30'
               }`}
             >
-              <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 block">
+              <span className="text-[10px] uppercase font-semibold text-emerald-400 block">
                 Correct
               </span>
-              <strong className="font-mono text-lg font-black text-emerald-600 dark:text-emerald-300 block mt-0.5">
+              <strong className="text-lg font-bold text-emerald-300 block mt-0.5">
                 +{correct} Qs
               </strong>
-              <span className="text-[9px] text-emerald-600/80 dark:text-emerald-400/80 block font-bold">
+              <span className="text-[9px] text-emerald-400/80 block font-semibold">
                 +{correct * 4} Marks
               </span>
             </div>
 
             {/* 4. Wrong */}
             <div
-              className={`rounded-2xl border p-3 ${
+              className={`rounded-md border p-3 ${
                 isLight
                   ? 'bg-rose-50/50 border-rose-200'
                   : 'bg-rose-950/20 border-rose-500/30'
               }`}
             >
-              <span className="text-[10px] uppercase font-bold text-rose-600 dark:text-rose-400 block">
+              <span className="text-[10px] uppercase font-semibold text-rose-400 block">
                 Incorrect
               </span>
-              <strong className="font-mono text-lg font-black text-rose-600 dark:text-rose-300 block mt-0.5">
+              <strong className="text-lg font-bold text-rose-300 block mt-0.5">
                 −{wrong} Qs
               </strong>
-              <span className="text-[9px] text-rose-600/80 dark:text-rose-400/80 block font-bold">
+              <span className="text-[9px] text-rose-400/80 block font-semibold">
                 −{wrong} Negative
               </span>
             </div>
 
             {/* 5. Skipped */}
             <div
-              className={`rounded-2xl border p-3 ${
+              className={`rounded-md border p-3 ${
                 isLight
                   ? 'bg-amber-50/50 border-amber-200'
                   : 'bg-amber-950/20 border-amber-500/30'
               }`}
             >
-              <span className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400 block">
+              <span className="text-[10px] uppercase font-semibold text-amber-400 block">
                 Skipped
               </span>
-              <strong className="font-mono text-lg font-black text-amber-600 dark:text-amber-300 block mt-0.5">
+              <strong className="text-lg font-bold text-amber-300 block mt-0.5">
                 {unattempted} Qs
               </strong>
-              <span className="text-[9px] text-amber-600/80 dark:text-amber-400/80 block">0 Marks</span>
+              <span className="text-[9px] text-amber-400/80 block">0 Marks</span>
             </div>
 
             {/* 6. Time Spent */}
             <div
-              className={`rounded-2xl border p-3 ${
-                isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#070A12] border-white/10'
+              className={`rounded-md border p-3 ${
+                isLight ? 'bg-slate-50 border-slate-200' : 'bg-[#060A14] border-blue-900/40'
               }`}
             >
-              <span className="text-[10px] uppercase font-bold text-slate-500 block">Time Spent</span>
-              <strong className="font-mono text-lg font-black block mt-0.5">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 block">Time Spent</span>
+              <strong className="text-lg font-bold block mt-0.5 text-white">
                 {timeTaken}
               </strong>
-              <span className="text-[9px] text-slate-500 block">CBT Clock</span>
+              <span className="text-[9px] text-slate-400 block">CBT Clock</span>
             </div>
           </div>
         </section>
@@ -822,33 +825,33 @@ export default function AdminDiagnosisPage({
         </section>
 
         {/* Interactive Filter Controller & Quick Jump Bar */}
-        <section className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <section className="space-y-3 font-mono">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             {/* Tab switchers */}
             <div
-              className={`p-1.5 rounded-2xl border flex flex-wrap items-center gap-1.5 ${
-                isLight ? 'bg-white border-slate-200 shadow-xs' : 'bg-[#0D121F] border-white/10'
+              className={`p-1 rounded-md border flex flex-wrap items-center gap-1 ${
+                isLight ? 'bg-white border-slate-300 shadow-xs' : 'bg-[#080D1A] border-blue-900/40'
               }`}
             >
               {/* Tab 1: Wrong Questions */}
               <button
                 type="button"
                 onClick={() => setActiveTab('wrong')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition flex items-center gap-2 uppercase tracking-wider ${
                   activeTab === 'wrong'
-                    ? 'bg-rose-600 text-white shadow-lg shadow-rose-600/30'
+                    ? 'bg-rose-600/25 text-rose-300 border border-rose-500/60 shadow-xs'
                     : isLight
-                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent'
+                    : 'text-slate-400 hover:text-white hover:bg-blue-900/20 border border-transparent'
                 }`}
               >
-                <XCircle size={15} />
-                <span>Wrong Questions</span>
+                <XCircle size={13} />
+                <span>Wrong</span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-mono font-bold ${
                     activeTab === 'wrong'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-rose-500/20 text-rose-500'
+                      ? 'bg-rose-500/30 text-rose-200 border border-rose-500/40'
+                      : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                   }`}
                 >
                   {wrong}
@@ -859,21 +862,21 @@ export default function AdminDiagnosisPage({
               <button
                 type="button"
                 onClick={() => setActiveTab('unattempted')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition flex items-center gap-2 uppercase tracking-wider ${
                   activeTab === 'unattempted'
-                    ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
+                    ? 'bg-amber-600/25 text-amber-300 border border-amber-500/60 shadow-xs'
                     : isLight
-                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent'
+                    : 'text-slate-400 hover:text-white hover:bg-blue-900/20 border border-transparent'
                 }`}
               >
-                <MinusCircle size={15} />
-                <span>Skipped Questions</span>
+                <MinusCircle size={13} />
+                <span>Skipped</span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-mono font-bold ${
                     activeTab === 'unattempted'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-amber-500/20 text-amber-500'
+                      ? 'bg-amber-500/30 text-amber-200 border border-amber-500/40'
+                      : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                   }`}
                 >
                   {unattempted}
@@ -884,21 +887,21 @@ export default function AdminDiagnosisPage({
               <button
                 type="button"
                 onClick={() => setActiveTab('diagnostics')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition flex items-center gap-2 uppercase tracking-wider ${
                   activeTab === 'diagnostics'
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                    ? 'bg-blue-600/25 text-blue-300 border border-blue-500/60 shadow-xs'
                     : isLight
-                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent'
+                    : 'text-slate-400 hover:text-white hover:bg-blue-900/20 border border-transparent'
                 }`}
               >
-                <BarChart3 size={15} />
-                <span>Topic Diagnostics</span>
+                <BarChart3 size={13} />
+                <span>Diagnostics</span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-mono font-bold ${
                     activeTab === 'diagnostics'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-blue-500/20 text-blue-500'
+                      ? 'bg-blue-500/30 text-blue-200 border border-blue-500/40'
+                      : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
                   }`}
                 >
                   {topicPerformance.length}
@@ -909,21 +912,21 @@ export default function AdminDiagnosisPage({
               <button
                 type="button"
                 onClick={() => setActiveTab('all')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                className={`px-3 py-1.5 rounded text-xs font-mono font-bold transition flex items-center gap-2 uppercase tracking-wider ${
                   activeTab === 'all'
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                    ? 'bg-slate-700/50 text-white border border-slate-500/60 shadow-xs'
                     : isLight
-                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-transparent'
+                    : 'text-slate-400 hover:text-white hover:bg-blue-900/20 border border-transparent'
                 }`}
               >
-                <Layers size={15} />
-                <span>All Questions</span>
+                <Layers size={13} />
+                <span>All Qs</span>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-mono font-bold ${
                     activeTab === 'all'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-slate-500/20 text-slate-400'
+                      ? 'bg-white/20 text-white border border-white/20'
+                      : 'bg-slate-500/15 text-slate-400 border border-slate-500/30'
                   }`}
                 >
                   {totalQuestions}
@@ -936,13 +939,13 @@ export default function AdminDiagnosisPage({
               <div className="w-full sm:w-64">
                 <input
                   type="text"
-                  placeholder="Filter by question, topic..."
+                  placeholder="FILTER BY TOPIC/TEXT..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full rounded-2xl px-4 py-2 text-xs font-medium border outline-none transition ${
+                  className={`w-full rounded-md px-3 py-1.5 text-xs font-mono border outline-none transition uppercase ${
                     isLight
-                      ? 'bg-white border-slate-300 text-slate-900 focus:border-blue-500 shadow-xs'
-                      : 'bg-[#0D121F] border-white/10 text-white focus:border-blue-500'
+                      ? 'bg-white border-slate-300 text-slate-900 focus:border-blue-500 shadow-xs placeholder-slate-400'
+                      : 'bg-[#060A14] border-blue-900/40 text-slate-200 focus:border-blue-500 placeholder-slate-600'
                   }`}
                 />
               </div>
@@ -952,28 +955,28 @@ export default function AdminDiagnosisPage({
           {/* Quick Question Jump Pill Bar */}
           {activeTab !== 'diagnostics' && filteredQuestions.length > 0 && (
             <div
-              className={`p-3 rounded-2xl border flex items-center gap-2 overflow-x-auto scrollbar-thin ${
-                isLight ? 'bg-white border-slate-200' : 'bg-[#070A12] border-white/10'
+              className={`p-2.5 rounded-lg border flex items-center gap-2 overflow-x-auto scrollbar-thin ${
+                isLight ? 'bg-white border-slate-300' : 'bg-[#080D1A] border-blue-900/40'
               }`}
             >
-              <span className="text-[10px] uppercase font-bold text-slate-500 shrink-0 flex items-center gap-1 pl-1">
-                <Target size={12} /> Jump to Q:
+              <span className="text-[10px] uppercase font-mono font-bold text-slate-400 tracking-wider shrink-0 flex items-center gap-1 pl-1">
+                <Target size={12} /> JUMP:
               </span>
               <div className="flex items-center gap-1.5">
                 {filteredQuestions.map((q) => {
                   const statusColors =
                     q.status === 'wrong'
-                      ? 'border-rose-500/40 bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20'
+                      ? 'border-rose-500/50 bg-rose-500/15 text-rose-300 hover:bg-rose-500/25'
                       : q.status === 'unattempted'
-                      ? 'border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
-                      : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20';
+                      ? 'border-amber-500/50 bg-amber-500/15 text-amber-300 hover:bg-amber-500/25'
+                      : 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25';
 
                   return (
                     <button
                       key={q.questionNumber}
                       type="button"
                       onClick={() => scrollToQuestion(q.questionNumber)}
-                      className={`rounded-xl px-2.5 py-1 text-xs font-mono font-bold border shrink-0 transition active:scale-95 ${statusColors}`}
+                      className={`rounded px-2 py-0.5 text-xs font-mono font-bold border shrink-0 transition active:scale-95 ${statusColors}`}
                     >
                       Q{q.questionNumber}
                     </button>
@@ -986,25 +989,25 @@ export default function AdminDiagnosisPage({
 
         {/* VIEW 1: TOPIC DIAGNOSTICS & MASTERY TAB */}
         {activeTab === 'diagnostics' && (
-          <section className="space-y-6 animate-fade-in">
+          <section className="space-y-4 animate-fade-in font-mono">
             {/* Weak Topics Warning Alert */}
             {weakestTopics.length > 0 && (
               <div
-                className={`rounded-3xl border p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+                className={`rounded-lg border p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
                   isLight
-                    ? 'bg-rose-50/70 border-rose-200'
-                    : 'bg-gradient-to-r from-rose-950/40 via-[#180A0E] to-[#0D121F] border-rose-500/30'
+                    ? 'bg-rose-50 border-rose-300 text-rose-950 border-l-4 border-l-rose-500'
+                    : 'bg-[#12080d] border-rose-900/50 border-l-4 border-l-rose-500'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-2xl bg-rose-600/20 border border-rose-500/30 flex items-center justify-center text-rose-500 shrink-0">
-                    <AlertTriangle size={20} />
+                  <div className="h-9 w-9 rounded-md bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                    <AlertTriangle size={18} />
                   </div>
                   <div>
-                    <h3 className="text-base font-black text-rose-600 dark:text-rose-400">
-                      Identified Knowledge Gaps ({weakestTopics.length} Topics Below 70% Mastery)
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-rose-300">
+                      Identified Knowledge Gaps // {weakestTopics.length} Topics Below 70% Mastery
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-400 mt-0.5">
                       Candidate committed concentrated errors in these specific concepts. Recommend targeted revision.
                     </p>
                   </div>
@@ -1012,61 +1015,61 @@ export default function AdminDiagnosisPage({
                 <button
                   type="button"
                   onClick={() => setActiveTab('wrong')}
-                  className="rounded-full bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs px-5 py-2.5 shadow-lg shadow-rose-600/30 transition active:scale-95 shrink-0"
+                  className="rounded-md bg-rose-600/30 hover:bg-rose-600/40 text-rose-200 border border-rose-500/50 text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 transition active:scale-95 shrink-0"
                 >
-                  Review Wrong Questions &rarr;
+                  Review Wrong Qs &rarr;
                 </button>
               </div>
             )}
 
             {/* Topic Performance Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {topicPerformance.map((tp) => {
                 const isWeak = tp.mastery < 70;
                 return (
                   <div
                     key={tp.topic}
-                    className={`rounded-2xl border p-5 transition-colors ${
+                    className={`rounded-lg border p-4 transition-colors ${
                       isLight
-                        ? 'bg-white border-slate-200 shadow-sm'
-                        : 'bg-[#0D121F] border-white/10'
+                        ? 'bg-white border-slate-300 shadow-xs'
+                        : 'bg-[#080D1A] border-blue-900/40 hover:border-blue-700/60'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <span className="text-[10px] uppercase font-bold text-slate-400 block">Topic</span>
-                        <h4 className="text-sm font-black truncate">{tp.topic}</h4>
+                        <span className="text-[10px] uppercase font-mono text-slate-400 block tracking-wider">TOPIC</span>
+                        <h4 className="text-sm font-bold truncate text-slate-100">{tp.topic}</h4>
                       </div>
                       <span
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-mono font-black border ${
+                        className={`rounded px-2 py-0.5 text-xs font-mono font-bold border ${
                           isWeak
-                            ? 'bg-rose-500/20 text-rose-600 dark:text-rose-400 border-rose-500/30'
-                            : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                            : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                         }`}
                       >
-                        {tp.mastery}% Mastery
+                        {tp.mastery}%
                       </span>
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="mt-3 h-2 w-full rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                    <div className="mt-3 h-1.5 w-full rounded bg-slate-800 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-500 ${
+                        className={`h-full rounded transition-all duration-500 ${
                           isWeak
-                            ? 'bg-gradient-to-r from-rose-500 to-amber-500'
-                            : 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                            ? 'bg-rose-500'
+                            : 'bg-emerald-500'
                         }`}
                         style={{ width: `${Math.min(100, tp.mastery)}%` }}
                       />
                     </div>
 
                     {/* Counts */}
-                    <div className="mt-3 flex items-center justify-between text-xs font-semibold text-slate-500">
-                      <span>Total Questions: <strong className="text-slate-700 dark:text-slate-300">{tp.total}</strong></span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-emerald-600 dark:text-emerald-400">+{tp.correct} Correct</span>
-                        <span className="text-rose-600 dark:text-rose-400">−{tp.wrong} Wrong</span>
-                        <span>{tp.unattempted} Skipped</span>
+                    <div className="mt-2.5 flex items-center justify-between text-xs font-mono text-slate-400">
+                      <span>TOTAL: <strong className="text-slate-200">{tp.total}</strong></span>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-emerald-400">+{tp.correct} COR</span>
+                        <span className="text-rose-400">−{tp.wrong} WRG</span>
+                        <span>{tp.unattempted} SKP</span>
                       </div>
                     </div>
                   </div>
@@ -1078,40 +1081,40 @@ export default function AdminDiagnosisPage({
 
         {/* VIEW 2: QUESTION REVIEW CARDS (Wrong, Skipped, or All) */}
         {activeTab !== 'diagnostics' && (
-          <section className="space-y-6">
+          <section className="space-y-4">
             {filteredQuestions.length === 0 ? (
               <div
-                className={`rounded-3xl border p-12 text-center shadow-sm ${
-                  isLight ? 'bg-white border-slate-200' : 'bg-[#0D121F] border-white/10'
+                className={`rounded-lg border p-12 text-center font-mono ${
+                  isLight ? 'bg-white border-slate-300 shadow-xs' : 'bg-[#080D1A] border-blue-900/40'
                 }`}
               >
-                <CheckCircle2 size={40} className="mx-auto text-emerald-500 mb-3" />
-                <h3 className="text-lg font-bold font-sans">
+                <CheckCircle2 size={36} className="mx-auto text-emerald-400 mb-3" />
+                <h3 className="text-base font-bold uppercase tracking-wider text-slate-200">
                   {activeTab === 'wrong'
-                    ? 'No Incorrect Answers Found'
+                    ? 'No Incorrect Answers Registered'
                     : activeTab === 'unattempted'
-                    ? 'No Skipped Questions Found'
-                    : 'No Questions Match Search Filter'}
+                    ? 'No Skipped Questions Registered'
+                    : 'No Questions Match Search Query'}
                 </h3>
-                <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                <p className="text-xs text-slate-400 mt-1 max-w-md mx-auto">
                   {activeTab === 'wrong'
-                    ? 'Candidate achieved 100% precision on attempted questions. No errors were registered.'
+                    ? 'Candidate achieved 100% precision on attempted questions. Zero errors detected.'
                     : activeTab === 'unattempted'
-                    ? 'Candidate attempted all questions without skipping any.'
-                    : 'Try clearing your search query to see all questions in this category.'}
+                    ? 'Candidate attempted all questions without skipping.'
+                    : 'Clear query to view all questions.'}
                 </p>
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="mt-4 px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition"
+                    className="mt-4 px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-mono font-bold uppercase tracking-wider transition"
                   >
-                    Clear Search Query
+                    Clear Filter
                   </button>
                 )}
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {filteredQuestions.map((q) => {
                   const isWrong = q.status === 'wrong';
                   const isUnattempted = q.status === 'unattempted';
@@ -1121,75 +1124,75 @@ export default function AdminDiagnosisPage({
                     <article
                       key={q.questionNumber}
                       id={`diagnosis-q-${q.questionNumber}`}
-                      className={`rounded-3xl border p-6 sm:p-8 shadow-xl transition-colors relative overflow-hidden scroll-mt-24 ${
+                      className={`rounded-lg border p-5 sm:p-6 transition-colors relative overflow-hidden scroll-mt-24 ${
                         isLight
                           ? isWrong
-                            ? 'bg-white border-rose-200 ring-1 ring-rose-500/20'
+                            ? 'bg-white border-rose-300 border-l-4 border-l-rose-500 shadow-xs'
                             : isUnattempted
-                            ? 'bg-white border-amber-200'
-                            : 'bg-white border-emerald-200'
+                            ? 'bg-white border-amber-300 border-l-4 border-l-amber-500 shadow-xs'
+                            : 'bg-white border-emerald-300 border-l-4 border-l-emerald-500 shadow-xs'
                           : isWrong
-                          ? 'bg-gradient-to-b from-[#140B10] via-[#0E0A12] to-[#0B0F19] border-rose-500/40 ring-1 ring-rose-500/20'
+                          ? 'bg-[#0C070B] border-rose-900/50 border-l-4 border-l-rose-500 shadow-sm'
                           : isUnattempted
-                          ? 'bg-gradient-to-b from-[#14110A] via-[#0E0D08] to-[#0B0F19] border-amber-500/30'
-                          : 'bg-gradient-to-b from-[#0A1612] via-[#07110D] to-[#0B0F19] border-emerald-500/30'
+                          ? 'bg-[#0C0B06] border-amber-900/50 border-l-4 border-l-amber-500 shadow-sm'
+                          : 'bg-[#060D0A] border-emerald-900/50 border-l-4 border-l-emerald-500 shadow-sm'
                       }`}
                     >
                       {/* Top Question Tag Bar */}
-                      <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-4 border-slate-200 dark:border-white/10">
+                      <div className="flex flex-wrap items-center justify-between gap-2.5 border-b pb-3 border-slate-200 dark:border-blue-900/30 font-mono">
                         <div className="flex flex-wrap items-center gap-2">
                           <span
-                            className={`rounded-xl px-3 py-1 font-mono text-xs font-black uppercase tracking-wider ${
+                            className={`rounded px-2 py-0.5 font-mono text-xs font-bold uppercase tracking-wider ${
                               isWrong
-                                ? 'bg-rose-500/20 text-rose-600 dark:text-rose-300 border border-rose-500/40'
+                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
                                 : isUnattempted
-                                ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/40'
-                                : 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/40'
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
                             }`}
                           >
-                            Question #{q.questionNumber}
+                            Q#{q.questionNumber}
                           </span>
 
-                          <span className="rounded-xl bg-blue-500/10 border border-blue-500/30 px-3 py-1 text-xs font-bold text-blue-600 dark:text-blue-300">
+                          <span className="rounded bg-blue-500/15 border border-blue-500/40 px-2 py-0.5 text-xs font-bold text-blue-300 uppercase tracking-wider">
                             {q.subject}
                           </span>
 
                           <span
-                            className={`rounded-xl px-3 py-1 text-xs font-medium border ${
+                            className={`rounded px-2 py-0.5 text-xs font-mono border ${
                               isLight
-                                ? 'bg-slate-100 text-slate-700 border-slate-200'
-                                : 'bg-white/5 text-slate-300 border-white/10'
+                                ? 'bg-slate-100 text-slate-700 border-slate-300'
+                                : 'bg-[#080D1A] text-slate-300 border-blue-900/40'
                             }`}
                           >
-                            Topic: <strong className="font-semibold">{q.topic}</strong>
+                            TOPIC: <strong className="font-semibold">{q.topic}</strong>
                           </span>
                         </div>
 
                         {/* Status Label */}
                         <div className="flex items-center gap-2">
                           {isWrong && (
-                            <span className="rounded-full bg-rose-500/20 border border-rose-500/40 px-3 py-1 text-xs font-black text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
-                              <XCircle size={14} /> Incorrect (Candidate marked {q.selected})
+                            <span className="rounded bg-rose-500/20 border border-rose-500/40 px-2 py-0.5 text-xs font-bold text-rose-300 flex items-center gap-1.5 uppercase tracking-wider">
+                              <XCircle size={13} /> INCORRECT (MARKED: {q.selected})
                             </span>
                           )}
                           {isUnattempted && (
-                            <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-3 py-1 text-xs font-black text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                              <MinusCircle size={14} /> Skipped (Correct: {q.correctAnswer})
+                            <span className="rounded bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 text-xs font-bold text-amber-300 flex items-center gap-1.5 uppercase tracking-wider">
+                              <MinusCircle size={13} /> SKIPPED (CORRECT: {q.correctAnswer})
                             </span>
                           )}
                           {isCorrect && (
-                            <span className="rounded-full bg-emerald-500/20 border border-emerald-500/40 px-3 py-1 text-xs font-black text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-                              <CheckCircle2 size={14} /> Correct (+4 Marks)
+                            <span className="rounded bg-emerald-500/20 border border-emerald-500/40 px-2 py-0.5 text-xs font-bold text-emerald-300 flex items-center gap-1.5 uppercase tracking-wider">
+                              <CheckCircle2 size={13} /> CORRECT (+4)
                             </span>
                           )}
-                          <span className="text-xs font-mono font-bold text-slate-400">
+                          <span className="text-xs font-mono font-bold text-slate-500">
                             +4 / −1
                           </span>
                         </div>
                       </div>
 
                       {/* Question Text */}
-                      <div className="mt-5 text-sm sm:text-base leading-relaxed font-medium">
+                      <div className="mt-4 text-sm sm:text-base leading-relaxed text-slate-200 font-sans">
                         <MathRenderer text={q.question} />
                       </div>
 
@@ -1204,49 +1207,49 @@ export default function AdminDiagnosisPage({
                           <img
                             src={q.image}
                             alt={`Question ${q.questionNumber}`}
-                            className={`max-h-72 rounded-2xl object-contain p-2 ${
-                              isLight ? 'border border-slate-200 bg-white shadow-sm' : 'border border-white/10 bg-white/5 shadow-lg'
+                            className={`max-h-72 rounded-md object-contain p-2 ${
+                              isLight ? 'border border-slate-300 bg-white shadow-xs' : 'border border-blue-900/40 bg-[#060A14] shadow-sm'
                             }`}
                           />
                         </div>
                       ) : null}
 
                       {/* Four Options Grid */}
-                      <div className="mt-6 space-y-3">
+                      <div className="mt-4 space-y-2 font-mono">
                         {['A', 'B', 'C', 'D'].map((letter) => {
                           const optionText = q.options?.[letter] || q.options?.[letter.toLowerCase()] || '';
                           const isCandidateChoice = q.selected === letter;
                           const isOfficialCorrect = q.correctAnswer === letter;
 
                           let optionStyle = isLight
-                            ? 'bg-slate-50 border-slate-200 text-slate-700'
-                            : 'bg-[#070A12] border-white/10 text-slate-300';
+                            ? 'bg-slate-50 border-slate-300 text-slate-700'
+                            : 'bg-[#060A14] border-blue-900/40 text-slate-300';
 
                           if (isOfficialCorrect) {
                             optionStyle = isLight
-                              ? 'bg-emerald-50 border-emerald-500 text-emerald-950 ring-2 ring-emerald-500/30'
-                              : 'bg-emerald-950/40 border-emerald-500 text-emerald-200 ring-2 ring-emerald-500/40';
+                              ? 'bg-emerald-50 border-emerald-500 text-emerald-950 ring-1 ring-emerald-500/40'
+                              : 'bg-emerald-950/30 border-emerald-500/60 text-emerald-200 ring-1 ring-emerald-500/30';
                           } else if (isCandidateChoice && isWrong) {
                             optionStyle = isLight
-                              ? 'bg-rose-50 border-rose-500 text-rose-950 ring-2 ring-rose-500/30'
-                              : 'bg-rose-950/40 border-rose-500 text-rose-200 ring-2 ring-rose-500/40';
+                              ? 'bg-rose-50 border-rose-500 text-rose-950 ring-1 ring-rose-500/40'
+                              : 'bg-rose-950/30 border-rose-500/60 text-rose-200 ring-1 ring-rose-500/30';
                           }
 
                           return (
                             <div
                               key={letter}
-                              className={`rounded-2xl border p-4 flex items-start gap-3.5 transition ${optionStyle}`}
+                              className={`rounded-md border p-3 flex items-start gap-3 transition ${optionStyle}`}
                             >
                               {/* Option Letter Indicator */}
                               <div
-                                className={`h-8 w-8 rounded-xl flex items-center justify-center font-mono font-black text-xs shrink-0 ${
+                                className={`h-7 w-7 rounded flex items-center justify-center font-mono font-bold text-xs shrink-0 ${
                                   isOfficialCorrect
-                                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                                    ? 'bg-emerald-600 text-white shadow-xs'
                                     : isCandidateChoice && isWrong
-                                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                                    ? 'bg-rose-600 text-white shadow-xs'
                                     : isLight
                                     ? 'bg-slate-200 text-slate-700'
-                                    : 'bg-white/10 text-slate-300'
+                                    : 'bg-[#0B1020] text-slate-300 border border-blue-900/40'
                                 }`}
                               >
                                 {letter}
@@ -1254,24 +1257,24 @@ export default function AdminDiagnosisPage({
 
                               {/* Option Content & Badges */}
                               <div className="flex-1 min-w-0">
-                                <div className="text-xs sm:text-sm leading-relaxed">
+                                <div className="text-xs sm:text-sm leading-relaxed font-sans">
                                   <MathRenderer text={optionText} />
                                 </div>
 
-                                <div className="mt-1 flex flex-wrap items-center gap-2">
+                                <div className="mt-1.5 flex flex-wrap items-center gap-2">
                                   {isCandidateChoice && isWrong && (
-                                    <span className="rounded-full bg-rose-600/20 border border-rose-500/40 px-2 py-0.5 text-[10px] font-black text-rose-600 dark:text-rose-300 flex items-center gap-1">
-                                      <XCircle size={11} /> Candidate Selected This (Wrong Answer)
+                                    <span className="rounded bg-rose-600/20 border border-rose-500/40 px-1.5 py-0.5 text-[10px] font-mono font-bold text-rose-300 flex items-center gap-1 uppercase tracking-wider">
+                                      <XCircle size={11} /> SELECTED WRONG
                                     </span>
                                   )}
                                   {isCandidateChoice && isCorrect && (
-                                    <span className="rounded-full bg-emerald-600/20 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-black text-emerald-600 dark:text-emerald-300 flex items-center gap-1">
-                                      <Check size={11} /> Candidate Selected Correctly
+                                    <span className="rounded bg-emerald-600/20 border border-emerald-500/40 px-1.5 py-0.5 text-[10px] font-mono font-bold text-emerald-300 flex items-center gap-1 uppercase tracking-wider">
+                                      <Check size={11} /> SELECTED CORRECT
                                     </span>
                                   )}
                                   {isOfficialCorrect && (
-                                    <span className="rounded-full bg-emerald-600/20 border border-emerald-500/40 px-2 py-0.5 text-[10px] font-black text-emerald-600 dark:text-emerald-300 flex items-center gap-1">
-                                      <Check size={11} /> Correct Official Solution
+                                    <span className="rounded bg-emerald-600/20 border border-emerald-500/40 px-1.5 py-0.5 text-[10px] font-mono font-bold text-emerald-300 flex items-center gap-1 uppercase tracking-wider">
+                                      <Check size={11} /> OFFICIAL KEY
                                     </span>
                                   )}
                                 </div>
@@ -1283,21 +1286,21 @@ export default function AdminDiagnosisPage({
 
                       {/* Step-by-Step Verified Solution Box */}
                       <div
-                        className={`mt-6 rounded-2xl border p-5 relative overflow-hidden ${
+                        className={`mt-4 rounded-lg border p-4 relative overflow-hidden font-mono ${
                           isLight
-                            ? 'bg-blue-50/70 border-blue-200 text-slate-800'
-                            : 'bg-gradient-to-r from-blue-950/30 via-[#070F1E] to-[#0A1222] border-blue-500/30 text-slate-200'
+                            ? 'bg-blue-50/70 border-blue-300 text-slate-800'
+                            : 'bg-[#070F1E] border-blue-900/40 text-slate-200'
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <div className="h-6 w-6 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                            <Sparkles size={13} />
+                          <div className="h-5 w-5 rounded bg-blue-600/20 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                            <Sparkles size={12} />
                           </div>
-                          <span className="font-sans text-xs font-black uppercase tracking-wider text-blue-600 dark:text-blue-300">
-                            Verified Step-by-Step Explanation
+                          <span className="font-mono text-xs font-bold uppercase tracking-wider text-blue-400">
+                            VERIFIED STEP-BY-STEP SOLUTION
                           </span>
                         </div>
-                        <div className="text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                        <div className="text-xs sm:text-sm leading-relaxed text-slate-300 font-sans">
                           <MathRenderer text={q.explanation} />
                         </div>
                       </div>

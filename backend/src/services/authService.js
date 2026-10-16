@@ -4,6 +4,7 @@ import { User, Result, LiveSession } from '../models/index.js';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
 import { SyncStore } from './syncStore.js';
+import { filterBurstDuplicates } from '../utils/burstDeduplicator.js';
 
 export class AuthService {
   /**
@@ -205,11 +206,13 @@ export class AuthService {
       const totalAttemptsDb = await Result.countDocuments({ status: 'submitted' });
 
       // Fetch submissions
-      const results = await Result.find({ status: 'submitted' })
+      const rawResults = await Result.find({ status: 'submitted' })
         .populate('userId', 'name email rollNumber')
         .sort({ score: -1, createdAt: -1 })
-        .limit(100)
+        .limit(200)
         .lean();
+
+      const results = filterBurstDuplicates(rawResults);
 
       let highestScore = storeStats.highestScore;
       let averageScore = storeStats.averageScore;
@@ -325,7 +328,8 @@ export class AuthService {
 
     if (isMongoConnected) {
       const allUsers = await User.find().select('name email rollNumber role createdAt status').sort({ createdAt: -1 }).lean();
-      const allResults = await Result.find({ status: 'submitted' }).sort({ createdAt: -1 }).lean();
+      const rawResults = await Result.find({ status: 'submitted' }).sort({ createdAt: -1 }).lean();
+      const allResults = filterBurstDuplicates(rawResults);
       const liveSessions = await LiveSession.find({ status: 'in_progress' }).sort({ updatedAt: -1 }).lean();
 
       totalUsers = allUsers.length;
@@ -371,10 +375,8 @@ export class AuthService {
           ...(resultsByUser.get(emailKey) || []),
         ];
 
-        // Deduplicate submitted results
-        const userResults = combinedResults.filter(
-          (v, i, a) => a.findIndex((t) => (t._id?.toString() || t.attemptId) === (v._id?.toString() || v.attemptId)) === i
-        );
+        // Deduplicate submitted results (handling ID uniqueness and rapid burst duplicates)
+        const userResults = filterBurstDuplicates(combinedResults);
 
         // Get unsubmitted live sessions for this student
         const userLive = [

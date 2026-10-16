@@ -7,21 +7,37 @@ export default function Timer({ endTime, onExpire, compact = false }) {
   const { isLight } = useTheme();
   const [remaining, setRemaining] = useState(() => Math.max(0, endTime - Date.now()));
   const expiredRef = useRef(false);
+  const onExpireRef = useRef(onExpire);
 
   useEffect(() => {
-    expiredRef.current = false;
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
+
+  useEffect(() => {
+    // Only reset expired status if endTime is in the future
+    if (endTime > Date.now()) {
+      expiredRef.current = false;
+    }
+
     const tick = () => {
       const rem = Math.max(0, endTime - Date.now());
       setRemaining(rem);
-      if (rem <= 0 && !expiredRef.current) {
-        expiredRef.current = true;
-        onExpire?.();
+      if (rem <= 0) {
+        if (!expiredRef.current) {
+          expiredRef.current = true;
+          onExpireRef.current?.();
+        }
       }
     };
+
     tick();
+    if (endTime <= Date.now()) {
+      return;
+    }
+
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [endTime, onExpire]);
+  }, [endTime]);
 
   const minutesLeft = remaining / 60000;
   const isCritical = minutesLeft <= 5;

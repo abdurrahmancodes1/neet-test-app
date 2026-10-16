@@ -128,3 +128,35 @@ html.dark ::-webkit-scrollbar-thumb:hover {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Cyber-Terminal Grid and Background Utilities */
+.bg-cyber-grid {
+  background-image: 
+    linear-gradient(to right, rgba(59, 130, 246, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 130, 246, 0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.light .bg-cyber-grid,
+html.light .bg-cyber-grid {
+  background-image: 
+    linear-gradient(to right, rgba(37, 99, 235, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 99, 235, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-cyber-grid-dense {
+  background-image: 
+    linear-gradient(to right, rgba(59, 130, 246, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(59, 130, 246, 0.08) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.light .bg-cyber-grid-dense,
+html.light .bg-cyber-grid-dense {
+  background-image: 
+    linear-gradient(to right, rgba(37, 99, 235, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 99, 235, 0.05) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
