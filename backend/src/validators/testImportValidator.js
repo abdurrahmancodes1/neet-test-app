@@ -30,15 +30,10 @@ export const importQuestionSchema = z.object({
   difficulty: z.enum(['Easy', 'Medium', 'Hard', 'Dropper (NEET)']).default('Hard'),
   type: z.enum(['mcq', 'assertion_reason', 'match_list', 'numerical', 'diagram']).default('mcq'),
   question: z.string().min(1, 'Question text cannot be empty'),
-  options: z
-    .record(z.string())
-    .refine((opts) => Object.keys(opts).length >= 2, {
-      message: 'A question must have at least 2 options (e.g. A, B, C, D)',
-    }),
+  options: z.record(z.string()).optional().default({}),
   correctAnswer: z
-    .string()
-    .min(1, 'Correct answer is required')
-    .transform((val) => val.trim().toUpperCase()),
+    .union([z.string(), z.number()])
+    .transform((val) => String(val).trim().toUpperCase()),
   explanation: z.string().nullable().optional(),
   solution: z.string().nullable().optional(),
   explanationText: z.string().nullable().optional(),
@@ -150,10 +145,24 @@ export const importTestPayloadSchema = z
       const cleanAnswer = (q.correctAnswer || '').trim().toUpperCase();
 
       if (q.type !== 'numerical') {
-        if (!optionKeys.map((k) => k.toUpperCase()).includes(cleanAnswer)) {
+        if (optionKeys.length < 2) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Question #${q.order || qIndex}: A multiple-choice question must have at least 2 options (e.g. A, B, C, D)`,
+            path: ['questions', idx, 'options'],
+          });
+        } else if (!optionKeys.map((k) => k.toUpperCase()).includes(cleanAnswer)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: `Question #${q.order || qIndex}: Correct answer "${cleanAnswer}" does not match any provided options [${optionKeys.join(', ')}]`,
+            path: ['questions', idx, 'correctAnswer'],
+          });
+        }
+      } else {
+        if (cleanAnswer === '' || isNaN(Number(cleanAnswer))) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: `Question #${q.order || qIndex}: Numerical question requires a valid numeric/integer correctAnswer (received: "${cleanAnswer}")`,
             path: ['questions', idx, 'correctAnswer'],
           });
         }

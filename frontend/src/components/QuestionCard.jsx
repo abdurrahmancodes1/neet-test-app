@@ -3,6 +3,7 @@ import { Bookmark, BookmarkCheck, RotateCcw, ImageIcon } from 'lucide-react';
 import OptionButton from './OptionButton.jsx';
 import MathRenderer from './MathRenderer.jsx';
 import SafeSvgRenderer from './SafeSvgRenderer.jsx';
+import NumericalInputPad from './NumericalInputPad.jsx';
 import { useTheme } from '../utils/themeContext.jsx';
 
 export default function QuestionCard({
@@ -19,6 +20,9 @@ export default function QuestionCard({
   const qText = question.question || question.text || '';
   const qTopic = question.topic || 'Work, Energy and Power';
   const qDifficulty = question.difficulty || 'Medium';
+  const isNumerical =
+    question.type === 'numerical' ||
+    (!question.options || Object.keys(question.options).length === 0);
 
   return (
     <div
@@ -89,6 +93,17 @@ export default function QuestionCard({
           >
             {qDifficulty}
           </span>
+          {isNumerical && (
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold uppercase border ${
+                isLight
+                  ? 'bg-blue-100 text-blue-800 border-blue-300'
+                  : 'bg-blue-600/20 text-blue-300 border-blue-500/40'
+              }`}
+            >
+              Section B · Numerical
+            </span>
+          )}
         </div>
 
         <button
@@ -148,26 +163,34 @@ export default function QuestionCard({
         </div>
       ) : null}
 
-      {/* Options Radio Group */}
-      <div
-        role="radiogroup"
-        aria-label={`Options for question ${index + 1}`}
-        className="space-y-3 pt-2"
-      >
-        {question.options &&
-          Object.entries(question.options).map(([letter, text]) => (
-            <OptionButton
-              key={letter}
-              letter={letter}
-              text={text}
-              selected={selected === letter}
-              onSelect={onSelect}
-            />
-          ))}
-      </div>
+      {/* Options Radio Group or Numerical Response Console */}
+      {isNumerical ? (
+        <NumericalInputPad
+          value={selected || ''}
+          onChange={(val) => onSelect(val)}
+          onClear={onClear}
+        />
+      ) : (
+        <div
+          role="radiogroup"
+          aria-label={`Options for question ${index + 1}`}
+          className="space-y-3 pt-2"
+        >
+          {question.options &&
+            Object.entries(question.options).map(([letter, text]) => (
+              <OptionButton
+                key={letter}
+                letter={letter}
+                text={text}
+                selected={selected === letter}
+                onSelect={onSelect}
+              />
+            ))}
+        </div>
+      )}
 
-      {/* Footer Clear Response Button */}
-      {selected && (
+      {/* Footer Clear Response Button for Multiple Choice Questions */}
+      {!isNumerical && selected && (
         <div
           className={`mt-6 flex justify-end border-t pt-4 ${
             isLight ? 'border-slate-200' : 'border-white/10'

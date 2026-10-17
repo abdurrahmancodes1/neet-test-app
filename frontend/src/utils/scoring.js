@@ -33,14 +33,37 @@ export function computeResult(
       answers[q._id] ??
       null;
 
-    const cleanSelected = selected ? String(selected).trim().toUpperCase() : null;
-    const cleanCorrect = q.correctAnswer ? String(q.correctAnswer).trim().toUpperCase() : '';
+    const cleanSelected =
+      selected !== null && selected !== undefined && String(selected).trim() !== ''
+        ? String(selected).trim()
+        : null;
+    const cleanCorrect =
+      q.correctAnswer !== null && q.correctAnswer !== undefined
+        ? String(q.correctAnswer).trim()
+        : '';
+
+    const isNumerical =
+      q.type === 'numerical' ||
+      (!q.options || Object.keys(q.options).length === 0);
+
+    let isMatch = false;
+    if (cleanSelected && cleanCorrect) {
+      if (cleanSelected.toUpperCase() === cleanCorrect.toUpperCase()) {
+        isMatch = true;
+      } else if (isNumerical) {
+        const numSel = parseFloat(cleanSelected);
+        const numCor = parseFloat(cleanCorrect);
+        if (!isNaN(numSel) && !isNaN(numCor) && Math.abs(numSel - numCor) < 0.001) {
+          isMatch = true;
+        }
+      }
+    }
 
     let status = 'unattempted';
     if (!cleanSelected) {
       unattempted += 1;
       status = 'unattempted';
-    } else if (cleanCorrect && cleanSelected === cleanCorrect) {
+    } else if (isMatch) {
       correct += 1;
       status = 'correct';
     } else {

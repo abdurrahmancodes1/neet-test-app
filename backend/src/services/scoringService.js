@@ -26,14 +26,36 @@ export class ScoringService {
         submittedAnswers[String(q.order)] ??
         null;
 
+      const isNumerical =
+        q.type === 'numerical' ||
+        (!q.options || (q.options instanceof Map ? q.options.size === 0 : Object.keys(q.options).length === 0));
+
+      const rawSelected =
+        selectedOption !== null && selectedOption !== undefined ? String(selectedOption).trim() : '';
+      const rawCorrect =
+        q.correctAnswer !== null && q.correctAnswer !== undefined ? String(q.correctAnswer).trim() : '';
+
+      let isMatch = false;
+      if (rawSelected !== '' && rawCorrect !== '') {
+        if (rawSelected.toUpperCase() === rawCorrect.toUpperCase()) {
+          isMatch = true;
+        } else if (isNumerical) {
+          const numSel = parseFloat(rawSelected);
+          const numCor = parseFloat(rawCorrect);
+          if (!isNaN(numSel) && !isNaN(numCor) && Math.abs(numSel - numCor) < 0.001) {
+            isMatch = true;
+          }
+        }
+      }
+
       let status = 'unattempted';
       let isCorrect = null;
       let marksAwarded = marksUnattempted;
 
-      if (!selectedOption) {
+      if (!rawSelected) {
         unattemptedCount += 1;
         status = 'unattempted';
-      } else if (q.correctAnswer && selectedOption.trim().toUpperCase() === q.correctAnswer.trim().toUpperCase()) {
+      } else if (isMatch) {
         correctCount += 1;
         status = 'correct';
         isCorrect = true;

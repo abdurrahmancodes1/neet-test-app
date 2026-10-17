@@ -63,6 +63,7 @@ REQUIREMENTS:
    - Use high-contrast colors (e.g. #0F172A, #2563EB, #EF4444).
 4. Provide step-by-step explanations in the "explanation" field for each question.
 5. If any figure cannot be reconstructed accurately or details are uncertain, record a brief note in the "warnings" array.
+6. For JEE (JEE Main / JEE Advanced) tests, include Section B Numerical / Integer-based questions by setting "type": "numerical", "options": {}, and "correctAnswer": "15" (the exact integer/decimal value).
 
 JSON SCHEMA:
 {
@@ -698,6 +699,11 @@ JSON SCHEMA:
                     <span className="rounded bg-amber-500/10 text-amber-300 border border-amber-500/30 px-2 py-0.5 font-mono text-[10px] font-bold">
                       {q.difficulty}
                     </span>
+                    {q.type === 'numerical' && (
+                      <span className="rounded bg-blue-500/10 text-blue-400 border border-blue-500/30 px-2 py-0.5 font-mono text-[10px] font-bold">
+                        Section B · Numerical
+                      </span>
+                    )}
                   </div>
 
                   <span className="text-xs font-mono font-bold text-slate-400">
@@ -718,46 +724,71 @@ JSON SCHEMA:
                   />
                 )}
 
-                {/* Options Grid */}
-                <div className="grid gap-2 text-xs sm:grid-cols-2 pt-1 font-mono">
-                  {Object.entries(q.options || {}).map(([key, optText]) => {
-                    const isCorrect = key.toUpperCase() === (q.correctAnswer || '').toUpperCase();
-                    return (
-                      <div
-                        key={key}
-                        className={`rounded-md border p-3 transition flex items-start gap-2.5 ${
-                          isCorrect
-                            ? isLight
-                              ? 'border-emerald-500 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-500'
-                              : 'border-emerald-500/60 bg-emerald-950/40 text-emerald-200 ring-1 ring-emerald-500/40'
-                            : isLight
-                            ? 'border-slate-200 bg-slate-50 text-slate-700'
-                            : 'border-blue-900/40 bg-[#060A14] text-slate-300'
-                        }`}
-                      >
-                        <span
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-xs font-bold ${
+                {/* Options Grid or Numerical Value Card */}
+                {q.type === 'numerical' ? (
+                  <div
+                    className={`rounded-md border p-3.5 font-mono text-xs space-y-1 ${
+                      isLight
+                        ? 'border-blue-200 bg-blue-50/80 text-blue-950'
+                        : 'border-blue-900/40 bg-[#080D1A] text-blue-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[10px] uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                        Section B · Numerical Response Question
+                      </span>
+                      <span className="rounded-full px-2 py-0.5 text-[10px] font-bold border border-emerald-500/40 bg-emerald-500/10 text-emerald-400">
+                        Correct Value: {q.correctAnswer}
+                      </span>
+                    </div>
+                    <p className="text-sm">
+                      Verified Integer/Decimal Answer:{' '}
+                      <strong className="font-mono text-base text-emerald-600 dark:text-emerald-400">
+                        {q.correctAnswer}
+                      </strong>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-2 text-xs sm:grid-cols-2 pt-1 font-mono">
+                    {Object.entries(q.options || {}).map(([key, optText]) => {
+                      const isCorrect = key.toUpperCase() === (q.correctAnswer || '').toUpperCase();
+                      return (
+                        <div
+                          key={key}
+                          className={`rounded-md border p-3 transition flex items-start gap-2.5 ${
                             isCorrect
-                              ? 'bg-emerald-600 text-white'
+                              ? isLight
+                                ? 'border-emerald-500 bg-emerald-50 text-emerald-950 ring-1 ring-emerald-500'
+                                : 'border-emerald-500/60 bg-emerald-950/40 text-emerald-200 ring-1 ring-emerald-500/40'
                               : isLight
-                              ? 'bg-slate-200 text-slate-700'
-                              : 'bg-white/10 text-slate-300'
+                              ? 'border-slate-200 bg-slate-50 text-slate-700'
+                              : 'border-blue-900/40 bg-[#060A14] text-slate-300'
                           }`}
                         >
-                          {key}
-                        </span>
-                        <div className="flex-1 min-w-0 pt-0.5 font-sans">
-                          <MathRenderer text={optText} inline />
-                          {isCorrect && (
-                            <span className="ml-2 font-mono font-bold text-emerald-400">
-                              (Correct Answer)
-                            </span>
-                          )}
+                          <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded font-mono text-xs font-bold ${
+                              isCorrect
+                                ? 'bg-emerald-600 text-white'
+                                : isLight
+                                ? 'bg-slate-200 text-slate-700'
+                                : 'bg-white/10 text-slate-300'
+                            }`}
+                          >
+                            {key}
+                          </span>
+                          <div className="flex-1 min-w-0 pt-0.5 font-sans">
+                            <MathRenderer text={optText} inline />
+                            {isCorrect && (
+                              <span className="ml-2 font-mono font-bold text-emerald-400">
+                                (Correct Answer)
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* Explanation */}
                 {(q.explanation || q.solution) && (

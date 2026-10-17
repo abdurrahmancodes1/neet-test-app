@@ -82,11 +82,33 @@ export default function QuestionReview({
           matchingQ.solutionText ||
           null;
 
+        const isNumerical =
+          r.type === 'numerical' ||
+          matchingQ.type === 'numerical' ||
+          Object.keys(options).length === 0;
+
         let status = r.status || matchingQ.status;
         if (!status) {
-          if (!selected) status = 'unattempted';
-          else if (correctAnswer && selected.trim().toUpperCase() === correctAnswer.trim().toUpperCase()) status = 'correct';
-          else status = 'wrong';
+          if (!selected) {
+            status = 'unattempted';
+          } else if (correctAnswer) {
+            const selTrim = String(selected).trim().toUpperCase();
+            const corTrim = String(correctAnswer).trim().toUpperCase();
+            if (selTrim === corTrim) {
+              status = 'correct';
+            } else if (isNumerical) {
+              const numSel = parseFloat(selTrim);
+              const numCor = parseFloat(corTrim);
+              status =
+                !isNaN(numSel) && !isNaN(numCor) && Math.abs(numSel - numCor) < 0.001
+                  ? 'correct'
+                  : 'wrong';
+            } else {
+              status = 'wrong';
+            }
+          } else {
+            status = 'wrong';
+          }
         }
 
         return {
@@ -97,6 +119,7 @@ export default function QuestionReview({
           order: id,
           question: questionText,
           options,
+          isNumerical,
           image: r.image || matchingQ.image || null,
           questionImage: r.questionImage || matchingQ.questionImage || null,
           explanationImage: r.explanationImage || matchingQ.explanationImage || null,
@@ -184,6 +207,17 @@ export default function QuestionReview({
                   <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge.className}`}>
                     <Icon size={12} /> {badge.label}
                   </span>
+                  {r.isNumerical && (
+                    <span
+                      className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                        isLight
+                          ? 'bg-blue-100 border-blue-300 text-blue-800'
+                          : 'bg-blue-600/20 border-blue-500/40 text-blue-300'
+                      }`}
+                    >
+                      Section B · Numerical
+                    </span>
+                  )}
                   {markedSet.has(r.id) && (
                     <span
                       className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
@@ -259,13 +293,19 @@ export default function QuestionReview({
                             : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
                     }`}
                   >
-                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">Your answer</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">
+                      {r.isNumerical ? 'Your numerical value' : 'Your answer'}
+                    </p>
                     <div className="mt-1 font-semibold text-sm">
                       {r.selected ? (
-                        <span>
-                          <strong className="font-mono mr-1">{r.selected}.</strong>
-                          <MathRenderer text={selectedText || ''} inline />
-                        </span>
+                        r.isNumerical ? (
+                          <span className="font-mono text-base font-bold">{r.selected}</span>
+                        ) : (
+                          <span>
+                            <strong className="font-mono mr-1">{r.selected}.</strong>
+                            <MathRenderer text={selectedText || ''} inline />
+                          </span>
+                        )
                       ) : (
                         'Not attempted'
                       )}
@@ -278,13 +318,21 @@ export default function QuestionReview({
                         : 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300'
                     }`}
                   >
-                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">Correct answer</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70">
+                      {r.isNumerical ? 'Correct numerical value' : 'Correct answer'}
+                    </p>
                     <div className="mt-1 font-semibold text-sm">
                       {r.correctAnswer ? (
-                        <span>
-                          <strong className="font-mono mr-1">{r.correctAnswer}.</strong>
-                          <MathRenderer text={correctText || ''} inline />
-                        </span>
+                        r.isNumerical ? (
+                          <span className="font-mono text-base font-bold text-emerald-600 dark:text-emerald-400">
+                            {r.correctAnswer}
+                          </span>
+                        ) : (
+                          <span>
+                            <strong className="font-mono mr-1">{r.correctAnswer}.</strong>
+                            <MathRenderer text={correctText || ''} inline />
+                          </span>
+                        )
                       ) : (
                         '—'
                       )}
@@ -339,15 +387,25 @@ export default function QuestionReview({
                     </p>
                     <div className="text-[11px] leading-relaxed">
                       {r.correctAnswer ? (
-                        <span>
-                          The verified correct answer is Option{' '}
-                          <strong className="font-mono text-emerald-600 dark:text-emerald-400">
-                            {r.correctAnswer}
-                          </strong>
-                          .
-                        </span>
+                        r.isNumerical ? (
+                          <span>
+                            The verified correct numerical value is{' '}
+                            <strong className="font-mono text-emerald-600 dark:text-emerald-400">
+                              {r.correctAnswer}
+                            </strong>
+                            .
+                          </span>
+                        ) : (
+                          <span>
+                            The verified correct answer is Option{' '}
+                            <strong className="font-mono text-emerald-600 dark:text-emerald-400">
+                              {r.correctAnswer}
+                            </strong>
+                            .
+                          </span>
+                        )
                       ) : (
-                        <span>Verified standard option recorded.</span>
+                        <span>Verified standard answer recorded.</span>
                       )}{' '}
                       Review standard NCERT concepts under{' '}
                       <strong>{r.chapter || r.subject}</strong>

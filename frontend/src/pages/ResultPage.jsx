@@ -79,7 +79,21 @@ export default function ResultPage({
         let isCorrect = q.isCorrect;
         if (isCorrect === undefined || isCorrect === null) {
           if (correctAnswer && selected) {
-            isCorrect = String(selected).trim().toUpperCase() === String(correctAnswer).trim().toUpperCase();
+            const isNumerical =
+              q.type === 'numerical' ||
+              matchingQ.type === 'numerical' ||
+              (!q.options || Object.keys(q.options).length === 0);
+            const selTrim = String(selected).trim().toUpperCase();
+            const corTrim = String(correctAnswer).trim().toUpperCase();
+            if (selTrim === corTrim) {
+              isCorrect = true;
+            } else if (isNumerical) {
+              const numSel = parseFloat(selTrim);
+              const numCor = parseFloat(corTrim);
+              isCorrect = !isNaN(numSel) && !isNaN(numCor) && Math.abs(numSel - numCor) < 0.001;
+            } else {
+              isCorrect = false;
+            }
           } else {
             isCorrect = null;
           }
@@ -165,7 +179,21 @@ export default function ResultPage({
         let isCorrect = a.isCorrect;
         if (isCorrect === undefined || isCorrect === null) {
           if (correctAnswer && selected) {
-            isCorrect = String(selected).trim().toUpperCase() === String(correctAnswer).trim().toUpperCase();
+            const isNumerical =
+              a.type === 'numerical' ||
+              matchingQ.type === 'numerical' ||
+              (!a.options || Object.keys(a.options).length === 0);
+            const selTrim = String(selected).trim().toUpperCase();
+            const corTrim = String(correctAnswer).trim().toUpperCase();
+            if (selTrim === corTrim) {
+              isCorrect = true;
+            } else if (isNumerical) {
+              const numSel = parseFloat(selTrim);
+              const numCor = parseFloat(corTrim);
+              isCorrect = !isNaN(numSel) && !isNaN(numCor) && Math.abs(numSel - numCor) < 0.001;
+            } else {
+              isCorrect = false;
+            }
           } else {
             isCorrect = null;
           }

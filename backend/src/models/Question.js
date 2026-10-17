@@ -71,12 +71,13 @@ const questionSchema = new mongoose.Schema(
     options: {
       type: Map,
       of: String,
-      required: [true, 'Question options are required'],
+      default: {},
       validate: {
         validator: function (v) {
-          return v && v.size >= 2;
+          if (this.type === 'numerical') return true;
+          return v && (v instanceof Map ? v.size >= 2 : Object.keys(v).length >= 2);
         },
-        message: 'A question must have at least 2 options',
+        message: 'A multiple-choice question must have at least 2 options',
       },
     },
     correctAnswer: {

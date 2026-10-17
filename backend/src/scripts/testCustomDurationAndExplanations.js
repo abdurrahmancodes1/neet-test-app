@@ -107,7 +107,73 @@ async function runVerification() {
   assert.equal(evaluation.evaluatedAnswers[1].explanation, 'Multiplication: $3 \\times 3 = 9$.');
   console.log('✓ Test 3 Passed: Scoring evaluation preserves explanations for wrong and correct questions');
 
-  console.log('\n🎉 ALL CUSTOM DURATION & EXPLANATION VERIFICATIONS PASSED!\n');
+  // Test 4: JEE Numerical Integer Questions Validation & Evaluation
+  const jeePayload = {
+    title: 'JEE Main 2027 Numerical Mock Test',
+    examType: 'JEE_MAIN',
+    questions: [
+      {
+        order: 1,
+        question: 'Section A MCQ: Force unit?',
+        options: { A: 'Joule', B: 'Newton' },
+        correctAnswer: 'B',
+      },
+      {
+        order: 2,
+        type: 'numerical',
+        question: 'Section B Numerical: Total bonding electrons in O2^2-?',
+        options: {}, // empty options
+        correctAnswer: '10', // integer answer
+        solution: 'Bonding electrons = 10.',
+      },
+    ],
+  };
+
+  const previewJee = await TestImportService.validateAndPreview(jeePayload);
+  assert.equal(previewJee.isValid, true, 'JEE payload with numerical question should be valid');
+  assert.equal(previewJee.questions[1].type, 'numerical');
+  assert.equal(previewJee.questions[1].correctAnswer, '10');
+  console.log('✓ Test 4a Passed: JEE Numerical questions validated without requiring options');
+
+  // Verify scoring of numerical questions with integer equivalence
+  const jeeEval = ScoringService.evaluateSubmission(
+    [
+      {
+        _id: 'q1',
+        order: 1,
+        type: 'mcq',
+        options: { A: 'Joule', B: 'Newton' },
+        correctAnswer: 'B',
+      },
+      {
+        _id: 'q2',
+        order: 2,
+        type: 'numerical',
+        options: {},
+        correctAnswer: '10',
+      },
+      {
+        _id: 'q3',
+        order: 3,
+        type: 'numerical',
+        options: {},
+        correctAnswer: '25',
+      },
+    ],
+    {
+      q1: 'B',    // Correct MCQ (+4)
+      q2: '10.0', // Correct numerical equivalence (+4)
+      q3: '14',   // Wrong numerical (-1)
+    },
+    { correct: 4, wrong: -1, unattempted: 0 }
+  );
+
+  assert.equal(jeeEval.correctCount, 2, 'q1 and q2 (10.0 == 10) must be evaluated as correct');
+  assert.equal(jeeEval.wrongCount, 1, 'q3 must be evaluated as wrong');
+  assert.equal(jeeEval.score, 7, 'Score should be 4 + 4 - 1 = 7');
+  console.log('✓ Test 4b Passed: Numerical equivalence matching correctly graded');
+
+  console.log('\n🎉 ALL CUSTOM DURATION & JEE NUMERICAL VERIFICATIONS PASSED!\n');
 }
 
 runVerification().catch((err) => {
