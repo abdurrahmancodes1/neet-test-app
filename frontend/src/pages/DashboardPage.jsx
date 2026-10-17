@@ -700,6 +700,12 @@ export default function DashboardPage({
                     {allAttempts.map((att, idx) => {
                       const isLatest = idx === 0;
                       const maxScore = att.maxScore || 240;
+                      const sameTestAttempts = allAttempts.filter(
+                        (a) => (a.testId || '').toLowerCase() === (att.testId || '').toLowerCase()
+                      );
+                      const testAttemptIndex = sameTestAttempts.indexOf(att);
+                      const testAttemptNum = testAttemptIndex >= 0 ? sameTestAttempts.length - testAttemptIndex : 1;
+
                       return (
                         <tr key={att.id} className={`transition ${isLight ? 'hover:bg-slate-50/80' : 'hover:bg-white/[0.02]'}`}>
                           <td className={`px-3.5 py-3.5 font-mono font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
@@ -713,7 +719,16 @@ export default function DashboardPage({
                             )}
                           </td>
                           <td className={`px-3.5 py-3.5 font-medium ${isLight ? 'text-slate-800' : 'text-slate-300'}`}>
-                            {att.testTitle || 'Standard Mock'}
+                            <div className="flex items-center gap-2">
+                              <span>{att.testTitle || 'Standard Mock'}</span>
+                              {sameTestAttempts.length > 1 && (
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${
+                                  isLight ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-indigo-950/50 border-indigo-500/30 text-indigo-300'
+                                }`}>
+                                  Attempt {testAttemptNum}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className={`px-3.5 py-3.5 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
                             {formatAttemptDate(att.timestamp)}

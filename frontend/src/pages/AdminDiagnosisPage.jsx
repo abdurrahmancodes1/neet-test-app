@@ -37,10 +37,17 @@ import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from '.
 import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from '../data/neetCalculusTest.js';
 import { JEE_2027_PERIODIC_TEST, JEE_2027_PERIODIC_QUESTIONS } from '../data/jee2027PeriodicTableTest.js';
+import { JEE_2027_CHEMICAL_BONDING_TEST, JEE_2027_CHEMICAL_BONDING_QUESTIONS } from '../data/jee2027ChemicalBondingTest.js';
 
 // Central registry of all test suites with all possible alias keys
 const ALL_TEST_DATA = {
-  // JEE 2027: Classification of Elements & Periodicity in Properties (30 Qs)
+  // JEE 2027: Chemical Bonding and Molecular Structure (42 Qs)
+  [JEE_2027_CHEMICAL_BONDING_TEST.id]: { test: JEE_2027_CHEMICAL_BONDING_TEST, questions: JEE_2027_CHEMICAL_BONDING_QUESTIONS },
+  'jee-2027-chemical-bonding-and-molecular-structure': { test: JEE_2027_CHEMICAL_BONDING_TEST, questions: JEE_2027_CHEMICAL_BONDING_QUESTIONS },
+  'jee-chemical-bonding': { test: JEE_2027_CHEMICAL_BONDING_TEST, questions: JEE_2027_CHEMICAL_BONDING_QUESTIONS },
+  'chemical-bonding': { test: JEE_2027_CHEMICAL_BONDING_TEST, questions: JEE_2027_CHEMICAL_BONDING_QUESTIONS },
+
+  // JEE 2027: Classification of Elements & Periodicity in Properties (60 Qs)
   [JEE_2027_PERIODIC_TEST.id]: { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
   'jee-2027-periodic-properties-mastery-drill': { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
   'jee-2027-periodic': { test: JEE_2027_PERIODIC_TEST, questions: JEE_2027_PERIODIC_QUESTIONS },
@@ -252,15 +259,29 @@ export default function AdminDiagnosisPage({
     const rawTestId = (attempt.testId || '').toLowerCase().trim();
     const rawTitle = (attempt.testTitle || '').toLowerCase().trim();
 
+    // Check if attempt already contains evaluated question objects
+    let candidateQuestions = null;
+    if (Array.isArray(attempt.perQuestion) && attempt.perQuestion.length > 0 && (attempt.perQuestion[0]?.question || attempt.perQuestion[0]?.text)) {
+      candidateQuestions = attempt.perQuestion;
+    } else if (Array.isArray(attempt.answers) && attempt.answers.length > 0 && (attempt.answers[0]?.question || attempt.answers[0]?.text)) {
+      candidateQuestions = attempt.answers;
+    } else if (attempt.answers && typeof attempt.answers === 'object') {
+      const vals = Object.values(attempt.answers);
+      if (vals.length > 0 && (vals[0]?.question || vals[0]?.text)) {
+        candidateQuestions = vals;
+      }
+    }
+
     let suite = null;
     if (rawTestId && ALL_TEST_DATA[rawTestId]) {
       suite = ALL_TEST_DATA[rawTestId];
     } else if (
-      rawTestId.includes('jee') ||
-      rawTestId.includes('periodic') ||
-      rawTitle.includes('periodic') ||
-      rawTitle.includes('jee')
+      rawTestId.includes('chemical-bonding') ||
+      (rawTestId.includes('bonding') && (rawTestId.includes('jee') || rawTitle.includes('jee'))) ||
+      rawTitle.includes('chemical bonding')
     ) {
+      suite = ALL_TEST_DATA['jee-2027-chemical-bonding-and-molecular-structure'];
+    } else if (rawTestId.includes('periodic') || rawTitle.includes('periodic')) {
       suite = ALL_TEST_DATA['jee-2027-periodic-properties-mastery-drill'];
     } else if (
       rawTestId.includes('round-1') ||
@@ -317,8 +338,13 @@ export default function AdminDiagnosisPage({
       suite = ALL_TEST_DATA['neet-work-energy-power'];
     }
 
-    const testDef = suite.test;
-    const questionsList = suite.questions || [];
+    const testDef = suite ? suite.test : {
+      title: attempt.testTitle || 'Assessment',
+      subject: candidateQuestions?.[0]?.subject || 'General',
+      syllabus: attempt.testTitle || 'General',
+      totalMarks: attempt.maxScore || (candidateQuestions?.length || 42) * 4,
+    };
+    const questionsList = candidateQuestions || suite?.questions || [];
     const totalQuestions = questionsList.length;
 
     const answersMap = normalizeAnswersMap(
@@ -328,21 +354,21 @@ export default function AdminDiagnosisPage({
 
     const hasExplicitAnswers = Object.keys(answersMap).length > 0;
 
-    const targetWrong = attempt.wrong !== undefined ? Number(attempt.wrong) : 0;
-    const targetCorrect = attempt.correct !== undefined ? Number(attempt.correct) : 0;
+    const targetWrong = attempt.wrong !== undefined ? Number(attempt.wrong) : (attempt.wrongCount !== undefined ? Number(attempt.wrongCount) : 0);
+    const targetCorrect = attempt.correct !== undefined ? Number(attempt.correct) : (attempt.correctCount !== undefined ? Number(attempt.correctCount) : 0);
     const targetUnattempted =
       attempt.unattempted !== undefined
         ? Number(attempt.unattempted)
-        : Math.max(0, totalQuestions - targetCorrect - targetWrong);
+        : (attempt.unattemptedCount !== undefined ? Number(attempt.unattemptedCount) : Math.max(0, totalQuestions - targetCorrect - targetWrong));
 
     const seed = `${attempt.id || ''}_${attempt.studentEmail || student?.email || ''}_${attempt.score || 0}_${targetWrong}`;
     const autoWrongIndices =
-      !hasExplicitAnswers && targetWrong > 0
+      !hasExplicitAnswers && !candidateQuestions && targetWrong > 0
         ? generateDeterministicWrongIndices(totalQuestions, targetWrong, seed)
         : new Set();
 
     const autoUnattemptedIndices =
-      !hasExplicitAnswers && targetUnattempted > 0
+      !hasExplicitAnswers && !candidateQuestions && targetUnattempted > 0
         ? new Set(Array.from({ length: targetUnattempted }, (_, i) => totalQuestions - 1 - i))
         : new Set();
 
@@ -354,10 +380,31 @@ export default function AdminDiagnosisPage({
       const qNum = mq.number ?? mq.order ?? mq.id ?? idx + 1;
       const cleanCorrect = mq.correctAnswer ? String(mq.correctAnswer).trim().toUpperCase() : 'A';
 
-      let selectedLetter = null;
-      let status = 'unattempted';
+      let selectedLetter = mq.selectedOption ?? mq.selected ?? mq.selectedAnswer ?? mq.choice ?? null;
+      let status = mq.status || null;
 
-      if (hasExplicitAnswers) {
+      if (candidateQuestions) {
+        if (!selectedLetter && hasExplicitAnswers) {
+          selectedLetter =
+            answersMap[qNum] ??
+            answersMap[String(qNum)] ??
+            answersMap[mq.id] ??
+            answersMap[String(mq.id)] ??
+            null;
+        }
+        if (!status) {
+          if (!selectedLetter) {
+            status = 'unattempted';
+          } else if (String(selectedLetter).trim().toUpperCase() === cleanCorrect) {
+            status = 'correct';
+          } else {
+            status = 'wrong';
+          }
+        }
+        if (status === 'correct') correctCount += 1;
+        else if (status === 'wrong') wrongCount += 1;
+        else unattemptedCount += 1;
+      } else if (hasExplicitAnswers) {
         selectedLetter =
           answersMap[qNum] ??
           answersMap[String(qNum)] ??

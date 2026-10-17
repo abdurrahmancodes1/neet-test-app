@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight } from 'lucide-react';
+import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight, Loader2 } from 'lucide-react';
 import { formatDuration, computeResult } from '../utils/scoring.js';
 import ResultSummary from '../components/ResultSummary.jsx';
 import TopicAnalysis from '../components/TopicAnalysis.jsx';
@@ -22,6 +22,7 @@ export default function ResultPage({
   onBackToChapters,
   onGoToDashboard,
   reviewedAttempt = null,
+  isSubmitting = false,
 }) {
   const { theme, isLight } = useTheme();
 
@@ -51,7 +52,14 @@ export default function ResultPage({
         perQ = reviewedAttempt.perQuestion;
       } else if (Array.isArray(reviewedAttempt.answers) && reviewedAttempt.answers.length > 0) {
         perQ = reviewedAttempt.answers;
-      } else if (test?.questions && test.questions.length > 0) {
+      } else if (reviewedAttempt.answers && typeof reviewedAttempt.answers === 'object') {
+        const vals = Object.values(reviewedAttempt.answers);
+        if (vals.length > 0 && (vals[0]?.question || vals[0]?.text || vals[0]?.questionId)) {
+          perQ = vals;
+        }
+      }
+
+      if (perQ.length === 0 && test?.questions && test.questions.length > 0) {
         const computed = computeResult(
           reviewedAttempt.answers || {},
           test.questions,
@@ -66,6 +74,23 @@ export default function ResultPage({
         const matchingQ =
           (test?.questions || []).find((tq) => (tq.order ?? tq.id ?? tq.number) === id) || {};
 
+        const selected = q.selectedOption ?? q.selected ?? null;
+        const correctAnswer = q.correctAnswer || matchingQ.correctAnswer || null;
+        let isCorrect = q.isCorrect;
+        if (isCorrect === undefined || isCorrect === null) {
+          if (correctAnswer && selected) {
+            isCorrect = String(selected).trim().toUpperCase() === String(correctAnswer).trim().toUpperCase();
+          } else {
+            isCorrect = null;
+          }
+        }
+        let status = q.status;
+        if (!status) {
+          if (!selected) status = 'unattempted';
+          else if (isCorrect) status = 'correct';
+          else status = 'wrong';
+        }
+
         return {
           ...matchingQ,
           ...q,
@@ -78,13 +103,13 @@ export default function ResultPage({
           question: q.question || q.text || matchingQ.question || matchingQ.text || `Question ${id}`,
           options: (q.options && Object.keys(q.options).length > 0) ? q.options : (matchingQ.options || {}),
           image: q.image || matchingQ.image || null,
-          selected: q.selectedOption ?? q.selected ?? null,
-          selectedOption: q.selectedOption ?? q.selected ?? null,
-          correctAnswer: q.correctAnswer || matchingQ.correctAnswer || null,
+          selected,
+          selectedOption: selected,
+          correctAnswer,
           explanation: q.explanation || matchingQ.explanation || null,
-          isCorrect: q.isCorrect !== undefined ? q.isCorrect : (q.correctAnswer && q.selectedOption ? q.correctAnswer === q.selectedOption : null),
-          marks: q.marksAwarded ?? q.marks ?? 0,
-          status: q.status || (q.isCorrect ? 'correct' : (q.selectedOption || q.selected ? 'wrong' : 'unattempted')),
+          isCorrect,
+          marks: q.marksAwarded ?? q.marks ?? (status === 'correct' ? 4 : status === 'wrong' ? -1 : 0),
+          status,
         };
       });
 
@@ -106,17 +131,49 @@ export default function ResultPage({
     }
 
     if (backendResult) {
-      const answersArray =
-        Array.isArray(backendResult.perQuestion) && backendResult.perQuestion.length > 0
-          ? backendResult.perQuestion
-          : Array.isArray(backendResult.answers) && backendResult.answers.length > 0
-          ? backendResult.answers
-          : [];
+      let answersArray = [];
+      if (Array.isArray(backendResult.perQuestion) && backendResult.perQuestion.length > 0) {
+        answersArray = backendResult.perQuestion;
+      } else if (Array.isArray(backendResult.answers) && backendResult.answers.length > 0) {
+        answersArray = backendResult.answers;
+      } else if (backendResult.answers && typeof backendResult.answers === 'object') {
+        const vals = Object.values(backendResult.answers);
+        if (vals.length > 0 && (vals[0]?.question || vals[0]?.text || vals[0]?.questionId)) {
+          answersArray = vals;
+        }
+      }
+
+      if (answersArray.length === 0 && test?.questions && test.questions.length > 0) {
+        const computed = computeResult(
+          backendResult.answers || session?.answers || {},
+          test.questions,
+          test.marksCorrect || 4,
+          test.marksWrong || -1
+        );
+        answersArray = computed.perQuestion;
+      }
 
       const normalizedPerQ = answersArray.map((a, idx) => {
         const id = a.order || a.id || a.questionNumber || idx + 1;
         const matchingQ =
           (test?.questions || []).find((tq) => (tq.order ?? tq.id ?? tq.number) === id) || {};
+
+        const selected = a.selectedOption ?? a.selected ?? null;
+        const correctAnswer = a.correctAnswer || matchingQ.correctAnswer || null;
+        let isCorrect = a.isCorrect;
+        if (isCorrect === undefined || isCorrect === null) {
+          if (correctAnswer && selected) {
+            isCorrect = String(selected).trim().toUpperCase() === String(correctAnswer).trim().toUpperCase();
+          } else {
+            isCorrect = null;
+          }
+        }
+        let status = a.status;
+        if (!status) {
+          if (!selected) status = 'unattempted';
+          else if (isCorrect) status = 'correct';
+          else status = 'wrong';
+        }
 
         return {
           ...matchingQ,
@@ -130,13 +187,13 @@ export default function ResultPage({
           question: a.question || a.text || matchingQ.question || matchingQ.text || `Question ${id}`,
           options: (a.options && Object.keys(a.options).length > 0) ? a.options : (matchingQ.options || {}),
           image: a.image || matchingQ.image || null,
-          selected: a.selectedOption ?? a.selected ?? null,
-          selectedOption: a.selectedOption ?? a.selected ?? null,
-          correctAnswer: a.correctAnswer || matchingQ.correctAnswer || null,
+          selected,
+          selectedOption: selected,
+          correctAnswer,
           explanation: a.explanation || matchingQ.explanation || null,
-          isCorrect: a.isCorrect !== undefined ? a.isCorrect : (a.correctAnswer && a.selectedOption ? a.correctAnswer === a.selectedOption : null),
-          marks: a.marksAwarded ?? a.marks ?? 0,
-          status: a.status || (a.isCorrect ? 'correct' : (a.selectedOption || a.selected ? 'wrong' : 'unattempted')),
+          isCorrect,
+          marks: a.marksAwarded ?? a.marks ?? (status === 'correct' ? 4 : status === 'wrong' ? -1 : 0),
+          status,
         };
       });
 
@@ -158,7 +215,7 @@ export default function ResultPage({
     }
 
     // Pure client-side computation from bundled questions
-    if (test?.questions && test.questions.length > 0) {
+    if (test?.questions && test.questions.length > 0 && test.questions[0]?.correctAnswer) {
       return computeResult(
         session?.answers || {},
         test.questions,
@@ -197,7 +254,30 @@ export default function ResultPage({
   const timeTakenLabel = formatDuration(timeTakenMs);
   const attempted = result.correct + result.wrong;
   const avgMs = attempted > 0 ? timeTakenMs / attempted : 0;
-  const avgTimeLabel = attempted > 0 ? `${Math.round(avgMs / 1000)}s` : '—';
+  const isEvaluating = isSubmitting || (!reviewedAttempt && !backendResult && (!test?.questions || !test.questions[0]?.correctAnswer));
+
+  if (isEvaluating) {
+    return (
+      <div
+        className={`min-h-screen flex flex-col items-center justify-center p-6 text-center transition-colors ${
+          isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'
+        }`}
+      >
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600/20 border border-blue-500/40 text-blue-400 mb-6 shadow-glow animate-pulse">
+          <Loader2 size={32} className="animate-spin text-blue-400" />
+        </div>
+        <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-2">
+          Evaluating &amp; Grading Submission...
+        </h2>
+        <p className={`text-xs sm:text-sm max-w-md leading-relaxed mb-4 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          Applying official marking scheme (+4 / -1), calculating percentile rank, and retrieving full verified solutions.
+        </p>
+        <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 animate-[pulse_1.5s_infinite]" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

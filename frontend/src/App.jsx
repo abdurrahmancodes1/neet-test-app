@@ -19,6 +19,7 @@ import { NEET_ROUND_2_TEST, NEET_ROUND_2_QUESTIONS } from './data/neetMegaRound2
 import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from './data/neetGrandMegaDrillTest.js';
 import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from './data/neetMechanicsBondingTest.js';
 import { JEE_2027_PERIODIC_TEST, JEE_2027_PERIODIC_QUESTIONS } from './data/jee2027PeriodicTableTest.js';
+import { JEE_2027_CHEMICAL_BONDING_TEST, JEE_2027_CHEMICAL_BONDING_QUESTIONS } from './data/jee2027ChemicalBondingTest.js';
 import AuthPage from './pages/AuthPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
@@ -32,6 +33,10 @@ import ResultPage from './pages/ResultPage.jsx';
 const ACTIVE_TEST_KEY = 'neet_active_test_id';
 
 const ALL_TESTS = {
+  [JEE_2027_CHEMICAL_BONDING_TEST.id]: {
+    ...JEE_2027_CHEMICAL_BONDING_TEST,
+    questions: JEE_2027_CHEMICAL_BONDING_QUESTIONS,
+  },
   [JEE_2027_PERIODIC_TEST.id]: {
     ...JEE_2027_PERIODIC_TEST,
     questions: JEE_2027_PERIODIC_QUESTIONS,
@@ -763,6 +768,7 @@ export default function App() {
         onBackToChapters={handleBrowseTests}
         onGoToDashboard={handleGoToDashboard}
         reviewedAttempt={reviewedAttempt}
+        isSubmitting={isSubmittingTest}
       />
     </>
   );

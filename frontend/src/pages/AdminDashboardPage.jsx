@@ -644,6 +644,12 @@ export default function AdminDashboardPage({
                         ) : (
                           <div className="space-y-3">
                             {student.attempts.map((att, idx) => {
+                              const sameTestAttempts = student.attempts.filter(
+                                (a) => (a.testId || '').toLowerCase() === (att.testId || '').toLowerCase()
+                              );
+                              const testAttemptIndex = sameTestAttempts.indexOf(att);
+                              const testAttemptNum = testAttemptIndex >= 0 ? sameTestAttempts.length - testAttemptIndex : 1;
+
                               return (
                                 <div
                                   key={att.id || idx}
@@ -665,6 +671,17 @@ export default function AdminDashboardPage({
                                       >
                                         #{att.attemptNumber || student.attempts.length - idx}
                                       </span>
+                                      {sameTestAttempts.length > 1 && (
+                                        <span
+                                          className={`font-mono text-[10px] font-bold rounded px-1.5 py-0.5 border ${
+                                            isLight
+                                              ? 'text-indigo-800 bg-indigo-50 border-indigo-200'
+                                              : 'text-indigo-300 bg-indigo-950/60 border-indigo-700/40'
+                                          }`}
+                                        >
+                                          Attempt {testAttemptNum}
+                                        </span>
+                                      )}
                                       <h4
                                         className={`font-mono font-semibold text-sm truncate max-w-xs sm:max-w-md ${
                                           isLight ? 'text-slate-900' : 'text-white'

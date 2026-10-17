@@ -387,26 +387,35 @@ export class AuthService {
         );
 
         // Transform submitted attempts
-        const formattedSubmitted = userResults.map((r) => ({
-          id: r._id?.toString() || r.attemptId,
-          testId: r.testId,
-          testTitle: r.testTitle || r.metadata?.testTitle || 'NEET Practice Test',
-          score: r.score,
-          maxScore: r.maxScore || 240,
-          percentage: r.percentage,
-          accuracy: Math.round(r.accuracy || 0),
-          correct: r.correctCount ?? r.correct ?? 0,
-          wrong: r.wrongCount ?? r.wrong ?? 0,
-          unattempted: r.unattemptedCount ?? r.unattempted ?? 0,
-          timeTakenMs: r.timeTakenMs || r.metadata?.timeTakenMs || (r.timeSpentSeconds ? r.timeSpentSeconds * 1000 : 0),
-          answers: r.answers || r.metadata?.answers || {},
-          perQuestion: r.perQuestion || r.metadata?.perQuestion || [],
-          topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
-          weakestTopics: r.weakestTopics || [],
-          strongestTopics: r.strongestTopics || [],
-          submittedAt: r.submittedAt || r.createdAt,
-          status: 'submitted',
-        }));
+        const formattedSubmitted = userResults.map((r) => {
+          const evaluatedList =
+            r.perQuestion && Array.isArray(r.perQuestion) && r.perQuestion.length > 0
+              ? r.perQuestion
+              : Array.isArray(r.answers) && r.answers.length > 0
+              ? r.answers
+              : r.metadata?.perQuestion || [];
+
+          return {
+            id: r._id?.toString() || r.attemptId,
+            testId: r.testId,
+            testTitle: r.testTitle || r.metadata?.testTitle || 'NEET Practice Test',
+            score: r.score,
+            maxScore: r.maxScore || 240,
+            percentage: r.percentage,
+            accuracy: Math.round(r.accuracy || 0),
+            correct: r.correctCount ?? r.correct ?? 0,
+            wrong: r.wrongCount ?? r.wrong ?? 0,
+            unattempted: r.unattemptedCount ?? r.unattempted ?? 0,
+            timeTakenMs: r.timeTakenMs || r.metadata?.timeTakenMs || (r.timeSpentSeconds ? r.timeSpentSeconds * 1000 : 0),
+            answers: r.answers || r.metadata?.answers || {},
+            perQuestion: evaluatedList,
+            topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
+            weakestTopics: r.weakestTopics || [],
+            strongestTopics: r.strongestTopics || [],
+            submittedAt: r.submittedAt || r.createdAt,
+            status: 'submitted',
+          };
+        });
 
         // Transform live sessions (if test was closed before submitting)
         const formattedLive = userLive.map((ls) => ({
