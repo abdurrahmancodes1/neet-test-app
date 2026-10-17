@@ -71,7 +71,16 @@ export default function QuestionReview({
 
         const selected = r.selectedOption || r.selected || matchingQ.selectedOption || matchingQ.selected || null;
         const correctAnswer = r.correctAnswer || matchingQ.correctAnswer || null;
-        const explanation = r.explanation || matchingQ.explanation || null;
+        const explanation =
+          r.explanation ||
+          r.solution ||
+          r.explanationText ||
+          r.solutionText ||
+          matchingQ.explanation ||
+          matchingQ.solution ||
+          matchingQ.explanationText ||
+          matchingQ.solutionText ||
+          null;
 
         let status = r.status || matchingQ.status;
         if (!status) {
@@ -283,7 +292,7 @@ export default function QuestionReview({
                   </div>
                 </div>
 
-                {r.explanation && (
+                {r.explanation ? (
                   <div
                     className={`mt-3 rounded-xl border p-4 text-xs leading-relaxed ${
                       isLight
@@ -302,6 +311,48 @@ export default function QuestionReview({
                         maxHeight="max-h-56"
                       />
                     )}
+                  </div>
+                ) : (
+                  <div
+                    className={`mt-3 rounded-xl border p-3.5 text-xs leading-relaxed ${
+                      r.status === 'wrong'
+                        ? isLight
+                          ? 'border-rose-200 bg-rose-50/60 text-slate-800'
+                          : 'border-rose-500/20 bg-rose-950/20 text-slate-300'
+                        : isLight
+                        ? 'border-slate-200 bg-slate-50/70 text-slate-700'
+                        : 'border-white/10 bg-white/5 text-slate-400'
+                    }`}
+                  >
+                    <p
+                      className={`font-bold mb-1 flex items-center gap-1.5 ${
+                        r.status === 'wrong'
+                          ? isLight
+                            ? 'text-rose-700'
+                            : 'text-rose-400'
+                          : isLight
+                          ? 'text-blue-700'
+                          : 'text-blue-400'
+                      }`}
+                    >
+                      💡 Solution &amp; Revision Guidance:
+                    </p>
+                    <div className="text-[11px] leading-relaxed">
+                      {r.correctAnswer ? (
+                        <span>
+                          The verified correct answer is Option{' '}
+                          <strong className="font-mono text-emerald-600 dark:text-emerald-400">
+                            {r.correctAnswer}
+                          </strong>
+                          .
+                        </span>
+                      ) : (
+                        <span>Verified standard option recorded.</span>
+                      )}{' '}
+                      Review standard NCERT concepts under{' '}
+                      <strong>{r.chapter || r.subject}</strong>
+                      {r.topic ? ` (${r.topic})` : ''} for the theoretical principles governing this problem.
+                    </div>
                   </div>
                 )}
               </div>

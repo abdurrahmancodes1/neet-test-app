@@ -102,6 +102,25 @@ const testSchema = new mongoose.Schema(
       max: [360, 'Duration cannot exceed 360 minutes'],
       default: 60,
     },
+    allowCustomDuration: {
+      type: Boolean,
+      default: false,
+    },
+    timeLimitMode: {
+      type: String,
+      enum: ['auto', 'custom', 'fixed', 'user'],
+      default: 'fixed',
+    },
+    minCustomDurationMinutes: {
+      type: Number,
+      default: 15,
+      min: 1,
+    },
+    maxCustomDurationMinutes: {
+      type: Number,
+      default: 180,
+      max: 360,
+    },
     totalQuestions: {
       type: Number,
       default: 0,

@@ -51,10 +51,31 @@ export class TestImportService {
       inferred.push(`Chapters extracted: [${payload.chapters.join(', ')}]`);
     }
 
-    // Infer duration if omitted (default standard: 1 min per question for speed, or 60m min)
-    if (!payload.durationMinutes) {
-      payload.durationMinutes = Math.max(30, Math.min(180, payload.questions.length * 1.5));
-      inferred.push(`Duration set to ${payload.durationMinutes} minutes`);
+    // Duration, mode, and customization limits
+    const timeLimitMode =
+      payload.timeLimitMode || (payload.allowCustomDuration ? 'custom' : 'fixed');
+    const allowCustomDuration = Boolean(payload.allowCustomDuration || timeLimitMode === 'custom');
+    const maxCustomDurationMinutes =
+      payload.maxCustomDurationMinutes || payload.maxDurationMinutes || 180;
+    const minCustomDurationMinutes =
+      payload.minCustomDurationMinutes || payload.minDurationMinutes || 10;
+
+    if (timeLimitMode === 'auto' || !payload.durationMinutes) {
+      const calculatedDuration = Math.round(payload.questions.length * 1.5);
+      payload.durationMinutes = Math.max(
+        minCustomDurationMinutes,
+        Math.min(maxCustomDurationMinutes, calculatedDuration || 60)
+      );
+      inferred.push(
+        `Duration automatically computed: ${payload.durationMinutes} minutes (${payload.questions.length} questions @ ~1.5m each, max ${maxCustomDurationMinutes}m)`
+      );
+    } else {
+      if (allowCustomDuration && payload.durationMinutes > maxCustomDurationMinutes) {
+        payload.durationMinutes = maxCustomDurationMinutes;
+        inferred.push(
+          `Default duration clamped to maximum allowed limit (${maxCustomDurationMinutes} minutes)`
+        );
+      }
     }
 
     // Synchronize and normalize category and examType
@@ -171,7 +192,7 @@ export class TestImportService {
         question: q.question,
         options: q.options,
         correctAnswer: q.correctAnswer,
-        explanation: q.explanation || null,
+        explanation: q.explanation || q.solution || q.explanationText || q.solutionText || null,
         image: q.image || null,
         questionImage: sanitizedQuestionImage,
         explanationImage: sanitizedExplanationImage,
@@ -205,6 +226,10 @@ export class TestImportService {
         syllabus: payload.syllabus || '',
         difficulty: payload.difficulty || 'Hard',
         durationMinutes: payload.durationMinutes,
+        allowCustomDuration,
+        timeLimitMode,
+        minCustomDurationMinutes,
+        maxCustomDurationMinutes,
         markingScheme: payload.markingScheme,
         status: payload.status || 'published',
         totalQuestions,
@@ -262,6 +287,10 @@ export class TestImportService {
           syllabus: testMeta.syllabus,
           difficulty: testMeta.difficulty,
           durationMinutes: testMeta.durationMinutes,
+          allowCustomDuration: testMeta.allowCustomDuration,
+          timeLimitMode: testMeta.timeLimitMode,
+          minCustomDurationMinutes: testMeta.minCustomDurationMinutes,
+          maxCustomDurationMinutes: testMeta.maxCustomDurationMinutes,
           totalQuestions: testMeta.totalQuestions,
           totalMarks: testMeta.totalMarks,
           markingScheme: testMeta.markingScheme,

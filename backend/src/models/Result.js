@@ -34,6 +34,14 @@ const answerItemSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    questionImage: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+    explanationImage: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
     selectedOption: {
       type: String,
       default: null,

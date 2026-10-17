@@ -40,6 +40,9 @@ export const importQuestionSchema = z.object({
     .min(1, 'Correct answer is required')
     .transform((val) => val.trim().toUpperCase()),
   explanation: z.string().nullable().optional(),
+  solution: z.string().nullable().optional(),
+  explanationText: z.string().nullable().optional(),
+  solutionText: z.string().nullable().optional(),
   image: z.string().nullable().optional(),
   questionImage: svgImageSchema,
   explanationImage: svgImageSchema,
@@ -80,6 +83,24 @@ export const importTestPayloadSchema = z
     syllabus: z.string().optional(),
     difficulty: z.enum(['Easy', 'Medium', 'Hard', 'Dropper (NEET)']).default('Hard'),
     durationMinutes: z.number().int().min(1).max(360).optional(),
+    allowCustomDuration: z.boolean().optional(),
+    timeLimitMode: z
+      .union([z.string(), z.boolean()])
+      .optional()
+      .transform((val) => {
+        if (typeof val === 'boolean') return val ? 'custom' : 'fixed';
+        if (typeof val === 'string') {
+          const v = val.toLowerCase().trim();
+          if (['auto', 'dynamic', 'calculated'].includes(v)) return 'auto';
+          if (['custom', 'user', 'allowcustom', 'customizable'].includes(v)) return 'custom';
+          if (['fixed', 'standard'].includes(v)) return 'fixed';
+        }
+        return 'fixed';
+      }),
+    maxCustomDurationMinutes: z.number().int().min(1).max(360).optional(),
+    maxDurationMinutes: z.number().int().min(1).max(360).optional(),
+    minCustomDurationMinutes: z.number().int().min(1).max(360).optional(),
+    minDurationMinutes: z.number().int().min(1).max(360).optional(),
     markingScheme: z
       .object({
         correct: z.number().default(4),

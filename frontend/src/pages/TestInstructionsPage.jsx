@@ -21,12 +21,22 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
 
   const qCount = test?.totalQuestions || test?.questions?.length || 60;
   const defaultDuration = test?.durationMinutes || 120;
-  const isCustomizable = Boolean(test?.allowCustomDuration === true);
-  const maxDuration = test?.maxCustomDurationMinutes || 180; // 3 Hours strict max
-  const minDuration = test?.minCustomDurationMinutes || 10;
+  const isCustomizable = Boolean(
+    test?.allowCustomDuration === true ||
+    test?.timeLimitMode === 'custom' ||
+    test?.timeLimitMode === 'user'
+  );
+  const maxDuration =
+    test?.maxCustomDurationMinutes || test?.maxDurationMinutes || 180; // strict maximum limit
+  const minDuration =
+    test?.minCustomDurationMinutes || test?.minDurationMinutes || 10;
 
-  const [selectedDuration, setSelectedDuration] = useState(defaultDuration);
-  const [durationInput, setDurationInput] = useState(String(defaultDuration));
+  const [selectedDuration, setSelectedDuration] = useState(
+    Math.min(maxDuration, Math.max(minDuration, defaultDuration))
+  );
+  const [durationInput, setDurationInput] = useState(
+    String(Math.min(maxDuration, Math.max(minDuration, defaultDuration)))
+  );
 
   const title = test?.title || 'NEET 2027 Practice Test';
   const badge = test?.subject ? `${test.subject}` : 'Physics · NEET 2027';
@@ -74,21 +84,40 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
   const effectiveDuration = isCustomizable ? selectedDuration : defaultDuration;
   const pacingSec = ((effectiveDuration * 60) / qCount).toFixed(0);
 
-  const presets = maxDuration <= 90
-    ? [
-        { label: '30 Mins', value: 30, desc: '30m · Speed Drill' },
-        { label: '45 Mins', value: 45, desc: '45m · Rapid Practice' },
-        { label: '60 Mins', value: 60, desc: '1h · Standard JEE' },
-        { label: '75 Mins', value: 75, desc: '1h 15m · Paced' },
-        { label: '90 Mins (Max)', value: 90, desc: '1.5h · Full 1h 30m' },
-      ]
-    : [
-        { label: '60 Mins', value: 60, desc: '1h · Speed Drill' },
-        { label: '90 Mins', value: 90, desc: '1.5h · Paced' },
-        { label: '120 Mins', value: 120, desc: '2h · Standard' },
-        { label: '150 Mins', value: 150, desc: '2.5h · Extended' },
-        { label: '180 Mins (Max)', value: 180, desc: '3h · Full 3 Hours' },
-      ];
+  const allCandidatePresets = [
+    { label: '15 Mins', value: 15, desc: '15m · Quick Drill' },
+    { label: '30 Mins', value: 30, desc: '30m · Speed Drill' },
+    { label: '45 Mins', value: 45, desc: '45m · Rapid Practice' },
+    { label: '60 Mins', value: 60, desc: '1h · Standard' },
+    { label: '75 Mins', value: 75, desc: '1h 15m · Paced' },
+    { label: '90 Mins', value: 90, desc: '1.5h · Deep Practice' },
+    { label: '120 Mins', value: 120, desc: '2h · Standard Mock' },
+    { label: '150 Mins', value: 150, desc: '2.5h · Extended' },
+    { label: '180 Mins', value: 180, desc: '3h · Full 3 Hours' },
+  ];
+
+  let presets = allCandidatePresets.filter(
+    (p) => p.value >= minDuration && p.value <= maxDuration
+  );
+
+  if (!presets.some((p) => p.value === maxDuration)) {
+    presets.push({
+      label: `${maxDuration} Mins (Max)`,
+      value: maxDuration,
+      desc: `${formatHours(maxDuration)} · Max Allowed`,
+    });
+  }
+
+  if (presets.length > 5) {
+    const step = Math.floor(presets.length / 4);
+    presets = [
+      presets[0],
+      presets[step],
+      presets[step * 2],
+      presets[step * 3],
+      presets[presets.length - 1],
+    ].filter((v, i, a) => a.findIndex((t) => t.value === v.value) === i);
+  }
 
   return (
     <main
@@ -249,7 +278,7 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
               {/* Slider & Custom Input Row */}
               <div className={`space-y-2 pt-2 border-t ${isLight ? 'border-violet-100' : 'border-white/5'}`}>
                 <div className={`flex items-center justify-between text-xs ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                  <span>Custom Duration Slider (10m – 180m):</span>
+                  <span>Custom Duration Slider ({minDuration}m – {maxDuration}m):</span>
                   <div className="flex items-center gap-1.5">
                     <span>Enter Minutes:</span>
                     <input

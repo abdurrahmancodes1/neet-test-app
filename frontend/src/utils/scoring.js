@@ -58,9 +58,11 @@ export function computeResult(
       question: q.text ?? q.question ?? '',
       options: q.options || {},
       image: q.image || null,
+      questionImage: q.questionImage || null,
+      explanationImage: q.explanationImage || null,
       selected: cleanSelected,
       correctAnswer: cleanCorrect,
-      explanation: q.explanation || null,
+      explanation: q.explanation || q.solution || q.explanationText || null,
       status,
     };
   });

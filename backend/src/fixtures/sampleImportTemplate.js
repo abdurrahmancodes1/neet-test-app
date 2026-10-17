@@ -11,6 +11,10 @@ export const SAMPLE_IMPORT_TEMPLATE = {
   syllabus: "Newton's Laws, Friction, Inclined Planes, Pulley Systems, Kinetic Theory",
   difficulty: "Hard",
   durationMinutes: 60,
+  allowCustomDuration: true,
+  timeLimitMode: "custom",
+  maxCustomDurationMinutes: 90,
+  minCustomDurationMinutes: 30,
   markingScheme: {
     correct: 4,
     wrong: -1,

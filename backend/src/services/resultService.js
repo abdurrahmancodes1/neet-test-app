@@ -73,9 +73,9 @@ export class ResultService {
       }
     }
 
-    // Retrieve questions WITH protected correctAnswer and explanation
+    // Retrieve questions WITH protected correctAnswer, explanation and explanation diagram
     const questions = await Question.find({ testId: test._id, status: 'active' })
-      .select('+correctAnswer +explanation')
+      .select('+correctAnswer +explanation +explanationImage')
       .sort({ order: 1 })
       .lean();
 

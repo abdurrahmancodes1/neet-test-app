@@ -103,10 +103,12 @@ export default function ResultPage({
           question: q.question || q.text || matchingQ.question || matchingQ.text || `Question ${id}`,
           options: (q.options && Object.keys(q.options).length > 0) ? q.options : (matchingQ.options || {}),
           image: q.image || matchingQ.image || null,
+          questionImage: q.questionImage || matchingQ.questionImage || null,
+          explanationImage: q.explanationImage || matchingQ.explanationImage || null,
           selected,
           selectedOption: selected,
           correctAnswer,
-          explanation: q.explanation || matchingQ.explanation || null,
+          explanation: q.explanation || q.solution || q.explanationText || matchingQ.explanation || matchingQ.solution || matchingQ.explanationText || null,
           isCorrect,
           marks: q.marksAwarded ?? q.marks ?? (status === 'correct' ? 4 : status === 'wrong' ? -1 : 0),
           status,
@@ -187,10 +189,12 @@ export default function ResultPage({
           question: a.question || a.text || matchingQ.question || matchingQ.text || `Question ${id}`,
           options: (a.options && Object.keys(a.options).length > 0) ? a.options : (matchingQ.options || {}),
           image: a.image || matchingQ.image || null,
+          questionImage: a.questionImage || matchingQ.questionImage || null,
+          explanationImage: a.explanationImage || matchingQ.explanationImage || null,
           selected,
           selectedOption: selected,
           correctAnswer,
-          explanation: a.explanation || matchingQ.explanation || null,
+          explanation: a.explanation || a.solution || a.explanationText || matchingQ.explanation || matchingQ.solution || matchingQ.explanationText || null,
           isCorrect,
           marks: a.marksAwarded ?? a.marks ?? (status === 'correct' ? 4 : status === 'wrong' ? -1 : 0),
           status,
@@ -254,6 +258,7 @@ export default function ResultPage({
   const timeTakenLabel = formatDuration(timeTakenMs);
   const attempted = result.correct + result.wrong;
   const avgMs = attempted > 0 ? timeTakenMs / attempted : 0;
+  const avgTimeLabel = attempted > 0 ? `${Math.round(avgMs / 1000)}s` : '—';
   const isEvaluating = isSubmitting || (!reviewedAttempt && !backendResult && (!test?.questions || !test.questions[0]?.correctAnswer));
 
   if (isEvaluating) {

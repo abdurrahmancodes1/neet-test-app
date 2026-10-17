@@ -71,8 +71,11 @@ JSON SCHEMA:
   "examType": "JEE_MAIN", // or "NEET"
   "type": "chapter", // or "full_mock"
   "subjects": ["Physics"],
-  "chapters": ["<Chapter Name>"],
   "durationMinutes": 60,
+  "timeLimitMode": "auto", // "auto" (calculated dynamically based on questions), "custom" (student can adjust within limit), or "fixed"
+  "allowCustomDuration": true, // set true if students are allowed to adjust their duration
+  "maxDurationMinutes": 90, // Strict maximum limit students cannot exceed (e.g. 90 mins)
+  "minDurationMinutes": 30, // Minimum allowed duration (e.g. 30 mins)
   "difficulty": "Hard",
   "markingScheme": { "correct": 4, "wrong": -1, "unattempted": 0 },
   "status": "published",
@@ -619,11 +622,20 @@ JSON SCHEMA:
                 }`}
               >
                 <span className="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">
-                  Duration &amp; Scheme
+                  Duration &amp; Limit Mode
                 </span>
                 <p className="mt-1 font-bold text-sm text-white">
-                  {previewData.test.durationMinutes}m (+{previewData.test.markingScheme?.correct} / −
-                  {Math.abs(previewData.test.markingScheme?.wrong)})
+                  {previewData.test.durationMinutes}m{' '}
+                  <span className="text-[10px] text-blue-400 font-normal">
+                    {previewData.test.timeLimitMode === 'auto'
+                      ? '(Auto)'
+                      : previewData.test.allowCustomDuration || previewData.test.timeLimitMode === 'custom'
+                      ? `(Max ${previewData.test.maxCustomDurationMinutes || 180}m)`
+                      : '(Fixed)'}
+                  </span>
+                </p>
+                <p className="text-[10px] text-slate-400 font-normal">
+                  Scheme: +{previewData.test.markingScheme?.correct} / −{Math.abs(previewData.test.markingScheme?.wrong)}
                 </p>
               </div>
             </div>
@@ -748,7 +760,7 @@ JSON SCHEMA:
                 </div>
 
                 {/* Explanation */}
-                {q.explanation && (
+                {(q.explanation || q.solution) && (
                   <div
                     className={`rounded-md border p-4 text-xs space-y-2 font-mono ${
                       isLight
@@ -760,7 +772,7 @@ JSON SCHEMA:
                       💡 Verified Solution &amp; Concept:
                     </p>
                     <div className="font-sans">
-                      <MathRenderer text={q.explanation} />
+                      <MathRenderer text={q.explanation || q.solution} />
                     </div>
                     {q.explanationImage?.data && (
                       <SafeSvgRenderer
