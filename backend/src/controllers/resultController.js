@@ -344,6 +344,12 @@ export class ResultController {
           const effectiveEmail = (r.studentEmail || r.userId?.email || '').toLowerCase().trim();
           const isOwner = requesterEmail && effectiveEmail === requesterEmail;
           const canSeeSensitive = isAdmin || isOwner;
+          const evaluatedList =
+            r.perQuestion && Array.isArray(r.perQuestion) && r.perQuestion.length > 0
+              ? r.perQuestion
+              : Array.isArray(r.answers) && r.answers.length > 0
+              ? r.answers
+              : r.metadata?.perQuestion || [];
 
           return {
             id: r._id.toString(),
@@ -362,7 +368,7 @@ export class ResultController {
             totalQuestions: r.totalQuestions || 60,
             timeTakenMs: r.timeTakenMs || r.metadata?.timeTakenMs || 0,
             answers: canSeeSensitive ? (r.answers || r.metadata?.answers || {}) : {},
-            perQuestion: canSeeSensitive ? (r.perQuestion || r.metadata?.perQuestion || []) : [],
+            perQuestion: canSeeSensitive ? evaluatedList : [],
             topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
             submittedAt: r.submittedAt || r.createdAt,
           };
@@ -455,31 +461,40 @@ export class ResultController {
           : { studentEmail: cleanEmail };
 
         const dbResults = await Result.find(query).sort({ createdAt: -1 }).lean();
-        results = dbResults.map((r) => ({
-          id: r._id.toString(),
-          attemptId: r.attemptId,
-          studentName: r.studentName || userDoc?.name || 'Student',
-          studentEmail: cleanEmail,
-          testId: r.testId,
-          testTitle: r.testTitle || r.metadata?.testTitle || 'NEET Practice Test',
-          score: r.score,
-          rawScore: r.rawScore ?? r.score,
-          maxScore: r.maxScore || 240,
-          accuracy: Math.round(r.accuracy || 0),
-          percentage: r.percentage || 0,
-          correct: r.correctCount || 0,
-          wrong: r.wrongCount || 0,
-          unattempted: r.unattemptedCount || 0,
-          totalQuestions: r.totalQuestions || 60,
-          timeTakenMs: r.timeTakenMs || r.metadata?.timeTakenMs || 0,
-          answers: r.answers || r.metadata?.answers || {},
-          perQuestion: r.perQuestion || r.metadata?.perQuestion || [],
-          topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
-          weakestTopics: r.weakestTopics || r.metadata?.weakestTopics || [],
-          strongestTopics: r.strongestTopics || r.metadata?.strongestTopics || [],
-          submittedAt: r.submittedAt || r.createdAt,
-          timestamp: r.submittedAt || r.createdAt,
-        }));
+        results = dbResults.map((r) => {
+          const evaluatedList =
+            r.perQuestion && Array.isArray(r.perQuestion) && r.perQuestion.length > 0
+              ? r.perQuestion
+              : Array.isArray(r.answers) && r.answers.length > 0
+              ? r.answers
+              : r.metadata?.perQuestion || [];
+
+          return {
+            id: r._id.toString(),
+            attemptId: r.attemptId,
+            studentName: r.studentName || userDoc?.name || 'Student',
+            studentEmail: cleanEmail,
+            testId: r.testId,
+            testTitle: r.testTitle || r.metadata?.testTitle || 'NEET Practice Test',
+            score: r.score,
+            rawScore: r.rawScore ?? r.score,
+            maxScore: r.maxScore || 240,
+            accuracy: Math.round(r.accuracy || 0),
+            percentage: r.percentage || 0,
+            correct: r.correctCount || 0,
+            wrong: r.wrongCount || 0,
+            unattempted: r.unattemptedCount || 0,
+            totalQuestions: r.totalQuestions || 60,
+            timeTakenMs: r.timeTakenMs || r.metadata?.timeTakenMs || 0,
+            answers: r.answers || r.metadata?.answers || {},
+            perQuestion: evaluatedList,
+            topicPerformance: r.topicPerformance || r.metadata?.topicPerformance || [],
+            weakestTopics: r.weakestTopics || r.metadata?.weakestTopics || [],
+            strongestTopics: r.strongestTopics || r.metadata?.strongestTopics || [],
+            submittedAt: r.submittedAt || r.createdAt,
+            timestamp: r.submittedAt || r.createdAt,
+          };
+        });
       } catch (err) {
         console.error('Failed to get student attempts from MongoDB:', err);
       }

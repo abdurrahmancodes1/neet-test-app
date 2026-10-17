@@ -767,27 +767,40 @@ export function getUserAnalytics(email) {
     return tA - tB;
   });
 
-  const latestAttempt = sortedByDate[sortedByDate.length - 1] || null;
-  const previousAttempt = sortedByDate.length > 1 ? sortedByDate[sortedByDate.length - 2] : null;
+  const testCounters = {};
+  const numberedAttempts = sortedByDate.map((a, index) => {
+    const tid = a.testId || 'default';
+    testCounters[tid] = (testCounters[tid] || 0) + 1;
+    const testAttemptNumber = testCounters[tid];
+    return {
+      ...a,
+      attemptNumber: testAttemptNumber,
+      testAttemptNumber,
+      globalAttemptNumber: index + 1,
+    };
+  });
 
-  const bestAttempt = [...attempts].reduce((best, cur) => {
+  const latestAttempt = numberedAttempts[numberedAttempts.length - 1] || null;
+  const previousAttempt = numberedAttempts.length > 1 ? numberedAttempts[numberedAttempts.length - 2] : null;
+
+  const bestAttempt = [...numberedAttempts].reduce((best, cur) => {
     if (!best) return cur;
     return (cur.score ?? 0) > (best.score ?? 0) ? cur : best;
-  }, attempts[0] || null);
+  }, numberedAttempts[0] || null);
 
-  const totalScore = attempts.reduce((sum, a) => sum + (a.score || 0), 0);
-  const totalAccuracy = attempts.reduce((sum, a) => sum + (a.accuracy || 0), 0);
-  const averageScore = attempts.length > 0 ? Math.round((totalScore / attempts.length) * 10) / 10 : 0;
-  const averageAccuracy = attempts.length > 0 ? Math.round((totalAccuracy / attempts.length) * 10) / 10 : 0;
+  const totalScore = numberedAttempts.reduce((sum, a) => sum + (a.score || 0), 0);
+  const totalAccuracy = numberedAttempts.reduce((sum, a) => sum + (a.accuracy || 0), 0);
+  const averageScore = numberedAttempts.length > 0 ? Math.round((totalScore / numberedAttempts.length) * 10) / 10 : 0;
+  const averageAccuracy = numberedAttempts.length > 0 ? Math.round((totalAccuracy / numberedAttempts.length) * 10) / 10 : 0;
 
-  const scoreTrend = sortedByDate.map((a, index) => {
+  const scoreTrend = numberedAttempts.map((a, index) => {
     const d = new Date(a.timestamp);
     const shortDate = isNaN(d.getTime())
-      ? `Attempt ${index + 1}`
+      ? `Attempt #${a.testAttemptNumber || index + 1}`
       : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
     return {
-      attempt: `Attempt ${a.attemptNumber || index + 1}`,
+      attempt: `Attempt #${a.testAttemptNumber || a.attemptNumber || index + 1}`,
       shortDate,
       score: a.score,
       maxScore: a.maxScore,
@@ -823,6 +836,6 @@ export function getUserAnalytics(email) {
     averageAccuracy,
     scoreTrend,
     topicMap,
-    allAttempts: [...sortedByDate].reverse(), // most recent first (immutably)
+    allAttempts: [...numberedAttempts].reverse(), // most recent first (immutably)
   };
 }

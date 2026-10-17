@@ -90,12 +90,12 @@ export class ResultService {
       test.markingScheme || { correct: 4, wrong: -1, unattempted: 0 }
     );
 
-    // 2. Burst Duplicate Guard: check for an identical recent submission (same student, test, answers, and score within last 5 minutes)
+    // 2. Burst Duplicate Guard: check for an identical recent submission (same student, test, answers, and score within last 90 seconds)
     if (effectiveUserId || effectiveStudentEmail) {
       const recentFilter = {
         testId: { $in: [test.slug, test._id, testIdOrSlug] },
         status: 'submitted',
-        createdAt: { $gte: new Date(Date.now() - 5 * 60 * 1000) },
+        createdAt: { $gte: new Date(Date.now() - 90 * 1000) },
       };
       if (effectiveUserId) {
         recentFilter.userId = effectiveUserId;
@@ -152,6 +152,7 @@ export class ResultService {
         studentRollNumber: studentRollNumber || null,
         status: 'submitted',
         answers: evaluation.evaluatedAnswers,
+        perQuestion: evaluation.evaluatedAnswers,
         markedForReview: markedForReview || [],
         score: evaluation.score,
         rawScore: evaluation.rawScore,
@@ -177,6 +178,7 @@ export class ResultService {
           testTitle: resolvedTitle,
           examType: test.examType,
           category: test.category,
+          perQuestion: evaluation.evaluatedAnswers,
         },
       });
     } catch (err) {
@@ -227,11 +229,20 @@ export class ResultService {
 
   static formatResultResponse(resultDoc, test) {
     const id = resultDoc._id?.toString();
+    const evaluatedQuestions =
+      resultDoc.perQuestion && Array.isArray(resultDoc.perQuestion) && resultDoc.perQuestion.length > 0
+        ? resultDoc.perQuestion
+        : Array.isArray(resultDoc.answers) && resultDoc.answers.length > 0
+        ? resultDoc.answers
+        : [];
+
     return {
       resultId: id,
       _id: id,
+      attemptId: resultDoc.attemptId || null,
       test: {
         id: test._id?.toString(),
+        slug: test.slug,
         title: test.title,
         subtitle: test.subtitle,
         testCode: test.testCode,
@@ -253,6 +264,7 @@ export class ResultService {
       weakestTopics: resultDoc.weakestTopics || [],
       strongestTopics: resultDoc.strongestTopics || [],
       answers: resultDoc.answers,
+      perQuestion: evaluatedQuestions,
       autoSubmitted: Boolean(resultDoc.autoSubmitted),
       submittedAt: resultDoc.submittedAt,
       startTime: resultDoc.startTime,

@@ -46,52 +46,114 @@ export default function ResultPage({
   // Authoritative result calculation
   const result = useMemo(() => {
     if (reviewedAttempt) {
+      let perQ = [];
+      if (Array.isArray(reviewedAttempt.perQuestion) && reviewedAttempt.perQuestion.length > 0) {
+        perQ = reviewedAttempt.perQuestion;
+      } else if (Array.isArray(reviewedAttempt.answers) && reviewedAttempt.answers.length > 0) {
+        perQ = reviewedAttempt.answers;
+      } else if (test?.questions && test.questions.length > 0) {
+        const computed = computeResult(
+          reviewedAttempt.answers || {},
+          test.questions,
+          test.marksCorrect || 4,
+          test.marksWrong || -1
+        );
+        perQ = computed.perQuestion;
+      }
+
+      const normalizedPerQ = perQ.map((q, idx) => {
+        const id = q.order ?? q.id ?? q.questionNumber ?? idx + 1;
+        const matchingQ =
+          (test?.questions || []).find((tq) => (tq.order ?? tq.id ?? tq.number) === id) || {};
+
+        return {
+          ...matchingQ,
+          ...q,
+          id,
+          questionNumber: id,
+          order: id,
+          subject: q.subject || matchingQ.subject || 'General',
+          chapter: q.chapter || matchingQ.chapter || 'General',
+          topic: q.topic || matchingQ.topic || 'General',
+          question: q.question || q.text || matchingQ.question || matchingQ.text || `Question ${id}`,
+          options: (q.options && Object.keys(q.options).length > 0) ? q.options : (matchingQ.options || {}),
+          image: q.image || matchingQ.image || null,
+          selected: q.selectedOption ?? q.selected ?? null,
+          selectedOption: q.selectedOption ?? q.selected ?? null,
+          correctAnswer: q.correctAnswer || matchingQ.correctAnswer || null,
+          explanation: q.explanation || matchingQ.explanation || null,
+          isCorrect: q.isCorrect !== undefined ? q.isCorrect : (q.correctAnswer && q.selectedOption ? q.correctAnswer === q.selectedOption : null),
+          marks: q.marksAwarded ?? q.marks ?? 0,
+          status: q.status || (q.isCorrect ? 'correct' : (q.selectedOption || q.selected ? 'wrong' : 'unattempted')),
+        };
+      });
+
       return {
         score: reviewedAttempt.score ?? 0,
         rawScore: reviewedAttempt.rawScore ?? reviewedAttempt.score ?? 0,
-        maxScore: reviewedAttempt.maxScore ?? (test?.totalQuestions || 60) * 4,
+        maxScore: reviewedAttempt.maxScore ?? (test?.totalQuestions || normalizedPerQ.length || 60) * 4,
         percentage: reviewedAttempt.percentage ?? 0,
         accuracy: reviewedAttempt.accuracy ?? 0,
-        correct: reviewedAttempt.correct ?? 0,
-        wrong: reviewedAttempt.wrong ?? 0,
-        unattempted: reviewedAttempt.unattempted ?? 0,
-        totalQuestions: reviewedAttempt.totalQuestions ?? 60,
+        correct: reviewedAttempt.correct ?? reviewedAttempt.correctCount ?? 0,
+        wrong: reviewedAttempt.wrong ?? reviewedAttempt.wrongCount ?? 0,
+        unattempted: reviewedAttempt.unattempted ?? reviewedAttempt.unattemptedCount ?? 0,
+        totalQuestions: reviewedAttempt.totalQuestions ?? normalizedPerQ.length ?? 60,
         topicPerformance: reviewedAttempt.topicPerformance || [],
         weakestTopics: reviewedAttempt.weakestTopics || [],
         strongestTopics: reviewedAttempt.strongestTopics || [],
-        perQuestion: reviewedAttempt.perQuestion || [],
+        perQuestion: normalizedPerQ,
       };
     }
 
     if (backendResult) {
+      const answersArray =
+        Array.isArray(backendResult.perQuestion) && backendResult.perQuestion.length > 0
+          ? backendResult.perQuestion
+          : Array.isArray(backendResult.answers) && backendResult.answers.length > 0
+          ? backendResult.answers
+          : [];
+
+      const normalizedPerQ = answersArray.map((a, idx) => {
+        const id = a.order || a.id || a.questionNumber || idx + 1;
+        const matchingQ =
+          (test?.questions || []).find((tq) => (tq.order ?? tq.id ?? tq.number) === id) || {};
+
+        return {
+          ...matchingQ,
+          ...a,
+          id,
+          questionNumber: id,
+          order: id,
+          subject: a.subject || matchingQ.subject || 'General',
+          chapter: a.chapter || matchingQ.chapter || 'General',
+          topic: a.topic || matchingQ.topic || 'General',
+          question: a.question || a.text || matchingQ.question || matchingQ.text || `Question ${id}`,
+          options: (a.options && Object.keys(a.options).length > 0) ? a.options : (matchingQ.options || {}),
+          image: a.image || matchingQ.image || null,
+          selected: a.selectedOption ?? a.selected ?? null,
+          selectedOption: a.selectedOption ?? a.selected ?? null,
+          correctAnswer: a.correctAnswer || matchingQ.correctAnswer || null,
+          explanation: a.explanation || matchingQ.explanation || null,
+          isCorrect: a.isCorrect !== undefined ? a.isCorrect : (a.correctAnswer && a.selectedOption ? a.correctAnswer === a.selectedOption : null),
+          marks: a.marksAwarded ?? a.marks ?? 0,
+          status: a.status || (a.isCorrect ? 'correct' : (a.selectedOption || a.selected ? 'wrong' : 'unattempted')),
+        };
+      });
+
       return {
         score: backendResult.score ?? 0,
-        rawScore: backendResult.rawScore ?? 0,
-        maxScore: backendResult.maxScore ?? (test?.totalQuestions || 60) * 4,
+        rawScore: backendResult.rawScore ?? backendResult.score ?? 0,
+        maxScore: backendResult.maxScore ?? (test?.totalQuestions || normalizedPerQ.length || 60) * 4,
         percentage: backendResult.percentage ?? 0,
         accuracy: backendResult.accuracy ?? 0,
-        correct: backendResult.correctCount ?? 0,
-        wrong: backendResult.wrongCount ?? 0,
-        unattempted: backendResult.unattemptedCount ?? 0,
-        totalQuestions: backendResult.totalQuestions ?? 60,
-        perQuestion: (backendResult.answers || []).map((a, idx) => ({
-          id: a.order || idx + 1,
-          questionNumber: a.order || idx + 1,
-          order: a.order || idx + 1,
-          subject: a.subject,
-          chapter: a.chapter,
-          topic: a.topic || 'General',
-          question: a.question || `Question ${a.order || idx + 1}`,
-          options: a.options || {},
-          image: a.image || null,
-          selected: a.selectedOption,
-          selectedOption: a.selectedOption,
-          correctAnswer: a.correctAnswer,
-          explanation: a.explanation,
-          isCorrect: a.isCorrect,
-          marks: a.marksAwarded,
-          status: a.status,
-        })),
+        correct: backendResult.correctCount ?? backendResult.correct ?? 0,
+        wrong: backendResult.wrongCount ?? backendResult.wrong ?? 0,
+        unattempted: backendResult.unattemptedCount ?? backendResult.unattempted ?? 0,
+        totalQuestions: backendResult.totalQuestions ?? normalizedPerQ.length ?? 60,
+        topicPerformance: backendResult.topicPerformance || [],
+        weakestTopics: backendResult.weakestTopics || [],
+        strongestTopics: backendResult.strongestTopics || [],
+        perQuestion: normalizedPerQ,
       };
     }
 
@@ -309,8 +371,8 @@ export default function ResultPage({
         {tab === 'review' && (
           <QuestionReview
             perQuestion={result.perQuestion}
-            markedForReview={session?.markedForReview || []}
-            questions={result.perQuestion}
+            markedForReview={session?.markedForReview || reviewedAttempt?.markedForReview || []}
+            questions={test?.questions && test.questions.length > 0 ? test.questions : result.perQuestion}
           />
         )}
       </div>

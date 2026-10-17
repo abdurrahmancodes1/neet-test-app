@@ -564,7 +564,7 @@ export default function DashboardPage({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onStartTest(latestAttempt.testId || NEET_ROUND_1_TEST.id)}
+                    onClick={() => onStartTest(latestAttempt.testId || NEET_ROUND_1_TEST.id, true)}
                     className={`flex w-full items-center justify-center gap-2 rounded-xl border py-3 text-xs font-semibold transition ${
                       isLight
                         ? 'border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700'
@@ -703,7 +703,7 @@ export default function DashboardPage({
                       return (
                         <tr key={att.id} className={`transition ${isLight ? 'hover:bg-slate-50/80' : 'hover:bg-white/[0.02]'}`}>
                           <td className={`px-3.5 py-3.5 font-mono font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                            #{att.attemptNumber || totalAttempts - idx}
+                            #{att.testAttemptNumber || att.attemptNumber || totalAttempts - idx}
                             {isLatest && (
                               <span className={`ml-2 rounded-full border px-2 py-0.5 text-[10px] font-bold ${
                                 isLight ? 'bg-blue-100 border-blue-200 text-blue-800' : 'bg-blue-500/20 border-blue-500/30 text-blue-300'

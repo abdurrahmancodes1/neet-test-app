@@ -46,24 +46,60 @@ export default function QuestionReview({
   };
 
   const items = useMemo(() => {
-    return perQuestion
+    const baseList = perQuestion.length > 0 ? perQuestion : questions;
+    return baseList
       .map((r, idx) => {
-        const matchingQ = questions.find((q) => (q.order ?? q.id) === (r.order ?? r.id ?? r.questionNumber)) || {};
+        const id = r.order ?? r.id ?? r.questionNumber ?? idx + 1;
+        const matchingQ =
+          questions.find((q) => (q.order ?? q.id ?? q.questionNumber) === id) ||
+          perQuestion.find((q) => (q.order ?? q.id ?? q.questionNumber) === id) ||
+          {};
+
+        const questionText =
+          r.question ||
+          r.text ||
+          matchingQ.question ||
+          matchingQ.text ||
+          `Question ${id}`;
+
+        const options =
+          r.options && Object.keys(r.options).length > 0
+            ? r.options
+            : matchingQ.options && Object.keys(matchingQ.options).length > 0
+            ? matchingQ.options
+            : {};
+
+        const selected = r.selectedOption || r.selected || matchingQ.selectedOption || matchingQ.selected || null;
+        const correctAnswer = r.correctAnswer || matchingQ.correctAnswer || null;
+        const explanation = r.explanation || matchingQ.explanation || null;
+
+        let status = r.status || matchingQ.status;
+        if (!status) {
+          if (!selected) status = 'unattempted';
+          else if (correctAnswer && selected.trim().toUpperCase() === correctAnswer.trim().toUpperCase()) status = 'correct';
+          else status = 'wrong';
+        }
+
         return {
           ...matchingQ,
           ...r,
-          id: r.order ?? r.id ?? r.questionNumber ?? idx + 1,
-          question: r.question || matchingQ.question,
-          options: r.options || matchingQ.options || {},
+          id,
+          questionNumber: id,
+          order: id,
+          question: questionText,
+          options,
           image: r.image || matchingQ.image || null,
           questionImage: r.questionImage || matchingQ.questionImage || null,
           explanationImage: r.explanationImage || matchingQ.explanationImage || null,
-          subject: r.subject || matchingQ.subject,
-          selected: r.selectedOption || r.selected,
+          subject: r.subject || matchingQ.subject || 'General',
+          topic: r.topic || matchingQ.topic || 'General',
+          selected,
+          correctAnswer,
+          explanation,
+          status,
         };
       })
       .filter((r) => {
-        if (!r.question) return false;
         if (filter === 'all') return true;
         if (filter === 'marked') return markedSet.has(r.id);
         return r.status === filter;
