@@ -152,23 +152,6 @@ export default function Navbar({
             <span>Tests</span>
           </button>
 
-          {/* 3. Curriculum */}
-          <button
-            type="button"
-            onClick={() => handleNav('curriculum')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full transition ${
-              isScreenActive('curriculum')
-                ? isLight
-                  ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200 shadow-xs'
-                  : 'bg-blue-600/20 text-blue-300 font-bold border border-blue-500/40 shadow-xs'
-                : isLight
-                ? 'hover:bg-slate-100 text-slate-600 hover:text-slate-900'
-                : 'hover:bg-white/5 text-slate-400 hover:text-white'
-            }`}
-          >
-            <BookOpen size={14} className={isScreenActive('curriculum') ? (isLight ? 'text-blue-600' : 'text-blue-400') : ''} />
-            <span>Curriculum</span>
-          </button>
 
           {/* 4. Leaderboard */}
           <button
@@ -332,16 +315,6 @@ export default function Navbar({
                     <span>Standard Tests Catalog</span>
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleNav('curriculum')}
-                    className={`w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-left transition ${
-                      isLight ? 'hover:bg-slate-50 text-slate-700' : 'hover:bg-white/5 text-slate-300'
-                    }`}
-                  >
-                    <BookOpen size={15} className="text-emerald-500" />
-                    <span>Curriculum Portal &amp; Drills</span>
-                  </button>
 
                   <button
                     type="button"
@@ -449,22 +422,6 @@ export default function Navbar({
             <span>Tests Catalog</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => handleNav('curriculum')}
-            className={`w-full flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-left transition ${
-              isScreenActive('curriculum')
-                ? isLight
-                  ? 'bg-blue-50 text-blue-700 font-bold'
-                  : 'bg-blue-600/20 text-blue-300 font-bold'
-                : isLight
-                ? 'text-slate-700 hover:bg-slate-100'
-                : 'text-slate-300 hover:bg-white/5'
-            }`}
-          >
-            <BookOpen size={16} className="text-emerald-500" />
-            <span>Curriculum Portal</span>
-          </button>
 
           <button
             type="button"

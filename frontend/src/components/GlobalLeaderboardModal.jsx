@@ -10,8 +10,10 @@ import {
   Globe,
   Search,
   CheckCircle2,
+  Loader2,
 } from 'lucide-react';
 import { useTheme } from '../utils/themeContext.jsx';
+import { getGlobalPlatformStats } from '../utils/auth.js';
 
 export default function GlobalLeaderboardModal({
   open,
@@ -23,8 +25,38 @@ export default function GlobalLeaderboardModal({
   const { isLight } = useTheme();
   const [activeTab, setActiveTab] = useState('leaderboard'); // 'leaderboard' | 'candidates'
   const [searchTerm, setSearchTerm] = useState('');
+  const [internalStats, setInternalStats] = useState(stats || null);
+  const [loading, setLoading] = useState(!stats);
   const modalRef = useRef(null);
   const closeButtonRef = useRef(null);
+
+  // Sync prop changes
+  useEffect(() => {
+    if (stats) {
+      setInternalStats(stats);
+      setLoading(false);
+    }
+  }, [stats]);
+
+  // Fetch stats automatically if not provided or when modal opens
+  useEffect(() => {
+    if (!open) return;
+    if (!stats) {
+      setLoading(true);
+      getGlobalPlatformStats()
+        .then((data) => {
+          if (data) {
+            setInternalStats(data);
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [open, stats]);
+
+  const effectiveStats = stats || internalStats;
 
   // Lock background scrolling while modal is open
   useEffect(() => {
@@ -67,12 +99,12 @@ export default function GlobalLeaderboardModal({
 
   if (!open) return null;
 
-  const leaderboard = stats?.leaderboard || [];
-  const allCandidates = stats?.allCandidates || [];
-  const totalUsers = stats?.totalUsers || allCandidates.length || 1;
-  const totalAttempts = stats?.totalAttempts || leaderboard.length || 0;
-  const avgScore = stats?.averageScore || 0;
-  const highestScore = stats?.highestScore || (leaderboard[0]?.score ?? 0);
+  const leaderboard = effectiveStats?.leaderboard || [];
+  const allCandidates = effectiveStats?.allCandidates || [];
+  const totalUsers = effectiveStats?.totalUsers || allCandidates.length || 1;
+  const totalAttempts = effectiveStats?.totalAttempts || leaderboard.length || 0;
+  const avgScore = effectiveStats?.averageScore || 0;
+  const highestScore = effectiveStats?.highestScore || (leaderboard[0]?.score ?? 0);
 
   const formatDateSafe = (ts) => {
     if (!ts) return '—';
@@ -299,7 +331,19 @@ export default function GlobalLeaderboardModal({
 
         {/* Scrollable Results Area */}
         <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 sm:p-6 space-y-3 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-          {activeTab === 'leaderboard' ? (
+          {loading && !effectiveStats ? (
+            <div className="py-20 flex flex-col items-center justify-center text-center space-y-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded bg-blue-600/20 border border-blue-500/40 text-blue-400 animate-pulse">
+                <Loader2 size={24} className="animate-spin text-blue-400" />
+              </div>
+              <p className="font-mono text-xs font-bold uppercase tracking-wider text-blue-400">
+                [SYS: SYNCING STANDINGS FROM MONGODB CLOUD...]
+              </p>
+              <p className={`text-xs max-w-sm ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+                Retrieving live candidate ranks, scores, and percentile data across nationwide mock tests.
+              </p>
+            </div>
+          ) : activeTab === 'leaderboard' ? (
             filteredLeaderboard.length === 0 ? (
               <div className="py-12 text-center text-slate-400">
                 <Trophy size={36} className="mx-auto text-slate-400 mb-2 opacity-60" />

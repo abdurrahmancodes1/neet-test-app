@@ -26,7 +26,6 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 import AdminDiagnosisPage from './pages/AdminDiagnosisPage.jsx';
 import ChapterTestsPage from './pages/ChapterTestsPage.jsx';
-import CurriculumPage from './pages/CurriculumPage.jsx';
 import TestInstructionsPage from './pages/TestInstructionsPage.jsx';
 import TestPage from './pages/TestPage.jsx';
 import ResultPage from './pages/ResultPage.jsx';
@@ -271,11 +270,6 @@ export default function App() {
   const handleBrowseTests = useCallback(() => {
     setReviewedAttempt(null);
     setScreen('chapters');
-  }, []);
-
-  const handleGoToCurriculum = useCallback(() => {
-    setReviewedAttempt(null);
-    setScreen('curriculum');
   }, []);
 
   const handleSelectTest = useCallback(
@@ -671,7 +665,6 @@ export default function App() {
         onStartTest={(id, forceFresh) => handleSelectTest(id || NEET_CALCULUS_TEST.id, forceFresh)}
         onBrowseTests={handleBrowseTests}
         onReviewAttempt={handleReviewAttempt}
-        onGoToCurriculum={handleGoToCurriculum}
         onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
         onLogout={handleLogout}
         onUserUpdated={handleUserUpdated}
@@ -688,26 +681,10 @@ export default function App() {
         onLogout={handleLogout}
         user={currentUser}
         onGoToDashboard={handleGoToDashboard}
-        onGoToCurriculum={handleGoToCurriculum}
         onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
         onUserUpdated={handleUserUpdated}
         platformTests={platformTests}
         customTests={platformTests}
-      />
-    );
-  }
-
-  // Curriculum Portal Page
-  if (screen === 'curriculum') {
-    return (
-      <CurriculumPage
-        user={currentUser}
-        onStartTest={(id, forceFresh) => handleSelectTest(id || NEET_ROUND_1_TEST.id, forceFresh)}
-        onBrowseTests={handleBrowseTests}
-        onGoToDashboard={handleGoToDashboard}
-        onGoToAdmin={currentUser.role === 'admin' ? handleGoToAdmin : null}
-        onLogout={handleLogout}
-        onUserUpdated={handleUserUpdated}
       />
     );
   }

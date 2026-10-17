@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Clock,
   BookOpen,
@@ -9,19 +9,14 @@ import {
   Layers,
   Sparkles,
   Calendar,
-  Compass,
   ArrowRight,
-  ChevronRight,
-  LogOut,
-  BarChart3,
   Target,
-  Scale,
-  Flame,
-  ShieldAlert,
-  FileCode,
-  Trophy,
+  Filter,
+  Circle,
+  RotateCcw,
 } from 'lucide-react';
 import { useTheme } from '../utils/themeContext.jsx';
+import { getUserAttempts, fetchServerAttempts } from '../utils/auth.js';
 import Navbar from '../components/Navbar.jsx';
 import GlobalLeaderboardModal from '../components/GlobalLeaderboardModal.jsx';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
@@ -32,156 +27,266 @@ import { NEET_GRAND_MEGA_TEST } from '../data/neetGrandMegaDrillTest.js';
 import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
 import { JEE_2027_PERIODIC_TEST } from '../data/jee2027PeriodicTableTest.js';
+import { JEE_2027_CHEMICAL_BONDING_TEST } from '../data/jee2027ChemicalBondingTest.js';
 
-function PlatformTestCard({ test, isLight, onSelect, isJee = false }) {
+const KNOWN_RELEASE_TIMESTAMPS = {
+  'jee-2027-chemical-bonding-and-molecular-structure': new Date('2026-10-15T18:00:00Z').getTime(),
+  'jee-2027-periodic-properties-mastery-drill': new Date('2026-10-10T12:00:00Z').getTime(),
+  'neet-2027-grand-mega-cbt-drill': new Date('2026-10-08T10:00:00Z').getTime(),
+  'neet-2027-mega-round-2-bonding-morphology': new Date('2026-10-05T10:00:00Z').getTime(),
+  'neet-2027-mega-round-1-mechanics': new Date('2026-10-01T10:00:00Z').getTime(),
+  'neet-2027-mechanics-bonding-combo-drill': new Date('2026-09-25T10:00:00Z').getTime(),
+  'neet-2027-biology-core-drill': new Date('2026-09-20T10:00:00Z').getTime(),
+  'neet-2026-core-topics-diagnostic': new Date('2026-09-15T10:00:00Z').getTime(),
+  'neet-calculus-physics-foundations': new Date('2026-09-10T10:00:00Z').getTime(),
+};
+
+function getTestReleaseTimestamp(test) {
+  if (test.releaseDate) {
+    const ts = new Date(test.releaseDate).getTime();
+    if (!isNaN(ts)) return ts;
+  }
+  if (test.createdAt) {
+    const ts = new Date(test.createdAt).getTime();
+    if (!isNaN(ts)) return ts;
+  }
+  if (test.date) {
+    const ts = new Date(test.date).getTime();
+    if (!isNaN(ts)) return ts;
+  }
+  const key = test.slug || test.id || test._id;
+  if (key && KNOWN_RELEASE_TIMESTAMPS[key]) {
+    return KNOWN_RELEASE_TIMESTAMPS[key];
+  }
+  return new Date('2026-09-01T00:00:00Z').getTime();
+}
+
+function formatReleaseDate(ts) {
+  try {
+    return new Date(ts).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  } catch {
+    return 'Recent';
+  }
+}
+
+function getAttemptStatsForTest(test, userAttempts = []) {
+  const testKey = String(test.slug || test.id || test._id || '').toLowerCase();
+  const testTitle = String(test.title || '').toLowerCase().trim();
+
+  const matchingAttempts = userAttempts.filter((a) => {
+    const aTestId = String(a.testId || a.testSlug || a.testKey || '').toLowerCase();
+    const aTitle = String(a.testTitle || a.title || '').toLowerCase().trim();
+    if (testKey && (aTestId === testKey || aTestId.includes(testKey) || testKey.includes(aTestId))) {
+      return true;
+    }
+    if (testTitle && (aTitle === testTitle || aTitle.includes(testTitle) || testTitle.includes(aTitle))) {
+      return true;
+    }
+    return false;
+  });
+
+  const hasAttempted = matchingAttempts.length > 0;
+  if (!hasAttempted) {
+    return {
+      hasAttempted: false,
+      attemptsCount: 0,
+      bestScore: 0,
+      bestPercentage: 0,
+      latestDate: null,
+    };
+  }
+
+  let bestScore = -Infinity;
+  let bestPercentage = 0;
+  const maxScore = test.totalMarks || 240;
+
+  matchingAttempts.forEach((a) => {
+    const sc = typeof a.score === 'number' ? a.score : 0;
+    if (sc > bestScore) {
+      bestScore = sc;
+      bestPercentage = a.percentage ?? (maxScore > 0 ? Math.round((sc / maxScore) * 100) : 0);
+    }
+  });
+
+  return {
+    hasAttempted: true,
+    attemptsCount: matchingAttempts.length,
+    bestScore: bestScore === -Infinity ? 0 : bestScore,
+    bestPercentage,
+    latestDate: matchingAttempts[matchingAttempts.length - 1]?.submittedAt || null,
+  };
+}
+
+function PlatformTestCard({
+  test,
+  isLight,
+  onSelect,
+  isJee = false,
+  attemptStats = { hasAttempted: false, attemptsCount: 0, bestScore: 0, bestPercentage: 0 },
+  releaseDateFormatted = 'Recent',
+}) {
   const totalQ = test.totalQuestions || test.questions?.length || 60;
   const duration = test.durationMinutes || 60;
   const totalMarks = test.totalMarks || totalQ * (test.markingScheme?.correct || 4);
   const testKey = test.slug || test.id || test._id;
   const subjectsStr = Array.isArray(test.subjects)
     ? test.subjects.join(' & ')
-    : test.subject || 'Comprehensive';
+    : test.subject || (isJee ? 'Chemistry' : 'Comprehensive');
 
   return (
     <article
       key={testKey}
-      className={`overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-xl relative transition ${
+      className={`overflow-hidden rounded-2xl border p-5 sm:p-7 relative transition font-mono ${
         isJee
           ? isLight
-            ? 'bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 border-amber-300 shadow-amber-900/5 ring-1 ring-amber-200 text-slate-900'
-            : 'bg-gradient-to-b from-[#1F160A] via-[#140E06] to-[#0B0F19] border-amber-500/60 ring-1 ring-amber-500/30 text-white'
+            ? 'bg-white border-amber-300 shadow-sm text-slate-900'
+            : 'bg-[#080D1A] border-amber-500/40 shadow-md text-white'
           : isLight
-          ? 'bg-white border-blue-200 shadow-blue-900/5 ring-1 ring-blue-100 text-slate-900'
-          : 'bg-gradient-to-b from-[#0A192F] via-[#071324] to-[#0B0F19] border-blue-500/60 shadow-2xl ring-1 ring-blue-500/30 text-white'
+          ? 'bg-white border-slate-300 shadow-sm text-slate-900'
+          : 'bg-[#080D1A] border-blue-900/50 shadow-md text-white'
       }`}
     >
-      <div
-        className={`pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full blur-3xl ${
-          isJee ? 'bg-amber-600/15' : 'bg-blue-600/10'
-        }`}
-      />
-
-      <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
-        <div className="max-w-2xl">
+      <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center relative z-10">
+        <div className="max-w-2xl space-y-3">
+          {/* Top Metadata Badges */}
           <div className="flex flex-wrap items-center gap-2">
             <span
-              className={`rounded-full px-3 py-0.5 text-xs font-bold ${
+              className={`rounded px-2 py-0.5 text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider ${
                 isJee
                   ? isLight
                     ? 'bg-amber-100 border border-amber-300 text-amber-900'
                     : 'bg-amber-500/20 border border-amber-500/40 text-amber-300'
                   : isLight
-                  ? 'bg-blue-50 border border-blue-200 text-blue-700'
+                  ? 'bg-blue-100 border border-blue-300 text-blue-900'
                   : 'bg-blue-500/20 border border-blue-500/40 text-blue-300'
               }`}
             >
               {isJee ? '🎯 JEE MAIN 2027' : '⚡ NEET 2027'} · {subjectsStr.toUpperCase()}
             </span>
+
+            {/* Release Date Badge */}
             <span
-              className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                isJee
-                  ? isLight
-                    ? 'bg-amber-200/80 border border-amber-300 text-amber-950'
-                    : 'bg-amber-600/20 border border-amber-500/30 text-amber-300'
-                  : isLight
-                  ? 'bg-blue-100 border border-blue-200 text-blue-800'
-                  : 'bg-blue-600/20 border border-blue-500/30 text-blue-300'
+              className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] sm:text-xs font-mono font-semibold ${
+                isLight ? 'bg-slate-100 border border-slate-300 text-slate-700' : 'bg-white/5 border border-white/10 text-slate-300'
               }`}
             >
-              {totalQ} Questions · {duration} Minutes
+              <Calendar size={11} className={isLight ? 'text-slate-600' : 'text-slate-400'} />
+              <span>REL: {releaseDateFormatted}</span>
             </span>
-            <span
-              className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                isLight
-                  ? 'bg-emerald-100 border border-emerald-300 text-emerald-900'
-                  : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-              }`}
-            >
-              {totalMarks} Marks (+{test.markingScheme?.correct || 4} / {test.markingScheme?.wrong || -1})
-            </span>
-            <span
-              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                isLight
-                  ? 'bg-purple-100 border border-purple-200 text-purple-900'
-                  : 'bg-purple-500/20 border border-purple-500/30 text-purple-300'
-              }`}
-            >
-              Platform Test
-            </span>
+
+            {/* Attempt Status Badge */}
+            {attemptStats.hasAttempted ? (
+              <span
+                className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] sm:text-xs font-mono font-bold ${
+                  isLight
+                    ? 'bg-emerald-100 border border-emerald-300 text-emerald-900'
+                    : 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
+                }`}
+              >
+                <CheckCircle2 size={11} className="text-emerald-500" />
+                <span>ATTEMPTED ({attemptStats.attemptsCount}) · BEST: {attemptStats.bestScore}/{totalMarks} ({attemptStats.bestPercentage}%)</span>
+              </span>
+            ) : (
+              <span
+                className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] sm:text-xs font-mono font-semibold ${
+                  isLight
+                    ? 'bg-slate-100 border border-slate-300 text-slate-600'
+                    : 'bg-white/5 border border-white/10 text-slate-400'
+                }`}
+              >
+                <Circle size={10} className="text-slate-400" />
+                <span>UNATTEMPTED</span>
+              </span>
+            )}
           </div>
 
-          <h3 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            {test.title}
-          </h3>
-          <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
-            {test.description || test.subtitle || 'High-yield examination curated with verified equations and SVG vector diagrams.'}
-          </p>
+          <div>
+            <h3 className={`font-mono text-xl sm:text-2xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-slate-100'}`}>
+              {test.title}
+            </h3>
+            <p className={`mt-1 font-mono text-xs sm:text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              {test.description || test.subtitle || 'Standardized CBT examination curated with verified equations and KaTeX step-by-step solutions.'}
+            </p>
+          </div>
 
           {test.syllabus && (
             <div
-              className={`mt-5 rounded-2xl border p-4 text-xs leading-relaxed ${
+              className={`rounded-lg border p-3 font-mono text-xs leading-relaxed ${
                 isJee
                   ? isLight
                     ? 'border-amber-200 bg-amber-50/60 text-slate-700'
-                    : 'border-white/10 bg-[#070A12] text-slate-300'
+                    : 'border-amber-500/20 bg-[#070A14] text-slate-300'
                   : isLight
-                  ? 'border-slate-200 bg-blue-50/40 text-slate-700'
-                  : 'border-white/10 bg-[#070A12] text-slate-300'
+                  ? 'border-slate-300 bg-slate-50 text-slate-700'
+                  : 'border-blue-900/30 bg-[#070A14] text-slate-300'
               }`}
             >
-              <span className={`font-bold ${isJee ? (isLight ? 'text-amber-800' : 'text-amber-400') : (isLight ? 'text-blue-900' : 'text-white')}`}>
-                Syllabus Covered:{' '}
+              <span className={`font-bold uppercase tracking-wider text-[11px] block mb-0.5 ${isJee ? (isLight ? 'text-amber-800' : 'text-amber-400') : (isLight ? 'text-blue-900' : 'text-blue-400')}`}>
+                [SYLLABUS COVERED]:
               </span>
               {test.syllabus}
             </div>
           )}
 
-          <div className={`mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
+          <div className="flex flex-wrap items-center gap-2.5 font-mono text-xs font-semibold">
             <span
-              className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                isJee
-                  ? isLight ? 'border-amber-200 bg-white' : 'border-white/10 bg-white/5'
-                  : isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 ${
+                isLight ? 'border-slate-300 bg-slate-50 text-slate-800' : 'border-blue-900/40 bg-[#070A14] text-slate-200'
               }`}
             >
-              <Clock size={14} className={isJee ? (isLight ? 'text-amber-700' : 'text-amber-400') : (isLight ? 'text-amber-600' : 'text-amber-400')} />
-              <strong className={isLight ? 'text-slate-900' : 'text-white'}>{duration} Minutes</strong>
+              <Clock size={13} className={isJee ? 'text-amber-400' : 'text-blue-400'} />
+              <strong>{duration} Mins</strong>
             </span>
             <span
-              className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                isJee
-                  ? isLight ? 'border-amber-200 bg-white' : 'border-white/10 bg-white/5'
-                  : isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 ${
+                isLight ? 'border-slate-300 bg-slate-50 text-slate-800' : 'border-blue-900/40 bg-[#070A14] text-slate-200'
               }`}
             >
-              <BookOpen size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-              <strong className={isLight ? 'text-slate-900' : 'text-white'}>{totalQ} Questions</strong>
+              <BookOpen size={13} className={isJee ? 'text-amber-400' : 'text-blue-400'} />
+              <strong>{totalQ} Questions</strong>
             </span>
             <span
-              className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                isJee
-                  ? isLight ? 'border-amber-200 bg-white' : 'border-white/10 bg-white/5'
-                  : isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 ${
+                isLight ? 'border-slate-300 bg-slate-50 text-slate-800' : 'border-blue-900/40 bg-[#070A14] text-slate-200'
               }`}
             >
-              <Award size={14} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-              <strong className={isLight ? 'text-slate-900' : 'text-white'}>{totalMarks} Marks</strong> (+{test.markingScheme?.correct || 4} / {test.markingScheme?.wrong || -1} Marking Scheme)
+              <Award size={13} className="text-emerald-400" />
+              <strong>{totalMarks} Marks</strong> (+{test.markingScheme?.correct || 4} / {test.markingScheme?.wrong || -1})
             </span>
           </div>
         </div>
 
-        <div className="shrink-0">
+        <div className="shrink-0 flex flex-col items-stretch lg:items-end gap-2">
           <button
             type="button"
             onClick={() => onSelect(test.slug || test.id || test._id)}
-            className={`flex w-full items-center justify-center gap-2 rounded-full px-8 py-4 text-sm font-bold text-white shadow-xl transition active:scale-95 lg:w-auto ${
+            className={`flex items-center justify-center gap-2 rounded-lg px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-md transition active:scale-95 ${
               isJee
-                ? 'bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-600/30'
-                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/30'
+                ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
+                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'
             }`}
           >
-            Start Examination <ArrowRight size={16} />
+            {attemptStats.hasAttempted ? (
+              <>
+                <RotateCcw size={14} />
+                <span>Retake Examination</span>
+              </>
+            ) : (
+              <>
+                <span>Start Examination</span>
+                <ArrowRight size={14} />
+              </>
+            )}
           </button>
+          {attemptStats.hasAttempted && (
+            <span className="text-[10px] font-mono text-center lg:text-right text-slate-400">
+              Last Attempt: {attemptStats.latestDate ? formatReleaseDate(attemptStats.latestDate) : 'Recorded'}
+            </span>
+          )}
         </div>
       </div>
     </article>
@@ -193,7 +298,6 @@ export default function ChapterTestsPage({
   onLogout,
   user,
   onGoToDashboard,
-  onGoToCurriculum,
   onGoToAdmin,
   onUserUpdated,
   platformTests = {},
@@ -201,19 +305,30 @@ export default function ChapterTestsPage({
 }) {
   const { theme, isLight } = useTheme();
   const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'jee' | 'class10' | 'class9' | 'class8'
+  const [attemptFilter, setAttemptFilter] = useState('all'); // 'all' | 'attempted' | 'unattempted'
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
+  const [userAttempts, setUserAttempts] = useState(() => getUserAttempts(user?.email || 'guest'));
+
+  // Sync attempts from server on mount
+  useEffect(() => {
+    if (user?.email) {
+      fetchServerAttempts(user.email).then((attempts) => {
+        if (attempts && Array.isArray(attempts)) {
+          setUserAttempts(attempts);
+        }
+      }).catch(() => {});
+    }
+  }, [user?.email]);
 
   const handleNav = (screen) => {
     if (screen === 'dashboard') {
       if (onGoToDashboard) onGoToDashboard();
-    } else if (screen === 'curriculum') {
-      if (onGoToCurriculum) onGoToCurriculum();
     } else if (screen === 'admin') {
       if (onGoToAdmin) onGoToAdmin();
     }
   };
 
-  // Combine platform tests from backend and backwards-compatible customTests
+  // Combine platform tests from backend and customTests
   const allPlatformTests = Object.values({ ...platformTests, ...customTests });
 
   // Filter out any built-in duplicate test slugs to avoid double-rendering
@@ -226,13 +341,14 @@ export default function ChapterTestsPage({
     NEET_2026_CORE_TEST.id,
     NEET_CALCULUS_TEST.id,
     JEE_2027_PERIODIC_TEST.id,
+    JEE_2027_CHEMICAL_BONDING_TEST.id,
   ]);
 
   const uniquePlatformTests = allPlatformTests.filter(
     (t) => !builtInSlugs.has(t.slug) && !builtInSlugs.has(t.id)
   );
 
-  // Group platform tests into their natural exam categories
+  // Group platform tests into exam categories
   const neetImportedTests = uniquePlatformTests.filter((t) => {
     const cat = (t.category || '').toLowerCase();
     const exam = (t.examType || '').toUpperCase();
@@ -268,9 +384,37 @@ export default function ChapterTestsPage({
     return cat === 'class8' || cat.includes('8');
   });
 
-  const totalNeet = 7 + neetImportedTests.length;
-  const totalJee = 1 + jeeImportedTests.length;
+  // Built-in sets
+  const builtinNeet = [
+    NEET_ROUND_1_TEST,
+    NEET_ROUND_2_TEST,
+    NEET_GRAND_MEGA_TEST,
+    NEET_MECHANICS_BONDING_TEST,
+    NEET_BIOLOGY_TEST,
+    NEET_2026_CORE_TEST,
+    NEET_CALCULUS_TEST,
+  ];
 
+  const builtinJee = [
+    JEE_2027_CHEMICAL_BONDING_TEST,
+    JEE_2027_PERIODIC_TEST,
+  ];
+
+  // Complete lists sorted by release date descending (newest first)
+  const allNeetTests = useMemo(() => {
+    return [...builtinNeet, ...neetImportedTests].sort(
+      (a, b) => getTestReleaseTimestamp(b) - getTestReleaseTimestamp(a)
+    );
+  }, [neetImportedTests]);
+
+  const allJeeTests = useMemo(() => {
+    return [...builtinJee, ...jeeImportedTests].sort(
+      (a, b) => getTestReleaseTimestamp(b) - getTestReleaseTimestamp(a)
+    );
+  }, [jeeImportedTests]);
+
+  const totalNeet = allNeetTests.length;
+  const totalJee = allJeeTests.length;
   const totalClass10 = class10ImportedTests.length;
   const totalClass9 = class9ImportedTests.length;
   const totalClass8 = class8ImportedTests.length;
@@ -313,6 +457,30 @@ export default function ChapterTestsPage({
     },
   ];
 
+  // Compute tests for active category with attempt filtering
+  const activeList = selectedCategory === 'neet' ? allNeetTests : selectedCategory === 'jee' ? allJeeTests : [];
+
+  const filterStats = useMemo(() => {
+    let attempted = 0;
+    let unattempted = 0;
+    activeList.forEach((t) => {
+      const stats = getAttemptStatsForTest(t, userAttempts);
+      if (stats.hasAttempted) attempted++;
+      else unattempted++;
+    });
+    return { attempted, unattempted };
+  }, [activeList, userAttempts]);
+
+  const filteredTests = useMemo(() => {
+    if (attemptFilter === 'all') return activeList;
+    return activeList.filter((t) => {
+      const stats = getAttemptStatsForTest(t, userAttempts);
+      if (attemptFilter === 'attempted') return stats.hasAttempted;
+      if (attemptFilter === 'unattempted') return !stats.hasAttempted;
+      return true;
+    });
+  }, [activeList, attemptFilter, userAttempts]);
+
   return (
     <main
       className={`min-h-screen px-4 py-4 sm:py-6 relative overflow-hidden selection:bg-blue-600 selection:text-white transition-colors duration-200 ${
@@ -328,7 +496,7 @@ export default function ChapterTestsPage({
         }`}
       />
 
-      <div className="mx-auto max-w-5xl space-y-8 relative z-10 animate-fade-in">
+      <div className="mx-auto max-w-5xl space-y-6 relative z-10 animate-fade-in">
         {/* Unified Navigation Bar */}
         <Navbar
           currentScreen="tests"
@@ -340,32 +508,34 @@ export default function ChapterTestsPage({
         />
 
         {/* Streamlined Catalog Section Header */}
-        <section className={`rounded-3xl border p-6 sm:p-7 shadow-xl relative overflow-hidden transition ${
-          isLight
-            ? 'bg-white border-slate-200 text-slate-900 shadow-slate-200/50'
-            : 'bg-gradient-to-r from-[#0C1222] via-[#090D18] to-[#0C1222] border-white/10 text-white shadow-2xl'
-        }`}>
+        <section
+          className={`rounded-2xl border p-5 sm:p-6 shadow-md relative overflow-hidden transition font-mono ${
+            isLight
+              ? 'bg-white border-slate-300 text-slate-900'
+              : 'bg-[#080D1A] border-blue-900/50 text-white'
+          }`}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-                <span className={`text-xs font-bold uppercase tracking-wider ${isLight ? 'text-blue-700' : 'text-blue-400'}`}>
-                  Standardized Examination Catalog
+                <span className={`text-xs font-mono font-bold uppercase tracking-wider ${isLight ? 'text-blue-700' : 'text-blue-400'}`}>
+                  [STANDARDIZED EXAMINATION CATALOG]
                 </span>
               </div>
-              <h1 className={`font-sans text-2xl sm:text-3xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h1 className={`font-mono text-2xl sm:text-3xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 Target Exams &amp; Mock Tests
               </h1>
-              <p className={`text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`text-xs sm:text-sm font-mono ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 Select an exam standard below to launch full-length timed CBT drills with instant KaTeX step-by-step solutions.
               </p>
             </div>
             <div className="shrink-0">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold border ${
-                isLight ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-blue-500/20 border-blue-500/30 text-blue-300'
+              <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-mono font-bold border ${
+                isLight ? 'bg-blue-50 border-blue-300 text-blue-900' : 'bg-blue-500/15 border-blue-500/30 text-blue-300'
               }`}>
-                <CheckCircle2 size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-                <span>{totalNeet + totalJee + totalClass10 + totalClass9 + totalClass8} Total Published Tests</span>
+                <CheckCircle2 size={13} className={isLight ? 'text-blue-700' : 'text-blue-400'} />
+                <span>{totalNeet + totalJee + totalClass10 + totalClass9 + totalClass8} Published Tests</span>
               </span>
             </div>
           </div>
@@ -373,10 +543,10 @@ export default function ChapterTestsPage({
 
         {/* 5-Column Category Tabs */}
         <div>
-          <p className={`mb-3 text-xs font-semibold uppercase tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
+          <p className={`mb-2.5 text-[11px] font-mono font-bold uppercase tracking-wider ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
             Select Exam Standard:
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 font-mono">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = selectedCategory === cat.id;
@@ -386,44 +556,47 @@ export default function ChapterTestsPage({
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex flex-col items-start justify-between rounded-2xl border p-4 text-left transition-all ${
+                  onClick={() => {
+                    setSelectedCategory(cat.id);
+                    setAttemptFilter('all');
+                  }}
+                  className={`flex flex-col items-start justify-between rounded-xl border p-3.5 text-left transition-all ${
                     isActive
                       ? isLight
-                        ? 'border-blue-500 bg-blue-50/80 text-slate-900 shadow-md ring-2 ring-blue-500/20'
-                        : 'border-blue-500 bg-gradient-to-b from-[#0D1528] to-[#0B0F19] text-white shadow-lg shadow-blue-500/10 ring-1 ring-blue-500'
+                        ? 'border-blue-600 bg-blue-50/80 text-slate-900 shadow-sm ring-1 ring-blue-500'
+                        : 'border-blue-500 bg-[#0C1427] text-white shadow-md ring-1 ring-blue-500/50'
                       : isAvailable
                       ? isLight
-                        ? 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 shadow-xs'
-                        : 'border-white/10 bg-[#0B0F19] text-slate-300 hover:border-white/20 hover:bg-[#0D121F]'
+                        ? 'border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
+                        : 'border-blue-900/30 bg-[#080D1A] text-slate-300 hover:border-blue-800 hover:bg-[#0B1224]'
                       : isLight
-                      ? 'border-slate-200/60 bg-slate-50/60 text-slate-400 hover:bg-slate-100'
-                      : 'border-white/5 bg-[#090C14]/60 text-slate-500 hover:bg-white/[0.02]'
+                      ? 'border-slate-200 bg-slate-50 text-slate-400'
+                      : 'border-white/5 bg-[#080D1A]/60 text-slate-600'
                   }`}
                 >
                   <div className="flex w-full items-center justify-between gap-1.5">
-                    <div className={`p-2 rounded-xl ${
+                    <div className={`p-1.5 rounded ${
                       isActive
                         ? 'bg-blue-600 text-white'
                         : isAvailable
                         ? isLight ? 'bg-slate-100 text-slate-600' : 'bg-white/5 text-slate-400'
                         : isLight ? 'bg-slate-200/50 text-slate-400' : 'bg-white/5 text-slate-600'
                     }`}>
-                      <Icon size={17} />
+                      <Icon size={15} />
                     </div>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      className={`rounded px-1.5 py-0.5 text-[9px] font-mono font-bold ${
                         isActive
-                          ? isLight ? 'bg-blue-100 border border-blue-200 text-blue-900' : 'bg-blue-500/25 border border-blue-500/40 text-blue-200'
+                          ? isLight ? 'bg-blue-200 text-blue-900' : 'bg-blue-500/30 text-blue-200'
                           : isAvailable
-                          ? isLight ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-white/5 text-slate-400 border border-white/10'
-                          : isLight ? 'bg-slate-100 text-slate-400 border border-slate-200' : 'bg-white/5 text-slate-600 border border-white/5'
+                          ? isLight ? 'bg-slate-100 text-slate-700 border border-slate-200' : 'bg-white/5 text-slate-400 border border-white/10'
+                          : isLight ? 'bg-slate-100 text-slate-400' : 'bg-white/5 text-slate-600'
                       }`}
                     >
                       {cat.badge}
                     </span>
                   </div>
-                  <span className={`mt-3 font-sans text-sm sm:text-base font-bold ${
+                  <span className={`mt-2.5 font-mono text-xs sm:text-sm font-bold ${
                     isActive ? (isLight ? 'text-slate-900' : 'text-white') : isAvailable ? (isLight ? 'text-slate-800' : 'text-slate-200') : (isLight ? 'text-slate-400' : 'text-slate-500')
                   }`}>
                     {cat.label}
@@ -434,753 +607,134 @@ export default function ChapterTestsPage({
           </div>
         </div>
 
-        {/* CONTENT FOR NEET SECTION */}
-        {selectedCategory === 'neet' && (
-          <div className="animate-fade-in space-y-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-                  isLight ? 'bg-blue-50 border border-blue-200 text-blue-700' : 'bg-blue-500/15 border border-blue-500/30 text-blue-300'
-                }`}>
-                  NEET 2027 · Standard Chapter Examination Series
-                </span>
-                <h2 className={`mt-2 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                  Available High-Yield Mock Examinations
-                </h2>
-                <p className={`mt-1 text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                  Select a timed examination below to begin your CBT assessment with authentic PYQs and instant solutions.
-                </p>
-              </div>
-              <div className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold ${
-                isLight ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+        {/* FILTER & SORTING TOOLBAR (NEET & JEE) */}
+        {(selectedCategory === 'neet' || selectedCategory === 'jee') && (
+          <div
+            className={`flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3 font-mono transition ${
+              isLight ? 'bg-white border-slate-300' : 'bg-[#080D1A] border-blue-900/40'
+            }`}
+          >
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className={`text-[11px] font-bold uppercase tracking-wider mr-1.5 flex items-center gap-1 ${
+                isLight ? 'text-slate-600' : 'text-slate-400'
               }`}>
-                <CheckCircle2 size={16} className={isLight ? 'text-amber-600' : 'text-amber-400'} /> {totalNeet} Tests Available
-              </div>
+                <Filter size={12} />
+                <span>Filter:</span>
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setAttemptFilter('all')}
+                className={`rounded px-2.5 py-1 text-xs font-mono font-bold transition ${
+                  attemptFilter === 'all'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : isLight
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    : 'bg-white/5 hover:bg-white/10 text-slate-300'
+                }`}
+              >
+                ALL ({activeList.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAttemptFilter('attempted')}
+                className={`rounded px-2.5 py-1 text-xs font-mono font-bold transition ${
+                  attemptFilter === 'attempted'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : isLight
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    : 'bg-white/5 hover:bg-white/10 text-slate-300'
+                }`}
+              >
+                ATTEMPTED ({filterStats.attempted})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAttemptFilter('unattempted')}
+                className={`rounded px-2.5 py-1 text-xs font-mono font-bold transition ${
+                  attemptFilter === 'unattempted'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : isLight
+                    ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    : 'bg-white/5 hover:bg-white/10 text-slate-300'
+                }`}
+              >
+                NOT ATTEMPTED ({filterStats.unattempted})
+              </button>
             </div>
 
-            {/* Test Card 0: NEET Round 1 - Mechanics Drill (120 Questions - 2.0 Hours) */}
-            <article className={`overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-xl relative transition ${
-              isLight
-                ? 'bg-white border-blue-200 shadow-blue-900/5 ring-1 ring-blue-100'
-                : 'bg-gradient-to-b from-[#0A192F] via-[#071324] to-[#0B0F19] border-blue-500/60 shadow-2xl ring-1 ring-blue-500/30'
+            <div className={`flex items-center gap-1.5 text-[10px] sm:text-[11px] font-mono font-semibold ${
+              isLight ? 'text-slate-600' : 'text-blue-400'
             }`}>
-              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-blue-600/10 blur-3xl" />
+              <Calendar size={12} />
+              <span>ORDER: RELEASE DATE (NEWEST FIRST)</span>
+            </div>
+          </div>
+        )}
 
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
-                <div className="max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-blue-50 border border-blue-200 text-blue-700' : 'bg-blue-500/20 border border-blue-500/40 text-blue-300'
-                    }`}>
-                      ⚡ ROUND 1 · PHYSICS MECHANICS
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-blue-100 border border-blue-200 text-blue-800' : 'bg-blue-600/20 border border-blue-500/30 text-blue-300'
-                    }`}>
-                      120 Questions · 2 Hours Fixed
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-emerald-100 border border-emerald-200 text-emerald-800' : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                    }`}>
-                      480 Marks
-                    </span>
-                  </div>
-
-                  <h3 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {NEET_ROUND_1_TEST.title}
-                  </h3>
-                  <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    {NEET_ROUND_1_TEST.description}
-                  </p>
-
-                  <div className={`mt-5 rounded-2xl border p-4 text-xs leading-relaxed ${
-                    isLight ? 'border-slate-200 bg-blue-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-300'
-                  }`}>
-                    <span className={`font-bold ${isLight ? 'text-blue-900' : 'text-white'}`}>Syllabus Covered: </span>
-                    {NEET_ROUND_1_TEST.syllabus}
-                  </div>
-
-                  <div className={`mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Clock size={14} className={isLight ? 'text-amber-600' : 'text-amber-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>120 Minutes</strong> (Fixed 2 Hours Continuous CBT)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <BookOpen size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>120 Questions</strong> (45 WEP + 45 COM + 30 Rotational)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Award size={14} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>480 Marks</strong> (+4 / −1 Marking Scheme)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onSelect(NEET_ROUND_1_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-blue-600/30 transition active:scale-95 lg:w-auto"
-                  >
-                    Start Round 1 (120 Mins) <ArrowRight size={16} />
-                  </button>
-                </div>
+        {/* CONTENT FOR NEET SECTION */}
+        {selectedCategory === 'neet' && (
+          <div className="animate-fade-in space-y-4">
+            {filteredTests.length > 0 ? (
+              filteredTests.map((test) => (
+                <PlatformTestCard
+                  key={test.slug || test.id || test._id}
+                  test={test}
+                  isLight={isLight}
+                  onSelect={onSelect}
+                  isJee={false}
+                  attemptStats={getAttemptStatsForTest(test, userAttempts)}
+                  releaseDateFormatted={formatReleaseDate(getTestReleaseTimestamp(test))}
+                />
+              ))
+            ) : (
+              <div className={`rounded-xl border p-8 text-center font-mono ${
+                isLight ? 'bg-white border-slate-300 text-slate-600' : 'bg-[#080D1A] border-blue-900/40 text-slate-400'
+              }`}>
+                <p className="text-sm font-bold uppercase tracking-wider">No tests match the current filter.</p>
+                <button
+                  type="button"
+                  onClick={() => setAttemptFilter('all')}
+                  className="mt-3 rounded px-4 py-2 bg-blue-600 text-white text-xs font-bold uppercase tracking-wider"
+                >
+                  View All Tests
+                </button>
               </div>
-            </article>
-
-            {/* Test Card 0B: NEET Round 2 - Chemistry Bonding & Botany Morphology (120 Questions - 2.0 Hours) */}
-            <article className={`overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-xl relative transition ${
-              isLight
-                ? 'bg-white border-emerald-200 shadow-emerald-900/5 ring-1 ring-emerald-100'
-                : 'bg-gradient-to-b from-[#0A261D] via-[#071C15] to-[#0B0F19] border-emerald-500/60 shadow-2xl ring-1 ring-emerald-500/30'
-            }`}>
-              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-emerald-600/10 blur-3xl" />
-
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
-                <div className="max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' : 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
-                    }`}>
-                      🌿 ROUND 2 · CHEMISTRY, BOTANY &amp; DYNAMICS
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-teal-100 border border-teal-200 text-teal-800' : 'bg-teal-600/20 border border-teal-500/30 text-teal-300'
-                    }`}>
-                      120 Questions · 2 Hours Fixed
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-emerald-100 border border-emerald-200 text-emerald-800' : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                    }`}>
-                      480 Marks
-                    </span>
-                  </div>
-
-                  <h3 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {NEET_ROUND_2_TEST.title}
-                  </h3>
-                  <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    {NEET_ROUND_2_TEST.description}
-                  </p>
-
-                  <div className={`mt-5 rounded-2xl border p-4 text-xs leading-relaxed ${
-                    isLight ? 'border-slate-200 bg-emerald-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-300'
-                  }`}>
-                    <span className={`font-bold ${isLight ? 'text-emerald-900' : 'text-white'}`}>Syllabus Covered: </span>
-                    {NEET_ROUND_2_TEST.syllabus}
-                  </div>
-
-                  <div className={`mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Clock size={14} className={isLight ? 'text-amber-600' : 'text-amber-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>120 Minutes</strong> (Fixed 2 Hours Continuous CBT)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <BookOpen size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>120 Questions</strong> (45 Chem + 60 Bio + 15 Phys)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Award size={14} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>480 Marks</strong> (+4 / −1 Marking Scheme)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onSelect(NEET_ROUND_2_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-emerald-600/30 transition active:scale-95 lg:w-auto"
-                  >
-                    Start Round 2 (120 Mins) <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            {/* Test Card 1: NEET & JEE Mechanics + Chemical Bonding Drill */}
-            <article className={`overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-xl relative transition ${
-              isLight
-                ? 'bg-white border-violet-200 shadow-violet-900/5 ring-1 ring-violet-100'
-                : 'bg-gradient-to-b from-[#160E2E] via-[#100A22] to-[#0B0F19] border-violet-500/50 shadow-2xl ring-1 ring-violet-500/30'
-            }`}>
-              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-violet-600/10 blur-3xl" />
-
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
-                <div className="max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-violet-50 border border-violet-200 text-violet-800' : 'bg-violet-500/20 border border-violet-500/40 text-violet-300'
-                    }`}>
-                      ⭐ 120 QUESTIONS MEGA DRILL
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-blue-50 border border-blue-200 text-blue-700' : 'bg-blue-600/20 border border-blue-500/30 text-blue-300'
-                    }`}>
-                      NEET &amp; JEE Advanced
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-indigo-50 border border-indigo-200 text-indigo-700' : 'bg-indigo-500/20 border border-indigo-500/30 text-indigo-300'
-                    }`}>
-                      Mechanics &amp; Chemical Bonding
-                    </span>
-                  </div>
-
-                  <h3 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {NEET_MECHANICS_BONDING_TEST.title}
-                  </h3>
-                  <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    120 curated challenging questions: 60 Physics (Work Energy &amp; Power, Centre of Mass, System of Particles &amp; Rotational Dynamics excluding pure rolling) + 60 Chemistry (Complete Chemical Bonding &amp; Molecular Structure with MOT, VSEPR, Resonating Forms, and Dipole Moments).
-                  </p>
-
-                  <div className={`mt-5 rounded-2xl border p-4 text-xs leading-relaxed ${
-                    isLight ? 'border-slate-200 bg-violet-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-300'
-                  }`}>
-                    <span className={`font-bold ${isLight ? 'text-violet-900' : 'text-white'}`}>Syllabus Covered: </span>
-                    {NEET_MECHANICS_BONDING_TEST.syllabus}
-                  </div>
-
-                  <div className={`mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Clock size={14} className={isLight ? 'text-amber-600' : 'text-amber-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>120 Minutes</strong> (2 Hours Continuous CBT)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <BookOpen size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>120 Questions</strong> (60 Phys + 60 Chem)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Award size={14} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>480 Marks</strong> (+4 / −1 Marking Scheme)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onSelect(NEET_MECHANICS_BONDING_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-violet-600/30 transition active:scale-95 lg:w-auto"
-                  >
-                    Start 120-Min Examination <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            {/* Test Card 2: NEET 2026 & Re-NEET Biology Foundation Drill */}
-            <article className={`overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-xl relative transition ${
-              isLight
-                ? 'bg-white border-teal-200 shadow-teal-900/5 ring-1 ring-teal-100'
-                : 'bg-gradient-to-b from-[#0B1E1E] via-[#081717] to-[#0B0F19] border-teal-500/40 shadow-2xl ring-1 ring-teal-500/25'
-            }`}>
-              <div className="pointer-events-none absolute -top-12 -right-12 h-56 w-56 rounded-full bg-teal-600/10 blur-3xl" />
-
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
-                <div className="max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-emerald-100 border border-emerald-200 text-emerald-800' : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                    }`}>
-                      NEW BIOLOGY EXAM
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-teal-100 border border-teal-200 text-teal-800' : 'bg-teal-600/20 border border-teal-500/30 text-teal-300'
-                    }`}>
-                      NEET 2026 + Re-NEET
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-emerald-100 border border-emerald-200 text-emerald-800' : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                    }`}>
-                      Botany &amp; Human Physiology
-                    </span>
-                  </div>
-
-                  <h3 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {NEET_BIOLOGY_TEST.title}
-                  </h3>
-                  <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    50 curated high-yield questions from official NEET 2026 and Re-NEET 2026 papers. Covers Living World, Biological Classification, Plant Morphology &amp; Anatomy, Cell Structure &amp; Division, Biomolecules, and Core Human Physiology.
-                  </p>
-
-                  <div className={`mt-5 rounded-2xl border p-4 text-xs leading-relaxed ${
-                    isLight ? 'border-slate-200 bg-teal-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-300'
-                  }`}>
-                    <span className={`font-bold ${isLight ? 'text-teal-900' : 'text-white'}`}>Syllabus Covered: </span>
-                    {NEET_BIOLOGY_TEST.syllabus}
-                  </div>
-
-                  <div className={`mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Clock size={14} className={isLight ? 'text-teal-600' : 'text-teal-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>50 Minutes</strong> (1 min/Q NEET Standard)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <BookOpen size={14} className={isLight ? 'text-teal-600' : 'text-teal-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>50 Questions</strong> (Botany &amp; Zoology)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Award size={14} className={isLight ? 'text-teal-600' : 'text-teal-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>200 Marks</strong> (+4 / −1 Scheme)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onSelect(NEET_BIOLOGY_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-teal-600 hover:bg-teal-500 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-teal-600/30 transition active:scale-95 lg:w-auto"
-                  >
-                    Start 50-Min Examination <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            {/* Test Card 2: NEET 2026 & Re-NEET Core Topics Drill */}
-            <article className={`overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-xl relative transition ${
-              isLight
-                ? 'bg-white border-emerald-200 shadow-emerald-900/5 ring-1 ring-emerald-100'
-                : 'bg-gradient-to-b from-[#0D1E22] via-[#09151A] to-[#0B0F19] border-emerald-500/40 shadow-2xl ring-1 ring-emerald-500/25'
-            }`}>
-              <div className="pointer-events-none absolute -top-12 -right-12 h-56 w-56 rounded-full bg-emerald-600/10 blur-3xl" />
-
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
-                <div className="max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-emerald-100 border border-emerald-200 text-emerald-800' : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                    }`}>
-                      NEW EXAM
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-blue-100 border border-blue-200 text-blue-800' : 'bg-blue-600/20 border border-blue-500/30 text-blue-300'
-                    }`}>
-                      NEET 2026 + Re-NEET
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-purple-100 border border-purple-200 text-purple-800' : 'bg-purple-500/20 border border-purple-500/30 text-purple-300'
-                    }`}>
-                      Physics &amp; Chemistry Core
-                    </span>
-                  </div>
-
-                  <h3 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {NEET_2026_CORE_TEST.title}
-                  </h3>
-                  <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    55 curated high-yield questions from official NEET 2026 and Re-NEET 2026 question papers. Strict NEET timing standard of 1 min/question with complete KaTeX formula rendering.
-                  </p>
-
-                  <div className={`mt-5 rounded-2xl border p-4 text-xs leading-relaxed ${
-                    isLight ? 'border-slate-200 bg-emerald-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-300'
-                  }`}>
-                    <span className={`font-bold ${isLight ? 'text-emerald-900' : 'text-white'}`}>Syllabus Covered: </span>
-                    {NEET_2026_CORE_TEST.syllabus}
-                  </div>
-
-                  <div className={`mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Clock size={14} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>55 Minutes</strong> (1 min/Q NEET Standard)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <BookOpen size={14} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>55 Questions</strong> (28 Physics + 27 Chem)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Award size={14} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>220 Marks</strong> (+4 / −1 Scheme)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onSelect(NEET_2026_CORE_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 hover:bg-emerald-500 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-emerald-600/30 transition active:scale-95 lg:w-auto"
-                  >
-                    Start 55-Min Examination <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            {/* Test Card 2: Calculus Mastery Drill (Definite & Indefinite Integration) */}
-            <article className={`overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-xl relative transition ${
-              isLight
-                ? 'bg-white border-blue-200 shadow-blue-900/5 ring-1 ring-blue-100'
-                : 'bg-gradient-to-b from-[#0F172A] via-[#0D1322] to-[#0B0F19] border-blue-500/30 shadow-2xl ring-1 ring-blue-500/20'
-            }`}>
-              <div className="pointer-events-none absolute -top-12 -right-12 h-56 w-56 rounded-full bg-blue-600/10 blur-3xl" />
-
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
-                <div className="max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-emerald-100 border border-emerald-200 text-emerald-800' : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                    }`}>
-                      NEW TEST
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-blue-100 border border-blue-200 text-blue-800' : 'bg-blue-600/20 border border-blue-500/30 text-blue-300'
-                    }`}>
-                      Calculus Drill
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-rose-100 border border-rose-200 text-rose-800' : 'bg-rose-500/20 border border-rose-500/30 text-rose-300'
-                    }`}>
-                      Hardest JEE Level
-                    </span>
-                  </div>
-
-                  <h3 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {NEET_CALCULUS_TEST.title}
-                  </h3>
-                  <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    60 of the most challenging Definite &amp; Indefinite Integration questions curated from authentic PYQs. Timed according to JEE standard (2.4 min/question for 60 questions = 144 minutes).
-                  </p>
-
-                  <div className={`mt-5 rounded-2xl border p-4 text-xs leading-relaxed ${
-                    isLight ? 'border-slate-200 bg-blue-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-300'
-                  }`}>
-                    <span className={`font-bold ${isLight ? 'text-blue-900' : 'text-white'}`}>Syllabus Covered: </span>
-                    {NEET_CALCULUS_TEST.syllabus}
-                  </div>
-
-                  <div className={`mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Clock size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>144 Minutes</strong> (2h 24m · 2.4 min/Q)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <BookOpen size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>60 Questions</strong> (32 Def + 28 Indef)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Award size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>240 Marks</strong> (+4 / −1 Scheme)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onSelect(NEET_CALCULUS_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 hover:bg-blue-500 px-8 py-4 text-sm font-bold text-white shadow-lg shadow-blue-600/30 transition active:scale-95 lg:w-auto"
-                  >
-                    Start 144-Min Examination <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            {/* Platform-wide Imported NEET Examinations */}
-            {neetImportedTests.map((test) => (
-              <PlatformTestCard
-                key={test.slug || test.id || test._id}
-                test={test}
-                isLight={isLight}
-                onSelect={onSelect}
-                isJee={false}
-              />
-            ))}
+            )}
           </div>
         )}
 
         {/* CONTENT FOR JEE SECTION */}
         {selectedCategory === 'jee' && (
-          <div className="animate-fade-in space-y-8">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-                  isLight ? 'bg-amber-100 border border-amber-300 text-amber-900' : 'bg-amber-500/15 border border-amber-500/30 text-amber-300'
-                }`}>
-                  JEE Main 2027 · Single Subject Chapter Mastery Series
-                </span>
-                <h2 className={`mt-2 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                  JEE Main Periodic Table &amp; Periodicity CBT Mock
-                </h2>
-                <p className={`mt-1 text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                  Curated directly from 2021-2025 JEE Main Official PYQs and Advanced Top-Rankers Drills with zero duplicate questions.
-                </p>
-              </div>
-              <div className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-bold ${
-                isLight ? 'border-amber-300 bg-amber-50 text-amber-900' : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+          <div className="animate-fade-in space-y-4">
+            {filteredTests.length > 0 ? (
+              filteredTests.map((test) => (
+                <PlatformTestCard
+                  key={test.slug || test.id || test._id}
+                  test={test}
+                  isLight={isLight}
+                  onSelect={onSelect}
+                  isJee={true}
+                  attemptStats={getAttemptStatsForTest(test, userAttempts)}
+                  releaseDateFormatted={formatReleaseDate(getTestReleaseTimestamp(test))}
+                />
+              ))
+            ) : (
+              <div className={`rounded-xl border p-8 text-center font-mono ${
+                isLight ? 'bg-white border-slate-300 text-slate-600' : 'bg-[#080D1A] border-amber-500/30 text-slate-400'
               }`}>
-                <CheckCircle2 size={16} /> {totalJee} Test{totalJee > 1 ? 's' : ''} Available
+                <p className="text-sm font-bold uppercase tracking-wider">No tests match the current filter.</p>
+                <button
+                  type="button"
+                  onClick={() => setAttemptFilter('all')}
+                  className="mt-3 rounded px-4 py-2 bg-amber-600 text-white text-xs font-bold uppercase tracking-wider"
+                >
+                  View All Tests
+                </button>
               </div>
-            </div>
-
-            {/* Test Card: JEE Main 2027 Periodic Properties */}
-            <article className={`overflow-hidden rounded-3xl border p-6 sm:p-8 shadow-2xl relative ${
-              isLight
-                ? 'bg-gradient-to-b from-amber-50/70 via-white to-amber-50/40 border-amber-300 shadow-amber-900/5 ring-1 ring-amber-200 text-slate-900'
-                : 'bg-gradient-to-b from-[#1F160A] via-[#140E06] to-[#0B0F19] border-amber-500/60 ring-1 ring-amber-500/30'
-            }`}>
-              <div className="pointer-events-none absolute -top-12 -right-12 h-64 w-64 rounded-full bg-amber-600/20 blur-3xl" />
-
-              <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center relative z-10">
-                <div className="max-w-2xl">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-amber-100 border border-amber-300 text-amber-900' : 'bg-amber-500/20 border border-amber-500/40 text-amber-300'
-                    }`}>
-                      🎯 JEE MAIN 2027 · CHEMISTRY
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-amber-200/80 border border-amber-300 text-amber-950' : 'bg-amber-600/20 border border-amber-500/30 text-amber-300'
-                    }`}>
-                      60 Questions · 90 Mins (Adjustable)
-                    </span>
-                    <span className={`rounded-full px-3 py-0.5 text-xs font-bold ${
-                      isLight ? 'bg-emerald-100 border border-emerald-300 text-emerald-900' : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'
-                    }`}>
-                      240 Marks (+4 / -1)
-                    </span>
-                  </div>
-
-                  <h3 className={`mt-3 font-sans text-2xl sm:text-3xl font-black ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    {JEE_2027_PERIODIC_TEST.title}
-                  </h3>
-                  <p className={`mt-2 text-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-300'}`}>
-                    {JEE_2027_PERIODIC_TEST.subtitle}
-                  </p>
-
-                  <div className={`mt-5 rounded-2xl border p-4 text-xs leading-relaxed ${
-                    isLight ? 'border-amber-200 bg-amber-50/60 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-300'
-                  }`}>
-                    <span className={`font-bold ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>High-Yield Topics Covered: </span>
-                    {JEE_2027_PERIODIC_TEST.syllabus}
-                  </div>
-
-                  <div className={`mt-5 flex flex-wrap items-center gap-3 text-xs font-semibold ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-amber-200 bg-white' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Clock size={14} className={isLight ? 'text-amber-700' : 'text-amber-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>90 Minutes</strong> (Self-Adjustable up to 1 Hr 30 Mins)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-amber-200 bg-white' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <BookOpen size={14} className={isLight ? 'text-blue-600' : 'text-blue-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>60 Questions</strong> (Zero Duplicates · Most Frequent &amp; Expected 2027)
-                    </span>
-                    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 ${
-                      isLight ? 'border-amber-200 bg-white' : 'border-white/10 bg-white/5'
-                    }`}>
-                      <Award size={14} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-                      <strong className={isLight ? 'text-slate-900' : 'text-white'}>240 Marks</strong> (+4 / −1 Marking Scheme)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onSelect(JEE_2027_PERIODIC_TEST.id)}
-                    className="flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 px-8 py-4 text-sm font-bold text-white shadow-xl shadow-amber-600/30 transition active:scale-95 lg:w-auto"
-                  >
-                    Start JEE Exam (90 Mins) <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            </article>
-
-            {/* Platform-wide Imported JEE Examinations */}
-            {jeeImportedTests.map((test) => (
-              <PlatformTestCard
-                key={test.slug || test.id || test._id}
-                test={test}
-                isLight={isLight}
-                onSelect={onSelect}
-                isJee={true}
-              />
-            ))}
-
-            {/* Strict JEE Rules & Paper Hardness Matrix */}
-            <div className={`rounded-3xl border p-6 sm:p-8 shadow-2xl relative overflow-hidden space-y-6 ${
-              isLight
-                ? 'bg-white border-amber-200/90 shadow-amber-900/5 text-slate-800'
-                : 'bg-gradient-to-b from-[#161007] via-[#0E0C07] to-[#0B0F19] border-amber-500/30 text-white'
-            }`}>
-              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-5 ${
-                isLight ? 'border-slate-200' : 'border-white/10'
-              }`}>
-                <div className="space-y-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className={`rounded-full px-3 py-1 text-xs font-black flex items-center gap-1.5 ${
-                      isLight ? 'bg-amber-100 border border-amber-300 text-amber-900' : 'bg-amber-500/20 border border-amber-500/40 text-amber-300'
-                    }`}>
-                      <Scale size={13} /> Strict NTA Examination Rules
-                    </span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-black flex items-center gap-1.5 ${
-                      isLight ? 'bg-orange-100 border border-orange-300 text-orange-900' : 'bg-orange-500/20 border border-orange-500/40 text-orange-300'
-                    }`}>
-                      <Flame size={13} /> Paper Hardness: Tough Shift
-                    </span>
-                  </div>
-                  <h3 className={`font-sans text-xl sm:text-2xl font-black tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
-                    JEE Main 2027 Normalization &amp; Expected Percentile Architecture
-                  </h3>
-                  <p className={`text-xs leading-relaxed max-w-2xl ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    Official NTA evaluation guidelines, negative marking penalty (-1 mark), tie-breaker rules, and calibrated marks-versus-percentile matrix according to paper difficulty.
-                  </p>
-                </div>
-                <div className={`rounded-2xl border px-4 py-3 text-center shrink-0 ${
-                  isLight ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-amber-500/30 bg-amber-500/10'
-                }`}>
-                  <span className={`text-[10px] uppercase font-bold block ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>General Cutoff</span>
-                  <strong className={`font-mono text-base font-black block ${isLight ? 'text-slate-900' : 'text-white'}`}>~93.2%tile</strong>
-                  <span className={`text-[9px] ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>JEE Advanced Qualifier</span>
-                </div>
-              </div>
-
-              {/* Grid of Strict Rules */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-                <div className={`rounded-2xl border p-4 space-y-1.5 ${isLight ? 'border-amber-200/70 bg-amber-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-400'}`}>
-                  <div className={`flex items-center gap-1.5 text-xs font-black ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                    <ShieldAlert size={14} /> 1. Strict Marking (+4 / −1)
-                  </div>
-                  <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    +4 marks awarded for each correct option; −1 mark deducted for every incorrect attempt. Zero marks for unattempted questions. Random guessing drastically hurts NTA percentile.
-                  </p>
-                </div>
-
-                <div className={`rounded-2xl border p-4 space-y-1.5 ${isLight ? 'border-amber-200/70 bg-amber-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-400'}`}>
-                  <div className={`flex items-center gap-1.5 text-xs font-black ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                    <Scale size={14} /> 2. Shift Normalization
-                  </div>
-                  <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    Percentile is not a raw percentage. Formula: 100 × (Candidates with raw score ≤ Your raw score) ÷ (Total candidates in shift). Reported to 7 decimal places.
-                  </p>
-                </div>
-
-                <div className={`rounded-2xl border p-4 space-y-1.5 ${isLight ? 'border-amber-200/70 bg-amber-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-400'}`}>
-                  <div className={`flex items-center gap-1.5 text-xs font-black ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                    <Target size={14} /> 3. Official Tie-Breaking
-                  </div>
-                  <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    When scores tie: Chemistry NTA Score → Physics NTA Score → Mathematics NTA Score → Lower ratio of negative to positive attempts → Older candidate.
-                  </p>
-                </div>
-
-                <div className={`rounded-2xl border p-4 space-y-1.5 ${isLight ? 'border-amber-200/70 bg-amber-50/40 text-slate-700' : 'border-white/10 bg-[#070A12] text-slate-400'}`}>
-                  <div className={`flex items-center gap-1.5 text-xs font-black ${isLight ? 'text-amber-800' : 'text-amber-400'}`}>
-                    <Flame size={14} /> 4. Tough Paper Advantage
-                  </div>
-                  <p className={`text-[11px] leading-relaxed ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
-                    In this Hard Shift (Advanced Drills + Official PYQs), 99.0%tile begins at just 72–78/120 marks (~165/300 full paper), rewarding conceptual accuracy.
-                  </p>
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className={`overflow-x-auto rounded-2xl border ${
-                isLight ? 'border-slate-200 bg-white shadow-xs' : 'border-white/10 bg-[#070A12]'
-              }`}>
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className={`border-b text-[11px] font-bold ${
-                      isLight ? 'border-slate-200 bg-slate-100 text-slate-700' : 'border-white/10 bg-white/5 text-slate-300'
-                    }`}>
-                      <th className="p-3">Expected Percentile</th>
-                      <th className={`p-3 ${isLight ? 'text-amber-700' : 'text-amber-400'}`}>Tough Shift (This Test / 120)</th>
-                      <th className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Moderate Shift (120)</th>
-                      <th className={`p-3 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Easy Shift (120)</th>
-                      <th className="p-3">Estimated AIR &amp; Target Colleges</th>
-                    </tr>
-                  </thead>
-                  <tbody className={`divide-y font-mono text-[11px] ${isLight ? 'divide-slate-100' : 'divide-white/5'}`}>
-                    <tr className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-white/5'}`}>
-                      <td className={`p-3 font-black ${isLight ? 'text-emerald-600' : 'text-emerald-400'}`}>99.9+ %tile</td>
-                      <td className={`p-3 font-bold ${isLight ? 'text-amber-800' : 'text-amber-300'}`}>95–104 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>105–112 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>114–120 Marks</td>
-                      <td className={`p-3 font-sans ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                        <strong>AIR 1 – 650</strong> · NIT Trichy / Surathkal / Warangal CSE · IIIT Hyderabad
-                      </td>
-                    </tr>
-                    <tr className={`transition ${isLight ? 'bg-amber-50/60 hover:bg-amber-100/50' : 'bg-amber-500/5 hover:bg-white/5'}`}>
-                      <td className={`p-3 font-black ${isLight ? 'text-amber-600' : 'text-amber-400'}`}>99.0+ %tile</td>
-                      <td className={`p-3 font-bold ${isLight ? 'text-amber-800' : 'text-amber-300'}`}>72–78 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>82–88 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>92–98 Marks</td>
-                      <td className={`p-3 font-sans ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                        <strong>AIR ~14,000</strong> · Top NITs Computer Science &amp; ECE Cutoff
-                      </td>
-                    </tr>
-                    <tr className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-white/5'}`}>
-                      <td className={`p-3 font-black ${isLight ? 'text-blue-600' : 'text-blue-400'}`}>98.0+ %tile</td>
-                      <td className={`p-3 font-bold ${isLight ? 'text-amber-800' : 'text-amber-300'}`}>62–71 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>72–81 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>82–91 Marks</td>
-                      <td className={`p-3 font-sans ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                        <strong>AIR ~28,000</strong> · Top NITs Core Branches (Mechanical, EEE)
-                      </td>
-                    </tr>
-                    <tr className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-white/5'}`}>
-                      <td className={`p-3 font-black ${isLight ? 'text-indigo-600' : 'text-indigo-400'}`}>95.0+ %tile</td>
-                      <td className={`p-3 font-bold ${isLight ? 'text-amber-800' : 'text-amber-300'}`}>48–60 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>58–70 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>68–80 Marks</td>
-                      <td className={`p-3 font-sans ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                        <strong>AIR ~70,000</strong> · State Engineering Merit &amp; Top IIITs
-                      </td>
-                    </tr>
-                    <tr className={`transition ${isLight ? 'hover:bg-slate-50' : 'hover:bg-white/5'}`}>
-                      <td className={`p-3 font-black ${isLight ? 'text-rose-600' : 'text-rose-400'}`}>93.2+ %tile</td>
-                      <td className={`p-3 font-bold ${isLight ? 'text-amber-800' : 'text-amber-300'}`}>42–46 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>50–55 Marks</td>
-                      <td className={`p-3 ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>60–65 Marks</td>
-                      <td className={`p-3 font-sans ${isLight ? 'text-slate-700' : 'text-slate-300'}`}>
-                        <strong>AIR ~96,000</strong> · ⚡ Official JEE Advanced Eligibility Cutoff
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -1188,7 +742,7 @@ export default function ChapterTestsPage({
         {selectedCategory === 'class10' && (
           <div className="animate-fade-in space-y-6">
             {class10ImportedTests.length > 0 && (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {class10ImportedTests.map((test) => (
                   <PlatformTestCard
                     key={test.slug || test.id || test._id}
@@ -1196,47 +750,31 @@ export default function ChapterTestsPage({
                     isLight={isLight}
                     onSelect={onSelect}
                     isJee={false}
+                    attemptStats={getAttemptStatsForTest(test, userAttempts)}
+                    releaseDateFormatted={formatReleaseDate(getTestReleaseTimestamp(test))}
                   />
                 ))}
               </div>
             )}
-            <div className={`rounded-3xl border p-8 text-center sm:p-12 ${
-              isLight ? 'border-slate-200 bg-white text-slate-800 shadow-sm' : 'border-white/10 bg-[#0B0F19] text-white shadow-xl'
+            <div className={`rounded-2xl border p-8 text-center sm:p-12 font-mono ${
+              isLight ? 'border-slate-300 bg-white text-slate-800 shadow-sm' : 'border-blue-900/40 bg-[#080D1A] text-white shadow-xl'
             }`}>
-              <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${
-                isLight ? 'bg-blue-50 border border-blue-200 text-blue-600' : 'bg-blue-600/20 border border-blue-500/30 text-blue-400 shadow-glow'
+              <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-xl ${
+                isLight ? 'bg-blue-50 border border-blue-200 text-blue-600' : 'bg-blue-600/20 border border-blue-500/30 text-blue-400'
               }`}>
-                <GraduationCap size={32} />
+                <GraduationCap size={28} />
               </div>
-              <span className={`mt-4 inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-                isLight ? 'bg-blue-50 border border-blue-200 text-blue-800' : 'bg-white/5 border border-white/10 text-slate-300'
+              <span className={`mt-4 inline-block rounded px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                isLight ? 'bg-blue-100 border border-blue-300 text-blue-900' : 'bg-blue-500/20 border border-blue-500/40 text-blue-300'
               }`}>
                 Class 10 CBSE &amp; State Boards
               </span>
-              <h2 className={`mt-3 font-serif italic text-2xl sm:text-3xl ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h2 className={`mt-3 font-mono font-bold text-2xl sm:text-3xl ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 Upcoming in Future
               </h2>
-              <p className={`mx-auto mt-2 max-w-lg text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`mx-auto mt-2 max-w-lg text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 Full-length Board Exam Mock Tests, Chemistry timed question papers, and Chapter Drills for Class 10 will be available in future releases.
               </p>
-
-              <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'}`}>
-                  <span className={`text-xs font-bold uppercase ${isLight ? 'text-blue-700' : 'text-blue-400'}`}>Module 1</span>
-                  <h4 className={`mt-1 font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Physics &amp; Light</h4>
-                  <p className={`mt-1 text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Upcoming in future</p>
-                </div>
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'}`}>
-                  <span className={`text-xs font-bold uppercase ${isLight ? 'text-blue-700' : 'text-blue-400'}`}>Module 2</span>
-                  <h4 className={`mt-1 font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Chemistry Drills</h4>
-                  <p className={`mt-1 text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Upcoming in future</p>
-                </div>
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'}`}>
-                  <span className={`text-xs font-bold uppercase ${isLight ? 'text-blue-700' : 'text-blue-400'}`}>Module 3</span>
-                  <h4 className={`mt-1 font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Life Processes</h4>
-                  <p className={`mt-1 text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Upcoming in future</p>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -1244,43 +782,25 @@ export default function ChapterTestsPage({
         {/* CONTENT FOR CLASS 9 SECTION */}
         {selectedCategory === 'class9' && (
           <div className="animate-fade-in space-y-6">
-            <div className={`rounded-3xl border p-8 text-center sm:p-12 ${
-              isLight ? 'border-slate-200 bg-white text-slate-800 shadow-sm' : 'border-white/10 bg-[#0B0F19] text-white shadow-xl'
+            <div className={`rounded-2xl border p-8 text-center sm:p-12 font-mono ${
+              isLight ? 'border-slate-300 bg-white text-slate-800 shadow-sm' : 'border-blue-900/40 bg-[#080D1A] text-white shadow-xl'
             }`}>
-              <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${
+              <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-xl ${
                 isLight ? 'bg-slate-100 border border-slate-200 text-slate-700' : 'bg-white/5 border border-white/10 text-slate-300'
               }`}>
-                <Layers size={32} />
+                <Layers size={28} />
               </div>
-              <span className={`mt-4 inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-                isLight ? 'bg-slate-100 border border-slate-200 text-slate-700' : 'bg-white/5 border border-white/10 text-slate-300'
+              <span className={`mt-4 inline-block rounded px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                isLight ? 'bg-slate-100 border border-slate-300 text-slate-700' : 'bg-white/5 border border-white/10 text-slate-300'
               }`}>
                 Class 9 Foundation
               </span>
-              <h2 className={`mt-3 font-serif italic text-2xl sm:text-3xl ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h2 className={`mt-3 font-mono font-bold text-2xl sm:text-3xl ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 Upcoming in Future
               </h2>
-              <p className={`mx-auto mt-2 max-w-lg text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`mx-auto mt-2 max-w-lg text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 Class 9 Foundation Science and Mathematics assessment modules are scheduled for upcoming future updates.
               </p>
-
-              <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'}`}>
-                  <span className={`text-xs font-bold uppercase ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Physics</span>
-                  <h4 className={`mt-1 font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Motion &amp; Force</h4>
-                  <p className={`mt-1 text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Upcoming in future</p>
-                </div>
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'}`}>
-                  <span className={`text-xs font-bold uppercase ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Chemistry</span>
-                  <h4 className={`mt-1 font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Matter &amp; Atoms</h4>
-                  <p className={`mt-1 text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Upcoming in future</p>
-                </div>
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'}`}>
-                  <span className={`text-xs font-bold uppercase ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Biology</span>
-                  <h4 className={`mt-1 font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Cell &amp; Tissues</h4>
-                  <p className={`mt-1 text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Upcoming in future</p>
-                </div>
-              </div>
             </div>
           </div>
         )}
@@ -1288,43 +808,25 @@ export default function ChapterTestsPage({
         {/* CONTENT FOR CLASS 8 SECTION */}
         {selectedCategory === 'class8' && (
           <div className="animate-fade-in space-y-6">
-            <div className={`rounded-3xl border p-8 text-center sm:p-12 ${
-              isLight ? 'border-slate-200 bg-white text-slate-800 shadow-sm' : 'border-white/10 bg-[#0B0F19] text-white shadow-xl'
+            <div className={`rounded-2xl border p-8 text-center sm:p-12 font-mono ${
+              isLight ? 'border-slate-300 bg-white text-slate-800 shadow-sm' : 'border-blue-900/40 bg-[#080D1A] text-white shadow-xl'
             }`}>
-              <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-2xl ${
+              <div className={`mx-auto flex h-14 w-14 items-center justify-center rounded-xl ${
                 isLight ? 'bg-slate-100 border border-slate-200 text-slate-700' : 'bg-white/5 border border-white/10 text-slate-300'
               }`}>
-                <BookOpen size={32} />
+                <BookOpen size={28} />
               </div>
-              <span className={`mt-4 inline-block rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-                isLight ? 'bg-slate-100 border border-slate-200 text-slate-700' : 'bg-white/5 border border-white/10 text-slate-300'
+              <span className={`mt-4 inline-block rounded px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                isLight ? 'bg-slate-100 border border-slate-300 text-slate-700' : 'bg-white/5 border border-white/10 text-slate-300'
               }`}>
                 Class 8 Junior Foundation
               </span>
-              <h2 className={`mt-3 font-serif italic text-2xl sm:text-3xl ${isLight ? 'text-slate-900' : 'text-white'}`}>
+              <h2 className={`mt-3 font-mono font-bold text-2xl sm:text-3xl ${isLight ? 'text-slate-900' : 'text-white'}`}>
                 Upcoming in Future
               </h2>
-              <p className={`mx-auto mt-2 max-w-lg text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+              <p className={`mx-auto mt-2 max-w-lg text-xs sm:text-sm ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
                 Junior Olympiad and Foundation curriculum for Class 8 students will be launching in the upcoming updates.
               </p>
-
-              <div className="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-4 text-left sm:grid-cols-3">
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'}`}>
-                  <span className={`text-xs font-bold uppercase ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Science</span>
-                  <h4 className={`mt-1 font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Force &amp; Pressure</h4>
-                  <p className={`mt-1 text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Upcoming in future</p>
-                </div>
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'}`}>
-                  <span className={`text-xs font-bold uppercase ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Science</span>
-                  <h4 className={`mt-1 font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Chemical Effects</h4>
-                  <p className={`mt-1 text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Upcoming in future</p>
-                </div>
-                <div className={`rounded-2xl border p-4 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-[#070A12]'}`}>
-                  <span className={`text-xs font-bold uppercase ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>Math</span>
-                  <h4 className={`mt-1 font-bold ${isLight ? 'text-slate-900' : 'text-white'}`}>Linear Equations</h4>
-                  <p className={`mt-1 text-xs ${isLight ? 'text-slate-500' : 'text-slate-500'}`}>Upcoming in future</p>
-                </div>
-              </div>
             </div>
           </div>
         )}

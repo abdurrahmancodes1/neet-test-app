@@ -18,7 +18,7 @@ const STATUS_COLORS = {
   Unattempted: '#93C5FD',
 };
 
-export function ScoreDonut({ correct, wrong, unattempted }) {
+export function ScoreDonut({ correct, wrong, unattempted, heightClass = 'h-36 sm:h-40' }) {
   const data = [
     { name: 'Correct', value: correct },
     { name: 'Wrong', value: wrong },
@@ -26,11 +26,11 @@ export function ScoreDonut({ correct, wrong, unattempted }) {
   ].filter((d) => d.value > 0);
 
   if (data.length === 0) {
-    return <p className="py-8 text-center text-sm text-ink-400">No data to display.</p>;
+    return <p className="py-4 text-center text-xs text-ink-400">No data to display.</p>;
   }
 
   return (
-    <div className="h-56 w-full">
+    <div className={`${heightClass} w-full`}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie

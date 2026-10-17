@@ -404,12 +404,12 @@ export default function ResultPage({
           isLight ? 'border-slate-200 bg-white/95 text-slate-900 shadow-sm' : 'border-white/10 bg-[#0D121F]/90 text-white'
         }`}
       >
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3.5">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs shadow-glow">
-              <Zap size={14} className="fill-white text-white" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white font-bold text-xs shadow-md">
+              <Zap size={13} className="fill-white text-white" />
             </div>
-            <p className={`text-xs sm:text-sm font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
+            <p className={`text-xs sm:text-sm font-mono font-bold tracking-tight ${isLight ? 'text-slate-900' : 'text-white'}`}>
               {testTitle} — Performance Report
             </p>
           </div>
@@ -420,7 +420,7 @@ export default function ResultPage({
               <button
                 type="button"
                 onClick={onGoToDashboard}
-                className="rounded-full bg-blue-600 hover:bg-blue-500 text-white px-3.5 sm:px-4 py-1.5 text-xs font-bold shadow-lg shadow-blue-600/25 transition flex items-center gap-1"
+                className="rounded-lg bg-blue-600 hover:bg-blue-500 text-white px-3 sm:px-3.5 py-1 text-xs font-mono font-bold shadow-sm transition flex items-center gap-1"
               >
                 <span>My Dashboard</span>
                 <ChevronRight size={13} />
@@ -430,18 +430,18 @@ export default function ResultPage({
               <button
                 type="button"
                 onClick={onBackToChapters}
-                className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition flex items-center gap-1 ${
+                className={`rounded-lg border px-2.5 py-1 text-xs font-mono font-semibold transition flex items-center gap-1 ${
                   isLight
-                    ? 'border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700'
-                    : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
+                    ? 'border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    : 'border-blue-900/40 bg-white/5 hover:bg-white/10 text-slate-300'
                 }`}
               >
-                <ArrowLeft size={13} />
+                <ArrowLeft size={12} />
                 <span>All Tests</span>
               </button>
             )}
             {session?.autoSubmitted && (
-              <span className="rounded-full bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 text-[11px] font-semibold text-amber-300">
+              <span className="rounded bg-amber-500/15 border border-amber-500/30 px-2 py-0.5 text-[10px] font-mono font-semibold text-amber-300">
                 Auto-submitted
               </span>
             )}
@@ -449,20 +449,20 @@ export default function ResultPage({
         </div>
       </header>
 
-      <div className="mx-auto max-w-4xl px-4 pt-6 space-y-6 relative z-10">
+      <div className="mx-auto max-w-6xl px-3 sm:px-4 pt-3 space-y-3 relative z-10">
         {/* Tab Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-0.5">
           {TABS.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
-              className={`whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold transition ${
+              className={`whitespace-nowrap rounded-lg border px-3.5 py-1.5 text-xs font-mono font-bold uppercase tracking-wider transition ${
                 tab === t.key
-                  ? 'border-blue-500 bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                  ? 'border-blue-500 bg-blue-600 text-white shadow-md shadow-blue-600/20'
                   : isLight
-                    ? 'border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 shadow-xs'
-                    : 'border-white/10 bg-[#0B0F19] text-slate-400 hover:border-white/20 hover:text-white'
+                    ? 'border-slate-300 bg-white text-slate-700 hover:bg-slate-100 shadow-xs'
+                    : 'border-blue-900/40 bg-[#080D1A] text-slate-400 hover:border-blue-700 hover:text-white'
               }`}
             >
               {t.label}
@@ -471,45 +471,49 @@ export default function ResultPage({
         </div>
 
         {tab === 'overview' && (
-          <div className="space-y-6">
-            <ResultSummary
-              result={result}
-              timeTakenLabel={timeTakenLabel}
-              avgTimeLabel={avgTimeLabel}
-              testTitle={testTitle}
-              testSubtitle={testSubtitle}
-            />
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 items-stretch">
+              <ResultSummary
+                result={result}
+                timeTakenLabel={timeTakenLabel}
+                avgTimeLabel={avgTimeLabel}
+                testTitle={testTitle}
+                testSubtitle={testSubtitle}
+              />
 
-            {/* NEET / JEE Score & AIR Rank Projector */}
-            {String(activeTestId).toLowerCase().includes('jee') ||
-            String(testTitle).toLowerCase().includes('jee') ||
-            String(activeTestId).toLowerCase().includes('periodic') ? (
-              <JeeScorePredictorCard
-                testId={activeTestId}
-                score={result.score}
-                maxScore={result.maxScore}
-                accuracy={result.accuracy}
-                correct={result.correct}
-                wrong={result.wrong}
-              />
-            ) : (
-              <NeetScorePredictorCard
-                testId={activeTestId}
-                score={result.score}
-                maxScore={result.maxScore}
-                accuracy={result.accuracy}
-                correct={result.correct}
-                wrong={result.wrong}
-              />
-            )}
-            <div className="flex flex-col gap-3 sm:flex-row">
+              {/* NEET / JEE Score & AIR Rank Projector */}
+              {String(activeTestId).toLowerCase().includes('jee') ||
+              String(testTitle).toLowerCase().includes('jee') ||
+              String(activeTestId).toLowerCase().includes('periodic') ? (
+                <JeeScorePredictorCard
+                  testId={activeTestId}
+                  score={result.score}
+                  maxScore={result.maxScore}
+                  accuracy={result.accuracy}
+                  correct={result.correct}
+                  wrong={result.wrong}
+                />
+              ) : (
+                <NeetScorePredictorCard
+                  testId={activeTestId}
+                  score={result.score}
+                  maxScore={result.maxScore}
+                  accuracy={result.accuracy}
+                  correct={result.correct}
+                  wrong={result.wrong}
+                />
+              )}
+            </div>
+
+            {/* Quick Action Navigation Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 font-mono">
               <button
                 type="button"
                 onClick={() => setTab('review')}
-                className={`flex-1 rounded-full border py-3 text-xs font-semibold transition ${
+                className={`flex-1 rounded-lg border py-2.5 px-3 text-xs font-mono font-bold uppercase tracking-wider transition ${
                   isLight
-                    ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-xs'
-                    : 'border-white/10 bg-[#0B0F19] hover:bg-[#131926] text-slate-200'
+                    ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800 shadow-xs'
+                    : 'border-blue-900/50 bg-[#080D1A] hover:bg-[#0E152A] text-slate-200'
                 }`}
               >
                 Review Answers &amp; Solutions
@@ -517,10 +521,10 @@ export default function ResultPage({
               <button
                 type="button"
                 onClick={() => setTab('analysis')}
-                className={`flex-1 rounded-full border py-3 text-xs font-semibold transition ${
+                className={`flex-1 rounded-lg border py-2.5 px-3 text-xs font-mono font-bold uppercase tracking-wider transition ${
                   isLight
-                    ? 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800 shadow-xs'
-                    : 'border-white/10 bg-[#0B0F19] hover:bg-[#131926] text-slate-200'
+                    ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800 shadow-xs'
+                    : 'border-blue-900/50 bg-[#080D1A] hover:bg-[#0E152A] text-slate-200'
                 }`}
               >
                 View Topic Analysis
@@ -529,21 +533,21 @@ export default function ResultPage({
                 <button
                   type="button"
                   onClick={onGoToDashboard}
-                  className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-full border py-3 text-xs font-bold transition ${
+                  className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border py-2.5 px-3 text-xs font-mono font-bold uppercase tracking-wider transition ${
                     isLight
-                      ? 'border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 shadow-xs'
+                      ? 'border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-900 shadow-xs'
                       : 'border-blue-500/30 bg-blue-600/15 hover:bg-blue-600/25 text-blue-300'
                   }`}
                 >
-                  Attempt Comparison
+                  My Dashboard
                 </button>
               )}
               <button
                 type="button"
                 onClick={() => setConfirmRetake(true)}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-full bg-blue-600 hover:bg-blue-500 py-3 text-xs font-bold text-white shadow-lg shadow-blue-600/25 transition active:scale-95"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 py-2.5 px-3 text-xs font-mono font-bold uppercase tracking-wider text-white shadow-md shadow-blue-600/20 transition active:scale-95"
               >
-                <RotateCcw size={14} />
+                <RotateCcw size={13} />
                 Retake Test
               </button>
             </div>
