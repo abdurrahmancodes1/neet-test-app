@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight, Loader2 } from 'lucide-react';
+import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
 import { formatDuration, computeResult } from '../utils/scoring.js';
+import { getUserAttempts, getCurrentUser } from '../utils/auth.js';
 import ResultSummary from '../components/ResultSummary.jsx';
 import TopicAnalysis from '../components/TopicAnalysis.jsx';
 import QuestionReview from '../components/QuestionReview.jsx';
@@ -23,14 +24,50 @@ export default function ResultPage({
   onGoToDashboard,
   reviewedAttempt = null,
   isSubmitting = false,
+  user = null,
 }) {
   const { theme, isLight } = useTheme();
 
   const [tab, setTab] = useState('overview');
   const [confirmRetake, setConfirmRetake] = useState(false);
 
+  const activeTestId =
+    reviewedAttempt?.testId ||
+    backendResult?.test?.id ||
+    test?.id ||
+    '';
+
+  // Fallback: check if the student has a saved attempt in localStorage or cache
+  const resolvedAttempt = useMemo(() => {
+    if (reviewedAttempt) return reviewedAttempt;
+    if (backendResult) return null;
+    const email = user?.email || getCurrentUser()?.email;
+    if (email) {
+      try {
+        const attempts = getUserAttempts(email);
+        if (session?.attemptId) {
+          const match = attempts.find(
+            (a) => (a.attemptId || a.id) === session.attemptId
+          );
+          if (match) return match;
+        }
+        const testAttempts = attempts.filter(
+          (a) => (a.testId || a.test?.id) === activeTestId
+        );
+        if (testAttempts.length > 0) {
+          return testAttempts[testAttempts.length - 1];
+        }
+      } catch (e) {
+        console.warn('Could not retrieve cached user attempt:', e);
+      }
+    }
+    return null;
+  }, [reviewedAttempt, backendResult, user?.email, session?.attemptId, activeTestId]);
+
+  const targetAttempt = reviewedAttempt || resolvedAttempt;
+
   const testTitle =
-    reviewedAttempt?.testTitle ||
+    targetAttempt?.testTitle ||
     backendResult?.test?.title ||
     test?.title ||
     'NEET Practice Test';
@@ -38,22 +75,17 @@ export default function ResultPage({
     backendResult?.test?.subtitle ||
     test?.subtitle ||
     'NEET 2027 Assessment';
-  const activeTestId =
-    reviewedAttempt?.testId ||
-    backendResult?.test?.id ||
-    test?.id ||
-    '';
 
   // Authoritative result calculation
   const result = useMemo(() => {
-    if (reviewedAttempt) {
+    if (targetAttempt) {
       let perQ = [];
-      if (Array.isArray(reviewedAttempt.perQuestion) && reviewedAttempt.perQuestion.length > 0) {
-        perQ = reviewedAttempt.perQuestion;
-      } else if (Array.isArray(reviewedAttempt.answers) && reviewedAttempt.answers.length > 0) {
-        perQ = reviewedAttempt.answers;
-      } else if (reviewedAttempt.answers && typeof reviewedAttempt.answers === 'object') {
-        const vals = Object.values(reviewedAttempt.answers);
+      if (Array.isArray(targetAttempt.perQuestion) && targetAttempt.perQuestion.length > 0) {
+        perQ = targetAttempt.perQuestion;
+      } else if (Array.isArray(targetAttempt.answers) && targetAttempt.answers.length > 0) {
+        perQ = targetAttempt.answers;
+      } else if (targetAttempt.answers && typeof targetAttempt.answers === 'object') {
+        const vals = Object.values(targetAttempt.answers);
         if (vals.length > 0 && (vals[0]?.question || vals[0]?.text || vals[0]?.questionId)) {
           perQ = vals;
         }
@@ -61,7 +93,7 @@ export default function ResultPage({
 
       if (perQ.length === 0 && test?.questions && test.questions.length > 0) {
         const computed = computeResult(
-          reviewedAttempt.answers || {},
+          targetAttempt.answers || {},
           test.questions,
           test.marksCorrect || 4,
           test.marksWrong || -1
@@ -130,18 +162,18 @@ export default function ResultPage({
       });
 
       return {
-        score: reviewedAttempt.score ?? 0,
-        rawScore: reviewedAttempt.rawScore ?? reviewedAttempt.score ?? 0,
-        maxScore: reviewedAttempt.maxScore ?? (test?.totalQuestions || normalizedPerQ.length || 60) * 4,
-        percentage: reviewedAttempt.percentage ?? 0,
-        accuracy: reviewedAttempt.accuracy ?? 0,
-        correct: reviewedAttempt.correct ?? reviewedAttempt.correctCount ?? 0,
-        wrong: reviewedAttempt.wrong ?? reviewedAttempt.wrongCount ?? 0,
-        unattempted: reviewedAttempt.unattempted ?? reviewedAttempt.unattemptedCount ?? 0,
-        totalQuestions: reviewedAttempt.totalQuestions ?? normalizedPerQ.length ?? 60,
-        topicPerformance: reviewedAttempt.topicPerformance || [],
-        weakestTopics: reviewedAttempt.weakestTopics || [],
-        strongestTopics: reviewedAttempt.strongestTopics || [],
+        score: targetAttempt.score ?? 0,
+        rawScore: targetAttempt.rawScore ?? targetAttempt.score ?? 0,
+        maxScore: targetAttempt.maxScore ?? (test?.totalQuestions || normalizedPerQ.length || 60) * 4,
+        percentage: targetAttempt.percentage ?? 0,
+        accuracy: targetAttempt.accuracy ?? 0,
+        correct: targetAttempt.correct ?? targetAttempt.correctCount ?? 0,
+        wrong: targetAttempt.wrong ?? targetAttempt.wrongCount ?? 0,
+        unattempted: targetAttempt.unattempted ?? targetAttempt.unattemptedCount ?? 0,
+        totalQuestions: targetAttempt.totalQuestions ?? normalizedPerQ.length ?? 60,
+        topicPerformance: targetAttempt.topicPerformance || [],
+        weakestTopics: targetAttempt.weakestTopics || [],
+        strongestTopics: targetAttempt.strongestTopics || [],
         perQuestion: normalizedPerQ,
       };
     }
@@ -269,14 +301,14 @@ export default function ResultPage({
       totalQuestions: totalQ,
       perQuestion: [],
     };
-  }, [reviewedAttempt, backendResult, test, session?.answers]);
+  }, [targetAttempt, backendResult, test, session?.answers]);
 
-  const topics = reviewedAttempt?.topicPerformance || backendResult?.topicPerformance || result.topicPerformance || [];
-  const weakest = reviewedAttempt?.weakestTopics || backendResult?.weakestTopics || result.weakestTopics || [];
-  const strongest = reviewedAttempt?.strongestTopics || backendResult?.strongestTopics || result.strongestTopics || [];
+  const topics = targetAttempt?.topicPerformance || backendResult?.topicPerformance || result.topicPerformance || [];
+  const weakest = targetAttempt?.weakestTopics || backendResult?.weakestTopics || result.weakestTopics || [];
+  const strongest = targetAttempt?.strongestTopics || backendResult?.strongestTopics || result.strongestTopics || [];
 
-  const timeTakenMs = reviewedAttempt
-    ? reviewedAttempt.timeTakenMs || 0
+  const timeTakenMs = targetAttempt
+    ? targetAttempt.timeTakenMs || 0
     : (() => {
         const startT = backendResult?.startTime ? new Date(backendResult.startTime).getTime() : session?.startTime;
         const endT = backendResult?.submittedAt ? new Date(backendResult.submittedAt).getTime() : session?.submittedAt;
@@ -287,7 +319,7 @@ export default function ResultPage({
   const attempted = result.correct + result.wrong;
   const avgMs = attempted > 0 ? timeTakenMs / attempted : 0;
   const avgTimeLabel = attempted > 0 ? `${Math.round(avgMs / 1000)}s` : '—';
-  const isEvaluating = isSubmitting || (!reviewedAttempt && !backendResult && (!test?.questions || !test.questions[0]?.correctAnswer));
+  const isEvaluating = isSubmitting;
 
   if (isEvaluating) {
     return (
@@ -307,6 +339,45 @@ export default function ResultPage({
         </p>
         <div className="w-48 h-1.5 bg-slate-800 rounded-full overflow-hidden">
           <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 animate-[pulse_1.5s_infinite]" />
+        </div>
+      </div>
+    );
+  }
+
+  // Fallback: If no attempt was submitted or reviewed yet, render a helpful empty state
+  if (!isSubmitting && !targetAttempt && !backendResult && (!session?.answers || Object.keys(session.answers).length === 0)) {
+    return (
+      <div
+        className={`min-h-screen flex flex-col items-center justify-center p-6 text-center transition-colors ${
+          isLight ? 'bg-[#F8FAFC] text-slate-900' : 'bg-[#05070B] text-slate-100'
+        }`}
+      >
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600/10 border border-blue-500/30 text-blue-500 mb-6">
+          <AlertCircle size={32} />
+        </div>
+        <h2 className="text-xl sm:text-2xl font-black tracking-tight mb-2">
+          No Attempt Data Recorded
+        </h2>
+        <p className={`text-xs sm:text-sm max-w-md leading-relaxed mb-6 ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
+          There is no completed attempt or pending evaluation for this assessment. You can begin a new attempt now or return to your dashboard.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={onGoToDashboard}
+            className={`rounded-xl px-5 py-2.5 text-xs font-bold transition border ${
+              isLight ? 'border-slate-300 bg-white hover:bg-slate-50 text-slate-800' : 'border-white/10 bg-white/5 hover:bg-white/10 text-white'
+            }`}
+          >
+            Go to Dashboard
+          </button>
+          <button
+            type="button"
+            onClick={onRetake}
+            className="rounded-xl bg-blue-600 hover:bg-blue-500 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-600/25 transition active:scale-95"
+          >
+            Take Test Instructions
+          </button>
         </div>
       </div>
     );
@@ -484,7 +555,7 @@ export default function ResultPage({
         {tab === 'review' && (
           <QuestionReview
             perQuestion={result.perQuestion}
-            markedForReview={session?.markedForReview || reviewedAttempt?.markedForReview || []}
+            markedForReview={session?.markedForReview || targetAttempt?.markedForReview || []}
             questions={test?.questions && test.questions.length > 0 ? test.questions : result.perQuestion}
           />
         )}

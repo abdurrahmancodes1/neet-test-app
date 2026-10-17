@@ -5,6 +5,7 @@ import {
   saveSession,
   clearSession,
   freshSession,
+  defaultSession,
   syncLiveSessionToBackend,
   fetchLiveSessionFromBackend,
   clearLiveSessionFromBackend,
@@ -337,12 +338,23 @@ export default function App() {
         }
       }
 
-      setSession(s);
-      if (s.state === 'IN_PROGRESS') {
+      // Check if session is actively in-progress and within time limit
+      const isLiveActive =
+        s.state === 'IN_PROGRESS' &&
+        (!s.endTime || Date.now() < s.endTime);
+
+      if (isLiveActive && !forceFresh) {
+        setSession(s);
         setScreen('test');
-      } else if (s.state === 'SUBMITTED' && !forceFresh) {
-        setScreen('result');
       } else {
+        // Candidate is opening the test to take it (or re-attempt it).
+        // Clear any old/submitted/expired session so fresh attempt can be configured cleanly
+        if (s.state === 'SUBMITTED' || (s.state === 'IN_PROGRESS' && s.endTime && Date.now() >= s.endTime)) {
+          clearSession(selectedId);
+          s = defaultSession(selectedId);
+          saveSession(s, selectedId);
+        }
+        setSession(s);
         setScreen('instructions');
       }
     },
@@ -769,6 +781,7 @@ export default function App() {
         onGoToDashboard={handleGoToDashboard}
         reviewedAttempt={reviewedAttempt}
         isSubmitting={isSubmittingTest}
+        user={currentUser}
       />
     </>
   );

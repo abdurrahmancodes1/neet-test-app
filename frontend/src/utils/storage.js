@@ -8,7 +8,7 @@ const getStorageKey = (testId) => {
   return `neet-session-${testId}-v1`;
 };
 
-const defaultSession = (testId = 'laws-of-motion') => ({
+export const defaultSession = (testId = 'laws-of-motion') => ({
   testId,
   state: 'NOT_STARTED', // NOT_STARTED | IN_PROGRESS | SUBMITTED
   attemptId: null,
