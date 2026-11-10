@@ -12,8 +12,10 @@ import {
   AlertCircle,
   Timer,
   Sparkles,
+  Share2,
 } from 'lucide-react';
 import { useTheme } from '../utils/themeContext.jsx';
+import ShareTestModal from '../components/ShareTestModal.jsx';
 
 export default function TestInstructionsPage({ test, onBack, onStart }) {
   // Global theme
@@ -37,6 +39,7 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
   const [durationInput, setDurationInput] = useState(
     String(Math.min(maxDuration, Math.max(minDuration, defaultDuration)))
   );
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const title = test?.title || 'NEET 2027 Practice Test';
   const badge = test?.subject ? `${test.subject}` : 'Physics · NEET 2027';
@@ -146,6 +149,19 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
             }`}
           >
             <ArrowLeft size={14} /> Back to Dashboard
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShareModalOpen(true)}
+            className={`inline-flex items-center gap-1.5 text-xs font-mono font-bold transition rounded-full border px-4 py-2 ${
+              isLight
+                ? 'border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100'
+                : 'border-blue-500/30 bg-blue-600/15 text-blue-300 hover:bg-blue-600/25'
+            }`}
+          >
+            <Share2 size={13} />
+            <span>Share Test</span>
           </button>
         </div>
 
@@ -373,6 +389,13 @@ export default function TestInstructionsPage({ test, onBack, onStart }) {
             </button>
           </div>
         </section>
+
+        {/* Share Test Modal */}
+        <ShareTestModal
+          open={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          test={test}
+        />
       </div>
     </main>
   );

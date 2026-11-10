@@ -38,9 +38,23 @@ import { NEET_2026_CORE_TEST, NEET_2026_CORE_QUESTIONS } from '../data/neet2026C
 import { NEET_CALCULUS_TEST, NEET_CALCULUS_QUESTIONS } from '../data/neetCalculusTest.js';
 import { JEE_2027_PERIODIC_TEST, JEE_2027_PERIODIC_QUESTIONS } from '../data/jee2027PeriodicTableTest.js';
 import { JEE_2027_CHEMICAL_BONDING_TEST, JEE_2027_CHEMICAL_BONDING_QUESTIONS } from '../data/jee2027ChemicalBondingTest.js';
+import { JEE_2027_THERMO_PART1_TEST, JEE_2027_THERMO_PART1_QUESTIONS } from '../data/jee2027ThermodynamicsPart1Test.js';
+import { JEE_2027_THERMO_PART2_TEST, JEE_2027_THERMO_PART2_QUESTIONS } from '../data/jee2027ThermodynamicsPart2Test.js';
 
 // Central registry of all test suites with all possible alias keys
 const ALL_TEST_DATA = {
+  // JEE 2027: Thermodynamics Part 1 (25 Qs)
+  [JEE_2027_THERMO_PART1_TEST.id]: { test: JEE_2027_THERMO_PART1_TEST, questions: JEE_2027_THERMO_PART1_QUESTIONS },
+  'jee-2027-thermodynamics-part-1': { test: JEE_2027_THERMO_PART1_TEST, questions: JEE_2027_THERMO_PART1_QUESTIONS },
+  'jee-thermodynamics-part-1': { test: JEE_2027_THERMO_PART1_TEST, questions: JEE_2027_THERMO_PART1_QUESTIONS },
+  'thermodynamics-part-1': { test: JEE_2027_THERMO_PART1_TEST, questions: JEE_2027_THERMO_PART1_QUESTIONS },
+
+  // JEE 2027: Thermodynamics Part 2 (25 Qs)
+  [JEE_2027_THERMO_PART2_TEST.id]: { test: JEE_2027_THERMO_PART2_TEST, questions: JEE_2027_THERMO_PART2_QUESTIONS },
+  'jee-2027-thermodynamics-part-2': { test: JEE_2027_THERMO_PART2_TEST, questions: JEE_2027_THERMO_PART2_QUESTIONS },
+  'jee-thermodynamics-part-2': { test: JEE_2027_THERMO_PART2_TEST, questions: JEE_2027_THERMO_PART2_QUESTIONS },
+  'thermodynamics-part-2': { test: JEE_2027_THERMO_PART2_TEST, questions: JEE_2027_THERMO_PART2_QUESTIONS },
+
   // JEE 2027: Chemical Bonding and Molecular Structure (42 Qs)
   [JEE_2027_CHEMICAL_BONDING_TEST.id]: { test: JEE_2027_CHEMICAL_BONDING_TEST, questions: JEE_2027_CHEMICAL_BONDING_QUESTIONS },
   'jee-2027-chemical-bonding-and-molecular-structure': { test: JEE_2027_CHEMICAL_BONDING_TEST, questions: JEE_2027_CHEMICAL_BONDING_QUESTIONS },

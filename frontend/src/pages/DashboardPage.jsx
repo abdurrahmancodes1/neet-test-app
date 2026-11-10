@@ -115,7 +115,7 @@ export default function DashboardPage({
     }
   };
 
-  const totalPlatformTestCount = 9 + Object.keys(platformTests || {}).length;
+  const totalPlatformTestCount = 11 + Object.keys(platformTests || {}).length;
 
   return (
     <main

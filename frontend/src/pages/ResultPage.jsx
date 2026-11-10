@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight, Loader2, AlertCircle } from 'lucide-react';
+import { RotateCcw, Zap, ArrowLeft, CheckCircle2, BarChart3, ChevronRight, Loader2, AlertCircle, Share2 } from 'lucide-react';
 import { formatDuration, computeResult } from '../utils/scoring.js';
 import { getUserAttempts, getCurrentUser } from '../utils/auth.js';
 import ResultSummary from '../components/ResultSummary.jsx';
@@ -7,6 +7,7 @@ import TopicAnalysis from '../components/TopicAnalysis.jsx';
 import QuestionReview from '../components/QuestionReview.jsx';
 import NeetScorePredictorCard from '../components/NeetScorePredictorCard.jsx';
 import JeeScorePredictorCard from '../components/JeeScorePredictorCard.jsx';
+import ShareTestModal from '../components/ShareTestModal.jsx';
 import { useTheme } from '../utils/themeContext.jsx';
 
 const TABS = [
@@ -30,6 +31,7 @@ export default function ResultPage({
 
   const [tab, setTab] = useState('overview');
   const [confirmRetake, setConfirmRetake] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const activeTestId =
     reviewedAttempt?.testId ||
@@ -415,6 +417,19 @@ export default function ResultPage({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShareModalOpen(true)}
+              className={`rounded-lg border px-2.5 py-1 text-xs font-mono font-bold transition flex items-center gap-1.5 ${
+                isLight
+                  ? 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800'
+                  : 'border-emerald-500/40 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300'
+              }`}
+              title="Share Test & Scorecard"
+            >
+              <Share2 size={12} />
+              <span>Share Scorecard</span>
+            </button>
 
             {onGoToDashboard && (
               <button
@@ -529,6 +544,18 @@ export default function ResultPage({
               >
                 View Topic Analysis
               </button>
+              <button
+                type="button"
+                onClick={() => setShareModalOpen(true)}
+                className={`flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg border py-2.5 px-3 text-xs font-mono font-bold uppercase tracking-wider transition ${
+                  isLight
+                    ? 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 shadow-xs'
+                    : 'border-emerald-500/30 bg-emerald-600/15 hover:bg-emerald-600/25 text-emerald-300'
+                }`}
+              >
+                <Share2 size={13} />
+                <span>Share Scorecard</span>
+              </button>
               {onGoToDashboard && (
                 <button
                   type="button"
@@ -609,6 +636,13 @@ export default function ResultPage({
           </div>
         </div>
       )}
+      {/* Share Test & Scorecard Modal */}
+      <ShareTestModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        test={test || { id: activeTestId, title: testTitle, totalQuestions: result.perQuestion?.length || 25, durationMinutes: 60 }}
+        result={result}
+      />
     </div>
   );
 }

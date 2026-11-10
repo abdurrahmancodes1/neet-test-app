@@ -99,9 +99,15 @@ export default function AuthPage({ onAuthSuccess }) {
           <p className={`text-xs font-normal ${isLight ? 'text-slate-600' : 'text-slate-400'}`}>
             {isRegister
               ? 'Register to sync your scores to cloud database and view global candidate rankings.'
-              : 'Sign in to access your dashboard, 2-hour examination & comparative analytics.'}
+              : 'Sign in to access your dashboard, examination drills & comparative analytics.'}
           </p>
         </div>
+
+        {typeof window !== 'undefined' && window.sessionStorage?.getItem('pending_shared_test_id') && (
+          <div className="rounded-2xl border border-blue-500/40 bg-blue-500/10 p-3.5 text-center text-xs font-mono text-blue-300 shadow-md">
+            🎯 You were invited to attempt a shared CBT mock test! Sign in or use Instant Demo to begin your examination.
+          </div>
+        )}
 
         {/* Card Box */}
         <section

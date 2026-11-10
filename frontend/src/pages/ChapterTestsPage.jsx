@@ -14,11 +14,13 @@ import {
   Filter,
   Circle,
   RotateCcw,
+  Share2,
 } from 'lucide-react';
 import { useTheme } from '../utils/themeContext.jsx';
 import { getUserAttempts, fetchServerAttempts } from '../utils/auth.js';
 import Navbar from '../components/Navbar.jsx';
 import GlobalLeaderboardModal from '../components/GlobalLeaderboardModal.jsx';
+import ShareTestModal from '../components/ShareTestModal.jsx';
 import { NEET_CALCULUS_TEST } from '../data/neetCalculusTest.js';
 import { NEET_2026_CORE_TEST } from '../data/neet2026CoreTopicsTest.js';
 import { NEET_ROUND_1_TEST } from '../data/neetMegaRound1MechanicsTest.js';
@@ -28,8 +30,12 @@ import { NEET_BIOLOGY_TEST } from '../data/neetBiologyCoreTest.js';
 import { NEET_MECHANICS_BONDING_TEST } from '../data/neetMechanicsBondingTest.js';
 import { JEE_2027_PERIODIC_TEST } from '../data/jee2027PeriodicTableTest.js';
 import { JEE_2027_CHEMICAL_BONDING_TEST } from '../data/jee2027ChemicalBondingTest.js';
+import { JEE_2027_THERMO_PART1_TEST } from '../data/jee2027ThermodynamicsPart1Test.js';
+import { JEE_2027_THERMO_PART2_TEST } from '../data/jee2027ThermodynamicsPart2Test.js';
 
 const KNOWN_RELEASE_TIMESTAMPS = {
+  'jee-2027-thermodynamics-part-2': new Date('2026-11-10T12:00:00Z').getTime(),
+  'jee-2027-thermodynamics-part-1': new Date('2026-11-10T10:00:00Z').getTime(),
   'jee-2027-chemical-bonding-and-molecular-structure': new Date('2026-10-15T18:00:00Z').getTime(),
   'jee-2027-periodic-properties-mastery-drill': new Date('2026-10-10T12:00:00Z').getTime(),
   'neet-2027-grand-mega-cbt-drill': new Date('2026-10-08T10:00:00Z').getTime(),
@@ -125,6 +131,7 @@ function PlatformTestCard({
   test,
   isLight,
   onSelect,
+  onShare,
   isJee = false,
   attemptStats = { hasAttempted: false, attemptsCount: 0, bestScore: 0, bestPercentage: 0 },
   releaseDateFormatted = 'Recent',
@@ -261,27 +268,43 @@ function PlatformTestCard({
         </div>
 
         <div className="shrink-0 flex flex-col items-stretch lg:items-end gap-2">
-          <button
-            type="button"
-            onClick={() => onSelect(test.slug || test.id || test._id)}
-            className={`flex items-center justify-center gap-2 rounded-lg px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-md transition active:scale-95 ${
-              isJee
-                ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
-                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'
-            }`}
-          >
-            {attemptStats.hasAttempted ? (
-              <>
-                <RotateCcw size={14} />
-                <span>Retake Examination</span>
-              </>
-            ) : (
-              <>
-                <span>Start Examination</span>
-                <ArrowRight size={14} />
-              </>
-            )}
-          </button>
+          <div className="flex items-center gap-2 w-full lg:w-auto">
+            <button
+              type="button"
+              onClick={() => onShare && onShare(test)}
+              className={`flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-3 font-mono text-xs font-semibold uppercase tracking-wider transition ${
+                isLight
+                  ? 'border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700'
+                  : 'border border-blue-900/50 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white'
+              }`}
+              title="Share Test Link"
+            >
+              <Share2 size={13} />
+              <span className="hidden sm:inline">Share</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onSelect(test.slug || test.id || test._id)}
+              className={`flex-1 lg:flex-initial flex items-center justify-center gap-2 rounded-lg px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider text-white shadow-md transition active:scale-95 ${
+                isJee
+                  ? 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
+                  : 'bg-blue-600 hover:bg-blue-500 shadow-blue-600/20'
+              }`}
+            >
+              {attemptStats.hasAttempted ? (
+                <>
+                  <RotateCcw size={14} />
+                  <span>Retake</span>
+                </>
+              ) : (
+                <>
+                  <span>Start Examination</span>
+                  <ArrowRight size={14} />
+                </>
+              )}
+            </button>
+          </div>
           {attemptStats.hasAttempted && (
             <span className="text-[10px] font-mono text-center lg:text-right text-slate-400">
               Last Attempt: {attemptStats.latestDate ? formatReleaseDate(attemptStats.latestDate) : 'Recorded'}
@@ -307,6 +330,7 @@ export default function ChapterTestsPage({
   const [selectedCategory, setSelectedCategory] = useState('neet'); // 'neet' | 'jee' | 'class10' | 'class9' | 'class8'
   const [attemptFilter, setAttemptFilter] = useState('all'); // 'all' | 'attempted' | 'unattempted'
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
+  const [sharingTest, setSharingTest] = useState(null);
   const [userAttempts, setUserAttempts] = useState(() => getUserAttempts(user?.email || 'guest'));
 
   // Sync attempts from server on mount
@@ -342,6 +366,8 @@ export default function ChapterTestsPage({
     NEET_CALCULUS_TEST.id,
     JEE_2027_PERIODIC_TEST.id,
     JEE_2027_CHEMICAL_BONDING_TEST.id,
+    JEE_2027_THERMO_PART1_TEST.id,
+    JEE_2027_THERMO_PART2_TEST.id,
   ]);
 
   const uniquePlatformTests = allPlatformTests.filter(
@@ -396,6 +422,8 @@ export default function ChapterTestsPage({
   ];
 
   const builtinJee = [
+    JEE_2027_THERMO_PART2_TEST,
+    JEE_2027_THERMO_PART1_TEST,
     JEE_2027_CHEMICAL_BONDING_TEST,
     JEE_2027_PERIODIC_TEST,
   ];
@@ -684,6 +712,7 @@ export default function ChapterTestsPage({
                   test={test}
                   isLight={isLight}
                   onSelect={onSelect}
+                  onShare={(t) => setSharingTest(t)}
                   isJee={false}
                   attemptStats={getAttemptStatsForTest(test, userAttempts)}
                   releaseDateFormatted={formatReleaseDate(getTestReleaseTimestamp(test))}
@@ -716,6 +745,7 @@ export default function ChapterTestsPage({
                   test={test}
                   isLight={isLight}
                   onSelect={onSelect}
+                  onShare={(t) => setSharingTest(t)}
                   isJee={true}
                   attemptStats={getAttemptStatsForTest(test, userAttempts)}
                   releaseDateFormatted={formatReleaseDate(getTestReleaseTimestamp(test))}
@@ -749,6 +779,7 @@ export default function ChapterTestsPage({
                     test={test}
                     isLight={isLight}
                     onSelect={onSelect}
+                    onShare={(t) => setSharingTest(t)}
                     isJee={false}
                     attemptStats={getAttemptStatsForTest(test, userAttempts)}
                     releaseDateFormatted={formatReleaseDate(getTestReleaseTimestamp(test))}
@@ -837,6 +868,13 @@ export default function ChapterTestsPage({
           onClose={() => setLeaderboardModalOpen(false)}
           currentUserEmail={user?.email}
           isAdmin={user?.role === 'admin'}
+        />
+
+        {/* Share Test Modal */}
+        <ShareTestModal
+          open={Boolean(sharingTest)}
+          onClose={() => setSharingTest(null)}
+          test={sharingTest}
         />
       </div>
     </main>

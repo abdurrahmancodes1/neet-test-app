@@ -21,6 +21,8 @@ import { NEET_GRAND_MEGA_TEST, NEET_GRAND_MEGA_QUESTIONS } from './data/neetGran
 import { NEET_MECHANICS_BONDING_TEST, NEET_MECHANICS_BONDING_QUESTIONS } from './data/neetMechanicsBondingTest.js';
 import { JEE_2027_PERIODIC_TEST, JEE_2027_PERIODIC_QUESTIONS } from './data/jee2027PeriodicTableTest.js';
 import { JEE_2027_CHEMICAL_BONDING_TEST, JEE_2027_CHEMICAL_BONDING_QUESTIONS } from './data/jee2027ChemicalBondingTest.js';
+import { JEE_2027_THERMO_PART1_TEST, JEE_2027_THERMO_PART1_QUESTIONS } from './data/jee2027ThermodynamicsPart1Test.js';
+import { JEE_2027_THERMO_PART2_TEST, JEE_2027_THERMO_PART2_QUESTIONS } from './data/jee2027ThermodynamicsPart2Test.js';
 import AuthPage from './pages/AuthPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
@@ -33,6 +35,14 @@ import ResultPage from './pages/ResultPage.jsx';
 const ACTIVE_TEST_KEY = 'neet_active_test_id';
 
 const ALL_TESTS = {
+  [JEE_2027_THERMO_PART1_TEST.id]: {
+    ...JEE_2027_THERMO_PART1_TEST,
+    questions: JEE_2027_THERMO_PART1_QUESTIONS,
+  },
+  [JEE_2027_THERMO_PART2_TEST.id]: {
+    ...JEE_2027_THERMO_PART2_TEST,
+    questions: JEE_2027_THERMO_PART2_QUESTIONS,
+  },
   [JEE_2027_CHEMICAL_BONDING_TEST.id]: {
     ...JEE_2027_CHEMICAL_BONDING_TEST,
     questions: JEE_2027_CHEMICAL_BONDING_QUESTIONS,
@@ -142,6 +152,34 @@ export default function App() {
     fetchPlatformTests();
   }, [fetchPlatformTests, currentUser?.email]);
 
+  // Handle shared test deep-linking (?test=... or #test=...)
+  useEffect(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      let sharedTest =
+        searchParams.get('test') ||
+        searchParams.get('testId') ||
+        searchParams.get('shared');
+      if (!sharedTest && window.location.hash) {
+        const hashMatch = window.location.hash.match(/test=([^&]+)/);
+        if (hashMatch) sharedTest = hashMatch[1];
+      }
+      if (sharedTest) {
+        const cleanKey = decodeURIComponent(sharedTest).trim();
+        setTestId(cleanKey);
+        window.localStorage.setItem(ACTIVE_TEST_KEY, cleanKey);
+        const user = getCurrentUser();
+        if (user) {
+          setScreen('instructions');
+        } else {
+          window.sessionStorage?.setItem('pending_shared_test_id', cleanKey);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to parse shared test link:', err);
+    }
+  }, []);
+
   const handleCustomTestCreated = useCallback(
     (testPayload) => {
       if (!testPayload) return;
@@ -240,6 +278,18 @@ export default function App() {
 
   const handleAuthSuccess = useCallback((user) => {
     setCurrentUser(user);
+    try {
+      const pendingTest = window.sessionStorage?.getItem('pending_shared_test_id');
+      if (pendingTest) {
+        window.sessionStorage.removeItem('pending_shared_test_id');
+        setTestId(pendingTest);
+        window.localStorage.setItem(ACTIVE_TEST_KEY, pendingTest);
+        setScreen('instructions');
+        return;
+      }
+    } catch (err) {
+      console.warn('Failed to check pending test:', err);
+    }
     if (user?.role === 'admin') {
       setScreen('admin');
     } else {
